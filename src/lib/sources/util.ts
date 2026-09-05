@@ -73,7 +73,7 @@ export interface FetchOpts {
  * fetch() with a hard timeout and identifying User-Agent. Server-side only —
  * this is what lets us proxy feeds the browser can't reach and normalise them.
  */
-export async function fetchJson<T = unknown>(url: string, opts: FetchOpts = {}): Promise<T> {
+async function fetchJsonOnce<T>(url: string, opts: FetchOpts): Promise<T> {
   const { revalidate = 120, timeoutMs = 9000, headers } = opts;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -95,6 +95,25 @@ export async function fetchJson<T = unknown>(url: string, opts: FetchOpts = {}):
   }
 }
 
+/**
+ * fetch() with a hard timeout, identifying User-Agent, and a single retry.
+ * Server-side only — this is what lets us proxy feeds the browser can't reach
+ * and normalise them. A one-shot retry (short backoff) means a single upstream
+ * blip doesn't take a source dark for the whole revalidate window; 4xx client
+ * errors are not retried since they won't succeed on a second try.
+ */
+export async function fetchJson<T = unknown>(url: string, opts: FetchOpts = {}): Promise<T> {
+  try {
+    return await fetchJsonOnce<T>(url, opts);
+  } catch (err) {
+    // Don't retry client errors (4xx) — they're deterministic.
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/HTTP 4\d\d/.test(msg)) throw err;
+    await new Promise((r) => setTimeout(r, 400));
+    return fetchJsonOnce<T>(url, opts);
+  }
+}
+
 /** Nepal / central-Himalaya bounding box, reused by several sources. */
 export const NEPAL_BBOX = {
   minLat: 26,
@@ -110,6 +129,28 @@ export function inNepalBbox(lat: number, lng: number): boolean {
     lng >= NEPAL_BBOX.minLng &&
     lng <= NEPAL_BBOX.maxLng
   );
+}
+
+/**
+ * Pull a coordinate out of a BIPAD/DHM row. GeoJSON stores it as
+ * `point.coordinates = [lng, lat]`; some rows instead carry flat
+ * `latitude`/`longitude`. Sentinel readings (-9999 etc.) are rejected by
+ * `num()`, so this returns null rather than a bogus point.
+ */
+export function extractLatLng(
+  row: Record<string, unknown>,
+): { lat: number; lng: number } | null {
+  const point = row["point"] as { coordinates?: unknown } | undefined;
+  const coords = point?.coordinates;
+  if (Array.isArray(coords) && coords.length >= 2) {
+    const lng = num(coords[0]);
+    const lat = num(coords[1]);
+    if (lat !== null && lng !== null) return { lat, lng };
+  }
+  const lat = num(row["latitude"]);
+  const lng = num(row["longitude"]);
+  if (lat !== null && lng !== null) return { lat, lng };
+  return null;
 }
 
 export type { HazardType };

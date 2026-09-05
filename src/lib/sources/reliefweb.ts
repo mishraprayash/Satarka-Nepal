@@ -15,9 +15,12 @@ import { fetchJson, str } from "./util";
  *    do not squat on someone else's appname.
  */
 
-const APP = "satarka.app"; // TODO(owner): replace with a ReliefWeb-approved appname
+// ReliefWeb v2 requires an APPROVED appname (request one at apidoc.reliefweb.int).
+// Set RELIEFWEB_APPNAME in the environment; until it's an approved name the feed
+// returns 403 and we fall back to CURATED_SITUATION_REPORTS. See .env.example.
+const APP = process.env.RELIEFWEB_APPNAME ?? "satarka.app";
 const ENDPOINT =
-  `https://api.reliefweb.int/v2/reports?appname=${APP}` +
+  `https://api.reliefweb.int/v2/reports?appname=${encodeURIComponent(APP)}` +
   "&filter[field]=primary_country.iso3&filter[value]=NPL" +
   "&sort[]=date.created:desc&limit=8" +
   "&fields[include][]=title&fields[include][]=url_alias&fields[include][]=date.created&fields[include][]=source.shortname";

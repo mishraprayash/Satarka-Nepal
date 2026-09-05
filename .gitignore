@@ -34,7 +34,6 @@ next-env.d.ts
 # IDE
 .claude/
 
-# service worker (hand-rolled, committed) — keep public/sw.js tracked
-# but ignore generated caches
+# test coverage
 /coverage
 
