@@ -11,7 +11,7 @@ import type { Locale } from "@/i18n/routing";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/format";
-import { HAZARD_ORDER, SEVERITY_ORDER } from "@/lib/ui";
+import { HAZARD_ORDER, SEVERITY_ORDER, SEVERITY_CHIP, SEVERITY_TEXT } from "@/lib/ui";
 import { haversineKm, type LatLng } from "@/lib/distance";
 import { useAlerts } from "@/lib/use-alerts";
 import { AlertCard } from "@/components/alert-card";
@@ -72,6 +72,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
   const to = useTranslations("offline");
   const thome = useTranslations("home");
   const tact = useTranslations("actions");
+  const tv = useTranslations("verdict");
 
   const [searchQuery, setSearchQuery] = useState(() => searchParams?.get("q") ?? "");
   const [hazard, setHazard] = useState<HazardFilter>(() => {
@@ -211,6 +212,16 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
   const total = response.sources.length;
   const degraded = okCount < total;
   const hasActiveFilters = hazard !== "all" || severity !== "all" || searchQuery.trim().length > 0;
+
+  // Aggregate "should I act?" verdict, driven by the most severe active alert.
+  const worstSeverity = alerts.reduce<Severity | null>(
+    (worst, a) =>
+      worst === null || SEVERITY_RANK[a.severity] > SEVERITY_RANK[worst] ? a.severity : worst,
+    null,
+  );
+  const verdictKey =
+    worstSeverity && SEVERITY_RANK[worstSeverity] >= SEVERITY_RANK.watch ? worstSeverity : "none";
+  const verdictTone: Severity = verdictKey === "none" ? "info" : (verdictKey as Severity);
 
   const handleSelectAlert = useCallback((a: Alert) => {
     setSelectedAlertId(a.id);
@@ -355,6 +366,19 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
             </FilterChip>
           </fieldset>
         </div>
+      </div>
+
+      {/* Plain-language "should I act?" verdict for the current feed */}
+      <div
+        role="status"
+        className={cn("rounded-card px-4 py-3", SEVERITY_CHIP[verdictTone])}
+      >
+        <p className={cn("text-sm font-bold", SEVERITY_TEXT[verdictTone])}>
+          {tv(`${verdictKey}.title`)}
+        </p>
+        <p className="mt-0.5 text-xs leading-relaxed text-text/80">
+          {tv(`${verdictKey}.body`)}
+        </p>
       </div>
 
       {/* Result metrics bar */}

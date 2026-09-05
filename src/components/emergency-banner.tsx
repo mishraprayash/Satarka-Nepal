@@ -1,18 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 import { useAlerts } from "@/lib/use-alerts";
 import { ArrowIcon, SeverityGlyph } from "@/components/icons";
 import type { AlertsResponse } from "@/lib/types";
 
 export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse }) {
-  const locale = useLocale() as Locale;
-  const t = useTranslations("home");
   const ta = useTranslations("alerts");
+  const tb = useTranslations("emergencyBanner");
   const { response } = useAlerts(120_000, initialData);
 
   const status = useMemo(() => {
@@ -24,15 +22,9 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
     if (dangerCount > 0) {
       return {
         level: "danger" as const,
-        title:
-          locale === "ne"
-            ? `⚠️ आपतकालीन चेतावनी: ${dangerCount} स्थानमा उच्च जोखिम अलर्ट सक्रिय छ`
-            : `Critical Warning: ${dangerCount} life-threatening danger alert${dangerCount > 1 ? "s" : ""} active in Nepal`,
-        sub:
-          locale === "ne"
-            ? "स्थानीय प्रशासन र बाढी पूर्वसूचनाको निर्देशन तत्काल पालना गर्नुहोस्।"
-            : "Follow evacuation directives and warnings from local authorities immediately.",
-        badge: locale === "ne" ? "आपतकालीन" : "CRITICAL",
+        title: tb("danger.title", { count: dangerCount }),
+        sub: tb("danger.sub"),
+        badge: tb("danger.badge"),
         containerClass: "border-danger/50 bg-danger/10 text-danger",
         badgeClass: "bg-danger text-white animate-pulse",
       };
@@ -41,15 +33,9 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
     if (warningCount > 0) {
       return {
         level: "warning" as const,
-        title:
-          locale === "ne"
-            ? `सतर्कता सूचना: ${warningCount} स्थानमा जलसतह वा विपद् जोखिम चेतावनी जारी`
-            : `Active Advisory: ${warningCount} hazard warning${warningCount > 1 ? "s" : ""} active across monitored basins`,
-        sub:
-          locale === "ne"
-            ? "जोखिम क्षेत्रका नागरिकहरू सुरक्षित स्थानमा सतर्क रहनुहोस्।"
-            : "Residents in floodplains and steep slopes should exercise heightened vigilance.",
-        badge: locale === "ne" ? "सतर्कता" : "WARNING",
+        title: tb("warning.title", { count: warningCount }),
+        sub: tb("warning.sub"),
+        badge: tb("warning.badge"),
         containerClass: "border-warning/50 bg-warning/10 text-warning",
         badgeClass: "bg-warning text-white",
       };
@@ -57,25 +43,22 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
 
     return {
       level: "normal" as const,
-      title:
-        locale === "ne"
-          ? "सबै प्रत्यक्ष फिडहरू सामान्य: हाल कुनै पनि नदीमा खतराको तह पार भएको छैन"
-          : "All monitored hydrological stations & feeds operating within safe thresholds",
-      sub:
-        locale === "ne"
-          ? "मौसम र नदीको बहाव निरन्तर निगरानीमा छ।"
-          : "Real-time feeds from DHM, NDRRMA, and USGS are continuously monitored.",
-      badge: locale === "ne" ? "सामान्य" : "NORMAL",
+      title: tb("normal.title"),
+      sub: tb("normal.sub"),
+      badge: tb("normal.badge"),
       containerClass: "border-border bg-surface-2/60 text-muted",
       badgeClass: "bg-advisory-soft text-advisory border border-advisory/30",
     };
-  }, [response, locale]);
+  }, [response, tb]);
 
   if (!status) return null;
 
+  const isDanger = status.level === "danger";
+
   return (
     <aside
-      role="alert"
+      role={isDanger ? "alert" : "status"}
+      aria-live={isDanger ? "assertive" : "polite"}
       className={cn(
         "border-b transition-colors px-4 py-2.5 sm:py-3",
         status.containerClass,

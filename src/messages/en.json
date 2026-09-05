@@ -121,7 +121,35 @@
     "locationDetails": "Event Location",
     "readingsTitle": "Instrument Readouts",
     "situationTitle": "Situation Details",
-    "openFullMap": "Open in Full Map"
+    "openFullMap": "Open in Full Map",
+    "whatToDoNow": "What to do now",
+    "whatToDoNowNote": "Immediate steps for this hazard. See the full guide for before and after."
+  },
+  "verdict": {
+    "danger": {
+      "title": "Take action now",
+      "body": "A life-threatening hazard is active. Move to safety and follow official instructions immediately."
+    },
+    "warning": {
+      "title": "Be ready to act",
+      "body": "Conditions have crossed the warning level. Prepare to move and stay close to official updates."
+    },
+    "watch": {
+      "title": "Stay alert",
+      "body": "Conditions could worsen. Keep watching official sources and know your escape route."
+    },
+    "advisory": {
+      "title": "Stay aware",
+      "body": "A minor hazard is noted. No action needed yet, but stay informed."
+    },
+    "info": {
+      "title": "For your information",
+      "body": "Background information only. No action needed."
+    },
+    "none": {
+      "title": "No action needed right now",
+      "body": "No hazards above warning level from live feeds. Conditions change fast — stay prepared."
+    }
   },
   "near": {
     "promptTitle": "Near-you alerts",
@@ -214,6 +242,23 @@
     "fire": "Fire",
     "ndrrma": "NDRRMA hotline",
     "call": "Call {number}"
+  },
+  "emergencyBanner": {
+    "danger": {
+      "title": "Critical Warning: {count, plural, one {# life-threatening danger alert} other {# life-threatening danger alerts}} active in Nepal",
+      "sub": "Follow evacuation directives and warnings from local authorities immediately.",
+      "badge": "CRITICAL"
+    },
+    "warning": {
+      "title": "Active Advisory: {count, plural, one {# hazard warning} other {# hazard warnings}} active across monitored basins",
+      "sub": "Residents in floodplains and steep slopes should exercise heightened vigilance.",
+      "badge": "WARNING"
+    },
+    "normal": {
+      "title": "All monitored hydrological stations & feeds operating within safe thresholds",
+      "sub": "Real-time feeds from DHM, NDRRMA, and USGS are continuously monitored.",
+      "badge": "NORMAL"
+    }
   },
   "footer": {
     "notOfficial": "Satarka is an independent aggregation and education project. It is not an official government warning service.",
