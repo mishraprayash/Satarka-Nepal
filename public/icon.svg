@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Satarka">
+  <rect width="512" height="512" rx="116" fill="#0c6d78"/>
+  <!-- Topographic contour rings — the signature motif, encoding elevation bands -->
+  <g fill="none" stroke="#3ec6d1" stroke-opacity="0.35" stroke-width="10">
+    <path d="M256 96c74 0 132 60 132 132"/>
+    <path d="M256 140c50 0 90 40 90 90"/>
+  </g>
+  <!-- Glacier peak -->
+  <path d="M256 116 372 322H140Z" fill="#eafbff"/>
+  <path d="M256 116l40 74-30 26-34-40Z" fill="#9fe4ec"/>
+  <!-- Water below (the hazard domain) -->
+  <g fill="none" stroke="#eafbff" stroke-width="24" stroke-linecap="round">
+    <path d="M132 366q31-26 62 0t62 0 62 0"/>
+    <path d="M132 414q31-26 62 0t62 0 62 0" stroke-opacity="0.7"/>
+  </g>
+</svg>

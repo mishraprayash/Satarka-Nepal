@@ -1,0 +1,17 @@
+{
+  "name": "Satarka — Nepal Disaster Alerts & Preparedness",
+  "short_name": "Satarka",
+  "description": "Live official hazard alerts, a plain-language hazard map, and bilingual preparedness guides for Nepal.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#14151a",
+  "theme_color": "#14151a",
+  "categories": ["utilities", "education", "weather"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

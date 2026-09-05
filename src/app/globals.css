@@ -1,0 +1,322 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/*
+  Satarka design tokens.
+  Identity: cool slate/indigo (institutional, "mountain night") + a single
+  glacier-teal accent for the water/ice hazard domain. A strict severity scale
+  (info → danger) that is NEVER the only signal — always paired with an icon and
+  a word in both languages. Colour never carries meaning alone.
+
+  Type: system stacks only (zero webfont bytes — a deliberate 3G/low-end choice).
+  The signature is the "instrument" treatment: every hazard reading (magnitude,
+  water level, time-ago) is set in a tabular mono face, like a monitoring panel.
+*/
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-fg: var(--brand-fg);
+
+  --color-info: var(--sev-info-fg);
+  --color-info-soft: var(--sev-info-bg);
+  --color-advisory: var(--sev-advisory-fg);
+  --color-advisory-soft: var(--sev-advisory-bg);
+  --color-watch: var(--sev-watch-fg);
+  --color-watch-soft: var(--sev-watch-bg);
+  --color-warning: var(--sev-warning-fg);
+  --color-warning-soft: var(--sev-warning-bg);
+  --color-danger: var(--sev-danger-fg);
+  --color-danger-soft: var(--sev-danger-bg);
+  --color-danger-solid: var(--sev-danger-solid);
+
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
+  --font-deva: var(--font-deva-stack);
+
+  --radius-card: 0.75rem;
+  --radius-chip: 0.5rem;
+}
+
+:root {
+  /* Type stacks */
+  --font-sans-stack: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-mono-stack: "SF Mono", "SFMono-Regular", ui-monospace, "Cascadia Code",
+    "Roboto Mono", Menlo, Consolas, monospace;
+  --font-deva-stack: "Noto Sans Devanagari", "Mukta", "Kohinoor Devanagari",
+    "Nirmala UI", "Mangal", var(--font-sans-stack);
+
+  /* Light theme — daylight readability (outdoor / low-end screens) */
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #e6edf4;
+  --border: #d3dde8;
+  --border-strong: #b7c5d4;
+  --text: #0d1a2b;
+  --muted: #53657a;
+  --faint: #77899d;
+
+  --brand: #0c6d78;
+  --brand-strong: #084e56;
+  --brand-soft: #d3ecef;
+  --brand-fg: #ffffff;
+
+  --sev-info-fg: #35506b;
+  --sev-info-bg: #e7edf4;
+  --sev-advisory-fg: #1a7a3e;
+  --sev-advisory-bg: #dcf2e2;
+  --sev-watch-fg: #8a5900;
+  --sev-watch-bg: #fbeecc;
+  --sev-warning-fg: #a3480f;
+  --sev-warning-bg: #fbe0d0;
+  --sev-danger-fg: #b01c2b;
+  --sev-danger-bg: #fbdcdd;
+  --sev-danger-solid: #c62330;
+
+  --contour: rgba(12, 109, 120, 0.1);
+  --shadow-card: 0 1px 2px rgba(13, 26, 43, 0.06), 0 4px 16px rgba(13, 26, 43, 0.05);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  /* Dark theme — neutral charcoal: warm-neutral grays with no blue cast.
+     The single glacier-teal accent carries the water/ice identity. */
+  --bg: #14151a;
+  --surface: #1b1d23;
+  --surface-2: #24262e;
+  --border: #30333c;
+  --border-strong: #42464f;
+  --text: #eceef1;
+  --muted: #a7aab3;
+  --faint: #797d87;
+
+  --brand: #35c8d6;
+  --brand-strong: #66dae5;
+  --brand-soft: #0e3038;
+  --brand-fg: #031417;
+
+  --sev-info-fg: #aab2c0;
+  --sev-info-bg: #23262e;
+  --sev-advisory-fg: #6fd39e;
+  --sev-advisory-bg: #132f21;
+  --sev-watch-fg: #e8c25a;
+  --sev-watch-bg: #302913;
+  --sev-warning-fg: #eea36f;
+  --sev-warning-bg: #37230f;
+  --sev-danger-fg: #ff8b8e;
+  --sev-danger-bg: #3a1a1c;
+  --sev-danger-solid: #e5484d;
+
+  --contour: rgba(53, 200, 214, 0.1);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.45), 0 6px 20px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Nepali locale: route body copy through the Devanagari stack. */
+  :lang(ne) {
+    font-family: var(--font-deva);
+    line-height: 1.7;
+  }
+  :lang(ne) h1, :lang(ne) h2, :lang(ne) h3, :lang(ne) h4 {
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    font-weight: 680;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: var(--brand);
+    color: var(--brand-fg);
+  }
+  a {
+    color: inherit;
+  }
+}
+
+@layer components {
+  /* Instrument voice: hazard readings look like a monitoring panel. */
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  }
+  .shell {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 2rem);
+  }
+}
+
+/* Safe area support for modern edge-to-edge mobile devices */
+.pb-mobile-nav {
+  padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Custom compact scrollbar for drawers and lists */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Topographic contour motif — the signature. Encodes "elevation / risk bands".
+   Rendered as layered repeating strokes; muted, used only as a framing device. */
+.contour-field {
+  background-image: repeating-radial-gradient(
+    circle at var(--cx, 78%) var(--cy, 18%),
+    var(--contour) 0,
+    var(--contour) 1px,
+    transparent 1px,
+    transparent clamp(14px, 3.4vw, 30px)
+  );
+}
+
+/* Slide-over animations for responsive drawer */
+@keyframes drawerSlideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes drawerSlideInBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-drawer-right {
+  animation: drawerSlideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-drawer-bottom {
+  animation: drawerSlideInBottom 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Low-bandwidth mode: strip motion + decorative layers, keep all content. */
+[data-lowbw="true"] .contour-field {
+  background-image: none;
+}
+[data-lowbw="true"] .decor {
+  display: none !important;
+}
+
+/* ── Leaflet map theming ──────────────────────────────────────────────────── */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+}
+/* Dark mode: invert the OSM base tiles so the map matches the theme. */
+[data-theme="dark"] .leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.85);
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+}
+.leaflet-popup-content {
+  margin: 0.75rem 1rem;
+  line-height: 1.45;
+}
+.leaflet-control-zoom a {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--surface-2) !important;
+}
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--surface) 78%, transparent) !important;
+  color: var(--faint) !important;
+}
+.leaflet-control-attribution a {
+  color: var(--brand) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-lowbw="true"] * {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}
