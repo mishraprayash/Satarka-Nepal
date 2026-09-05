@@ -7,7 +7,7 @@
  * failing feed degrades the map without breaking it — and the UI can say
  * which layer is stale, instead of pretending it is current.
  */
-import { fetchJson, num, nowIso, riverLevelToSeverity, statusStringToSeverity, str } from "@/lib/sources/util";
+import { extractLatLng, fetchJson, num, nowIso, riverLevelToSeverity, statusStringToSeverity, str } from "@/lib/sources/util";
 import { BASINS, type Basin } from "./map-data/basins";
 import { GLACIAL_LAKES, type GlacialLake } from "./map-data/glacial-lakes";
 import { SEISMIC, type SeismicFeature } from "./map-data/seismic";
@@ -63,20 +63,6 @@ export interface MapDataResponse {
 
 interface Drf<T> {
   results?: T[];
-}
-
-function extractLatLng(row: Record<string, unknown>): { lat: number; lng: number } | null {
-  const point = row["point"] as { coordinates?: unknown } | undefined;
-  const coords = point?.coordinates;
-  if (Array.isArray(coords) && coords.length >= 2) {
-    const lng = num(coords[0]);
-    const lat = num(coords[1]);
-    if (lat !== null && lng !== null) return { lat, lng };
-  }
-  const lat = num(row["latitude"]);
-  const lng = num(row["longitude"]);
-  if (lat !== null && lng !== null) return { lat, lng };
-  return null;
 }
 
 /** Every monitored river gauge, not just the ones above warning. */
@@ -187,5 +173,7 @@ export async function loadMapData(): Promise<MapDataResponse> {
   };
 }
 
-/** Exposed for unit testing without the network. */
+/** Exposed for unit testing without the network. `extractLatLng` now lives in
+ * sources/util (shared with the BIPAD source) and is re-exported here so the
+ * existing test suite keeps its import path. */
 export const _internal = { extractLatLng, loadRiverGauges };

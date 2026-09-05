@@ -35,9 +35,15 @@ function sortAlerts(a: Alert, b: Alert): number {
   return Date.parse(b.issuedAt || "") - Date.parse(a.issuedAt || "");
 }
 
-/** 
+/**
  * Remove near-duplicate alerts that represent the same real-world event
  * reported by multiple sources. Keeps the higher-severity / more-trusted entry.
+ *
+ * O(n²) pairwise comparison — fine at current volume (tens of alerts). Every
+ * surviving pair is still compared, so the *result set* is order-independent;
+ * only which specific row wins a same-severity/same-trust tie depends on input
+ * order. If the feed ever grows to hundreds of alerts, switch to spatial
+ * bucketing (grid by rounded lat/lng) before this becomes a hot path.
  */
 function deduplicateAlerts(alerts: Alert[]): Alert[] {
   const STATUS_TRUST: Record<string, number> = {
@@ -99,10 +105,38 @@ function deduplicateAlerts(alerts: Alert[]): Alert[] {
   return alerts.filter((_, idx) => !dominated.has(idx));
 }
 
+/**
+ * In-memory stale-while-revalidate. NOTE: this cache is per-instance and only
+ * helps within a single warm server process — on serverless/edge each cold
+ * instance starts empty. The durable cross-request cache is Next.js's own data
+ * cache (`next: { revalidate }` on every upstream fetch, plus `export const
+ * revalidate` on the route). This layer just avoids re-running the fan-out +
+ * dedup on rapid successive hits to the same warm instance.
+ */
 let cachedSnapshot: AlertsResponse | null = null;
 let lastFetchedEpoch = 0;
 let refreshPromise: Promise<AlertsResponse> | null = null;
 const CACHE_FRESHNESS_MS = 45_000;
+
+/**
+ * Kick off a background refresh at most once at a time. Errors are swallowed on
+ * purpose: a failed background refresh must not become an unhandled rejection,
+ * and callers keep serving the last good snapshot until the next attempt.
+ */
+function startBackgroundRefresh(): Promise<AlertsResponse> {
+  if (!refreshPromise) {
+    refreshPromise = fetchFreshAlerts()
+      .catch((err) => {
+        // Keep serving the stale snapshot; log for observability only.
+        console.error("[alerts] background refresh failed:", err);
+        return cachedSnapshot ?? { generatedAt: nowIso(), sources: [], alerts: [] };
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
 
 async function fetchFreshAlerts(): Promise<AlertsResponse> {
   const fetchedAt = nowIso();
@@ -158,21 +192,12 @@ export async function loadAllAlerts(): Promise<AlertsResponse> {
 
   // If cache exists but is stale, trigger background refresh and return stale snapshot
   if (cachedSnapshot) {
-    if (!refreshPromise) {
-      refreshPromise = fetchFreshAlerts().finally(() => {
-        refreshPromise = null;
-      });
-    }
+    void startBackgroundRefresh();
     return cachedSnapshot;
   }
 
-  // Cold start
-  if (!refreshPromise) {
-    refreshPromise = fetchFreshAlerts().finally(() => {
-      refreshPromise = null;
-    });
-  }
-  return refreshPromise;
+  // Cold start — no snapshot yet, so we must await the first fetch.
+  return startBackgroundRefresh();
 }
 
 export { loadReports, RELIEFWEB_PUBLIC_URL } from "./reliefweb";

@@ -3,6 +3,7 @@ import { SEVERITY_RANK } from "@/lib/types";
 import type { SourceContext, SourceDescriptor, SourceLoadResult } from "./base";
 import { makeSourceRef } from "./base";
 import {
+  extractLatLng,
   fetchJson,
   num,
   riverLevelToSeverity,
@@ -27,21 +28,6 @@ interface Drf<T> {
 }
 
 type Row = Record<string, unknown>;
-
-/** GeoJSON stores coordinates as [lng, lat]; some rows use flat lat/lng. */
-function extractLatLng(row: Row): { lat: number; lng: number } | null {
-  const point = row["point"] as { coordinates?: unknown } | undefined;
-  const coords = point?.coordinates;
-  if (Array.isArray(coords) && coords.length >= 2) {
-    const lng = num(coords[0]);
-    const lat = num(coords[1]);
-    if (lat !== null && lng !== null) return { lat, lng };
-  }
-  const lat = num(row["latitude"]);
-  const lng = num(row["longitude"]);
-  if (lat !== null && lng !== null) return { lat, lng };
-  return null;
-}
 
 function classifyHazard(text: string): HazardType | null {
   const t = text.toLowerCase();
