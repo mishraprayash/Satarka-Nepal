@@ -7,7 +7,8 @@ import type { Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 import { timeAgo, formatDateTime } from "@/lib/format";
-import { SEVERITY_BAR } from "@/lib/ui";
+import { SEVERITY_BAR, SEVERITY_CHIP, SEVERITY_TEXT } from "@/lib/ui";
+import { LEARN_CONTENT } from "@/lib/learn-content";
 import { SeverityBadge, StatusBadge } from "@/components/badges";
 import {
   HazardGlyph,
@@ -159,6 +160,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
   const th = useTranslations("hazards");
   const talerts = useTranslations("alerts");
   const tact = useTranslations("actions");
+  const tv = useTranslations("verdict");
 
   // Prevent background scroll and close on Escape
   useEffect(() => {
@@ -198,6 +200,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
     !Number.isNaN(alert.location.lng);
 
   const readouts = getReadouts(alert);
+  const duringSteps = LEARN_CONTENT[alert.hazard].during.slice(0, 3);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden" role="presentation">
@@ -253,6 +256,16 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
 
         {/* Drawer Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 custom-scrollbar">
+          {/* Plain-language "should I act?" verdict */}
+          <div className={cn("rounded-xl px-4 py-3", SEVERITY_CHIP[alert.severity])}>
+            <p className={cn("text-sm font-bold", SEVERITY_TEXT[alert.severity])}>
+              {tv(`${alert.severity}.title`)}
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-text/80">
+              {tv(`${alert.severity}.body`)}
+            </p>
+          </div>
+
           {/* Title & place with MapPin */}
           <div className="space-y-1.5">
             <h2
@@ -332,6 +345,29 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
               <p className="eyebrow">{talerts("situationTitle")}</p>
               <div className="text-sm leading-relaxed text-muted break-words whitespace-pre-line rounded-xl border border-border/60 bg-surface-2/30 p-4">
                 {description}
+              </div>
+            </div>
+          ) : null}
+
+          {/* What to do now — act-now steps pulled from the hazard guide */}
+          {duringSteps.length > 0 ? (
+            <div className="space-y-2">
+              <p className="eyebrow">{talerts("whatToDoNow")}</p>
+              <div className="rounded-xl border border-warning/40 bg-warning-soft/30 p-4">
+                <ol className="space-y-2.5">
+                  {duringSteps.map((item, i) => (
+                    <li key={i} className="flex gap-3">
+                      <span
+                        className="tabular mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-warning text-xs font-bold text-white"
+                        aria-hidden
+                      >
+                        {i + 1}
+                      </span>
+                      <p className="text-sm leading-relaxed text-text">{loc(item, locale)}</p>
+                    </li>
+                  ))}
+                </ol>
+                <p className="mt-3 text-xs text-muted">{talerts("whatToDoNowNote")}</p>
               </div>
             </div>
           ) : null}
