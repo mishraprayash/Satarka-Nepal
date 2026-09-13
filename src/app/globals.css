@@ -258,6 +258,19 @@
 .animate-drawer-bottom {
   animation: drawerSlideInBottom 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+@keyframes modalScaleIn {
+  from {
+    transform: scale(0.96) translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+.animate-modal-center {
+  animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
 /* Low-bandwidth mode: strip motion + decorative layers, keep all content */
 [data-lowbw="true"] * {
