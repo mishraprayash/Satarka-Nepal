@@ -25,8 +25,8 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
         title: tb("danger.title", { count: dangerCount }),
         sub: tb("danger.sub"),
         badge: tb("danger.badge"),
-        containerClass: "border-danger/50 bg-danger/10 text-danger",
-        badgeClass: "bg-danger text-white animate-pulse",
+        containerClass: "border-b border-danger/30 bg-danger/10 text-danger backdrop-blur-sm",
+        badgeClass: "bg-danger text-white font-semibold",
       };
     }
 
@@ -36,8 +36,8 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
         title: tb("warning.title", { count: warningCount }),
         sub: tb("warning.sub"),
         badge: tb("warning.badge"),
-        containerClass: "border-warning/50 bg-warning/10 text-warning",
-        badgeClass: "bg-warning text-white",
+        containerClass: "border-b border-warning/30 bg-warning/10 text-warning backdrop-blur-sm",
+        badgeClass: "bg-warning text-white font-semibold",
       };
     }
 
@@ -46,8 +46,8 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
       title: tb("normal.title"),
       sub: tb("normal.sub"),
       badge: tb("normal.badge"),
-      containerClass: "border-border bg-surface-2/60 text-muted",
-      badgeClass: "bg-advisory-soft text-advisory border border-advisory/30",
+      containerClass: "border-b border-border/40 bg-surface-2/40 text-muted",
+      badgeClass: "bg-advisory-soft text-advisory border border-advisory/30 font-semibold",
     };
   }, [response, tb]);
 
@@ -60,11 +60,11 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
       role={isDanger ? "alert" : "status"}
       aria-live={isDanger ? "assertive" : "polite"}
       className={cn(
-        "border-b transition-colors px-4 py-2.5 sm:py-3",
+        "transition-colors px-4 py-2.5",
         status.containerClass,
       )}
     >
-      <div className="shell flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm">
+      <div className="shell flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs sm:text-sm">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="shrink-0" aria-hidden="true">
             <SeverityGlyph
@@ -75,23 +75,23 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
                     ? "warning"
                     : "advisory"
               }
-              width={18}
-              height={18}
+              width={16}
+              height={16}
             />
           </span>
           <span
             className={cn(
-              "rounded-chip px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0",
+              "rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider shrink-0",
               status.badgeClass,
             )}
           >
             {status.badge}
           </span>
-          <div className="min-w-0">
-            <p className="font-semibold leading-snug text-text truncate">
+          <div className="min-w-0 flex items-baseline gap-2">
+            <p className="font-semibold text-text truncate">
               {status.title}
             </p>
-            <p className="hidden md:block text-xs text-muted leading-tight mt-0.5">
+            <p className="hidden md:inline text-xs text-muted truncate">
               {status.sub}
             </p>
           </div>
@@ -99,7 +99,7 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
 
         <Link
           href="/alerts"
-          className="inline-flex items-center gap-1 font-semibold text-brand hover:underline shrink-0 text-xs sm:text-sm self-end sm:self-auto cursor-pointer"
+          className="inline-flex items-center gap-1 font-semibold text-brand hover:underline shrink-0 text-xs sm:text-sm self-end sm:self-auto cursor-pointer transition-colors"
         >
           <span>{ta("title")}</span>
           <ArrowIcon width={12} height={12} />

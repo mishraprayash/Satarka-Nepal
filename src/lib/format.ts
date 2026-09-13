@@ -39,3 +39,15 @@ export function formatDateTime(iso: string | null | undefined, locale: Locale): 
 export function formatNumber(n: number, locale: Locale, opts?: Intl.NumberFormatOptions): string {
   return new Intl.NumberFormat(intlLocale(locale), opts).format(n);
 }
+
+/**
+ * Safely resolves a bilingual text object ({ en, ne }) to the active locale,
+ * falling back to English if the localized translation is not provided.
+ */
+export function localizeText(
+  v: { en: string; ne?: string } | undefined | null,
+  locale: Locale,
+): string {
+  if (!v) return "";
+  return locale === "ne" ? v.ne ?? v.en : v.en;
+}

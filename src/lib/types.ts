@@ -130,3 +130,70 @@ export interface ReportsResponse {
 export function compareSeverity(a: Severity, b: Severity): number {
   return SEVERITY_RANK[a] - SEVERITY_RANK[b];
 }
+
+/**
+ * Live Highway & Roadblock telemetry from Department of Roads (DOR) via BIPAD
+ */
+export type HighwayStatus = "OPEN" | "PARTIAL_OPEN" | "BLOCKED" | "CLOSED";
+
+export interface HighwayBlockage {
+  id: string;
+  roadDataId?: number;
+  title: string;
+  roadRefno: string;
+  linkCode?: string;
+  location: string;
+  district?: string;
+  province?: number;
+  status: HighwayStatus;
+  closureReason: string;
+  repairEta?: string;
+  effortsBeingMade?: string;
+  remarks?: string;
+  contactPerson?: string;
+  lat?: number;
+  lng?: number;
+  chainage?: string;
+  startedAt?: string;
+  estimatedEndAt?: string;
+  endedAt?: string;
+  actualRepairTime?: string;
+  affectedDemography?: {
+    maleCount?: number;
+    femaleCount?: number;
+    householdCount?: number;
+  };
+  images: string[];
+}
+
+export interface HighwaysResponse {
+  generatedAt: string;
+  highways: HighwayBlockage[];
+  blockedCount: number;
+  partialCount: number;
+  openCount: number;
+  ok: boolean;
+  error?: string;
+}
+
+export interface DistrictWeather {
+  districtId: string;
+  temperature: number;
+  humidity: number;
+  rain: number;
+  precipitationSum: number;
+  weatherCode: number;
+  windSpeed: number;
+  aqi?: number;
+  pm25?: number;
+  pm10?: number;
+  observedAt: string;
+  forecast?: Array<{
+    date: string;
+    weatherCode: number;
+    tempMax: number;
+    tempMin: number;
+    precipitationSum: number;
+  }>;
+}
+

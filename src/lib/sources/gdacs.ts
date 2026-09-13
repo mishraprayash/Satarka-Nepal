@@ -9,8 +9,9 @@ import { fetchJson, inNepalBbox, num, str } from "./util";
  * deliberately left to USGS to avoid showing the same quake twice from two
  * agencies; GDACS earthquake events are skipped.
  */
+import { CONFIG } from "@/lib/config";
 
-const URL = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/EVENTS4APP";
+const URL = CONFIG.apis.gdacs;
 
 interface GdacsFeature {
   geometry?: { coordinates?: unknown };
@@ -42,46 +43,83 @@ function isNepal(props: Record<string, unknown>, lat: number | null, lng: number
   return false;
 }
 
+export function parseGdacsFeature(
+  f: GdacsFeature,
+  nowMs: number,
+  fetchedAt: string,
+): Alert | null {
+  const props = f.properties ?? {};
+  const eventType = (str(props["eventtype"]) ?? "").toUpperCase();
+  if (eventType !== "FL") return null; // floods only; quakes handled by USGS
+
+  const coords = f.geometry?.coordinates;
+  const lng = Array.isArray(coords) ? num(coords[0]) : null;
+  const lat = Array.isArray(coords) ? num(coords[1]) : null;
+  if (!isNepal(props, lat, lng)) return null;
+
+  // Temporal hygiene: discard flood events that have expired or are older than threshold
+  const toDateStr = str(props["todate"]);
+  const fromDateStr = str(props["fromdate"]);
+  if (toDateStr) {
+    const toMs = Date.parse(toDateStr);
+    if (!Number.isNaN(toMs) && toMs < nowMs) return null;
+  } else if (fromDateStr) {
+    const fromMs = Date.parse(fromDateStr);
+    if (
+      !Number.isNaN(fromMs) &&
+      (nowMs - fromMs) / 3600_000 > CONFIG.thresholds.earthquakeMaxAgeDays * 24
+    ) {
+      return null;
+    }
+  }
+
+  const severity = alertLevelToSeverity(str(props["alertlevel"]));
+  if (!severity) return null;
+
+  const name = str(props["name"]) ?? str(props["htmldescription"]) ?? "Flood event";
+  const urlObj = props["url"] as { report?: unknown; details?: unknown } | undefined;
+  const detailUrl =
+    str(urlObj?.report) ?? str(urlObj?.details) ?? "https://www.gdacs.org/";
+
+  return {
+    id: `gdacs-${str(props["eventid"]) ?? "fl"}`,
+    hazard: "flood",
+    severity,
+    timeframe: "now",
+    title: { en: name },
+    location: lat !== null && lng !== null ? { lat, lng } : undefined,
+    issuedAt: str(props["fromdate"]) ?? fetchedAt,
+    expiresAt: str(props["todate"]) ?? null,
+    source: makeSourceRef(gdacsSource, fetchedAt),
+    provenance: "official",
+    meta: { alertLevel: str(props["alertlevel"]) ?? undefined, detailUrl },
+  };
+}
+
 async function load(ctx: SourceContext): Promise<SourceLoadResult> {
-  const data = await fetchJson<GdacsResponse>(URL, { revalidate: 600, timeoutMs: 15000 });
+  const data = await fetchJson<GdacsResponse>(URL, {
+    revalidate: 600,
+    timeoutMs: CONFIG.timeouts.extendedMs,
+  });
   const features = data.features ?? [];
   const alerts: Alert[] = [];
+  const nowMs = Date.parse(ctx.fetchedAt);
 
   for (const f of features) {
-    const props = f.properties ?? {};
-    const eventType = (str(props["eventtype"]) ?? "").toUpperCase();
-    if (eventType !== "FL") continue; // floods only; quakes handled by USGS
-
-    const coords = f.geometry?.coordinates;
-    const lng = Array.isArray(coords) ? num(coords[0]) : null;
-    const lat = Array.isArray(coords) ? num(coords[1]) : null;
-    if (!isNepal(props, lat, lng)) continue;
-
-    const severity = alertLevelToSeverity(str(props["alertlevel"]));
-    if (!severity) continue;
-
-    const name = str(props["name"]) ?? str(props["htmldescription"]) ?? "Flood event";
-    const urlObj = props["url"] as { report?: unknown; details?: unknown } | undefined;
-    const detailUrl =
-      str(urlObj?.report) ?? str(urlObj?.details) ?? "https://www.gdacs.org/";
-
-    alerts.push({
-      id: `gdacs-${str(props["eventid"]) ?? alerts.length}`,
-      hazard: "flood",
-      severity,
-      timeframe: "now",
-      title: { en: name },
-      location: lat !== null && lng !== null ? { lat, lng } : undefined,
-      issuedAt: str(props["fromdate"]) ?? ctx.fetchedAt,
-      expiresAt: str(props["todate"]) ?? null,
-      source: makeSourceRef(gdacsSource, ctx.fetchedAt),
-      provenance: "official",
-      meta: { alertLevel: str(props["alertlevel"]) ?? undefined, detailUrl },
-    });
+    const alert = parseGdacsFeature(f, nowMs, ctx.fetchedAt);
+    if (alert) {
+      alerts.push(alert);
+    }
   }
 
   return { alerts, scanned: features.length };
 }
+
+export const _internal = {
+  alertLevelToSeverity,
+  isNepal,
+  parseGdacsFeature,
+};
 
 export const gdacsSource: SourceDescriptor = {
   id: "gdacs",

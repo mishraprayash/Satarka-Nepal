@@ -6,7 +6,7 @@ import type { Alert } from "@/lib/types";
 import type { Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
-import { timeAgo, formatDateTime } from "@/lib/format";
+import { timeAgo, formatDateTime, localizeText } from "@/lib/format";
 import { SEVERITY_BAR, SEVERITY_CHIP, SEVERITY_TEXT } from "@/lib/ui";
 import { LEARN_CONTENT } from "@/lib/learn-content";
 import { SeverityBadge, StatusBadge } from "@/components/badges";
@@ -23,11 +23,6 @@ export interface AlertDetailModalProps {
   alert: Alert;
   isOpen: boolean;
   onClose: () => void;
-}
-
-function loc(v: { en: string; ne?: string } | undefined, locale: Locale): string {
-  if (!v) return "";
-  return locale === "ne" ? v.ne ?? v.en : v.en;
 }
 
 function getReadouts(alert: Alert): { label: string; value: string }[] {
@@ -184,8 +179,8 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
 
   if (!isOpen) return null;
 
-  const title = loc(alert.title, locale) || alert.title.en;
-  const description = loc(alert.description, locale);
+  const title = localizeText(alert.title, locale) || alert.title.en;
+  const description = localizeText(alert.description, locale);
   const detailUrl =
     (typeof alert.meta?.detailUrl === "string" && alert.meta.detailUrl) || alert.source.url;
   const place =
@@ -204,51 +199,51 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden" role="presentation">
-      {/* Backdrop */}
+      {/* Backdrop — calm frosted glass */}
       <div
-        className="fixed inset-0 bg-black/55 backdrop-blur-xs transition-opacity duration-200"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Responsive Drawer Container: Slide from right on md+, Slide from bottom on mobile */}
+      {/* Responsive Drawer Container */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="alert-drawer-title"
         className={cn(
-          "fixed z-50 flex flex-col bg-surface text-text shadow-2xl border-border focus:outline-none transition-all",
+          "fixed z-50 flex flex-col bg-surface text-text shadow-2xl border-border/80 focus:outline-none transition-all",
           // Desktop & Tablet: slide-in from right
           "md:inset-y-0 md:right-0 md:w-full md:max-w-xl md:border-l md:animate-drawer-right",
           // Mobile: slide-in bottom sheet
-          "inset-x-0 bottom-0 max-h-[92vh] border-t rounded-t-2xl animate-drawer-bottom",
+          "inset-x-0 bottom-0 max-h-[92vh] border-t rounded-t-3xl animate-drawer-bottom",
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile drag handle */}
-        <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-border md:hidden shrink-0" aria-hidden="true" />
+        <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-border/80 md:hidden shrink-0" aria-hidden="true" />
 
         {/* Severity Accent Ribbon */}
         <div className={cn("h-1.5 w-full shrink-0", SEVERITY_BAR[alert.severity])} aria-hidden="true" />
 
         {/* Drawer Header */}
-        <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6 shrink-0">
+        <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4 sm:px-6 shrink-0 bg-surface/80 backdrop-blur-md">
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <SeverityBadge severity={alert.severity} />
-            <span className="h-3.5 w-px bg-border" aria-hidden />
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted">
-              <HazardGlyph hazard={alert.hazard} width={16} height={16} className="shrink-0 text-brand" />
+            <span className="h-3.5 w-px bg-border shrink-0" aria-hidden />
+            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted">
+              <HazardGlyph hazard={alert.hazard} width={15} height={15} className="shrink-0 text-brand" />
               <span>{th(`${alert.hazard}.name`)}</span>
             </span>
-            <span className="h-3.5 w-px bg-border" aria-hidden />
-            <span className="eyebrow shrink-0">{tf(alert.timeframe)}</span>
+            <span className="h-3.5 w-px bg-border shrink-0" aria-hidden />
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-medium text-muted tabular shrink-0">{tf(alert.timeframe)}</span>
           </div>
 
           <button
             type="button"
             onClick={onClose}
             aria-label={tact("close")}
-            className="rounded-chip p-2 text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0 cursor-pointer"
+            className="rounded-full p-2 text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0 cursor-pointer"
           >
             <CloseIcon width={18} height={18} />
           </button>
@@ -256,6 +251,28 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
 
         {/* Drawer Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 custom-scrollbar">
+          {/* Stale / Historical context banner if record is > 48 hours old */}
+          {(() => {
+            const issuedMs = alert.issuedAt ? Date.parse(alert.issuedAt) : null;
+            const isStale = issuedMs ? Date.now() - issuedMs > 48 * 3600_000 : false;
+            if (!isStale) return null;
+            return (
+              <div className="rounded-xl border border-border bg-surface-2/70 px-4 py-3 text-xs text-muted flex items-start gap-2.5">
+                <span className="mt-1 size-2 rounded-full bg-watch shrink-0" aria-hidden="true" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-text">
+                    {locale === "ne" ? "विगतको रेकर्ड (प्रत्यक्ष आकस्मिक चेतावनी होइन)" : "Recent Incident Record (Not an Active Flash Alert)"}
+                  </p>
+                  <p className="text-muted leading-relaxed" suppressHydrationWarning>
+                    {locale === "ne"
+                      ? `यो विवरण ${timeAgo(alert.issuedAt, locale)} अद्यावधिक गरिएको थियो। यो पूर्वतयारी र सन्दर्भका लागि मात्र देखाइएको हो।`
+                      : `This report was recorded ${timeAgo(alert.issuedAt, locale)}. Maintained for historical reference and risk context.`}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Plain-language "should I act?" verdict */}
           <div className={cn("rounded-xl px-4 py-3", SEVERITY_CHIP[alert.severity])}>
             <p className={cn("text-sm font-bold", SEVERITY_TEXT[alert.severity])}>
@@ -363,7 +380,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
                       >
                         {i + 1}
                       </span>
-                      <p className="text-sm leading-relaxed text-text">{loc(item, locale)}</p>
+                      <p className="text-sm leading-relaxed text-text">{localizeText(item, locale)}</p>
                     </li>
                   ))}
                 </ol>
@@ -409,7 +426,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
               <span className="capitalize">{alert.provenance === "official" ? tc("official") : tc("community")}</span>
             </div>
             <div className="tabular text-faint font-mono">
-              <span>{tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}</span>
+              <span suppressHydrationWarning>{tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}</span>
               <span className="hidden sm:inline"> · {formatDateTime(alert.issuedAt, locale)}</span>
             </div>
           </div>

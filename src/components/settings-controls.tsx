@@ -85,7 +85,7 @@ export function ThemeToggle() {
   );
 }
 
-export function LowBandwidthToggle() {
+export function LowBandwidthToggle({ showLabel = false }: { showLabel?: boolean }) {
   const t = useTranslations("actions");
   const [low, setLow] = useState(false);
   useEffect(() => {
@@ -108,10 +108,11 @@ export function LowBandwidthToggle() {
       className={control(low)}
       aria-pressed={low}
       title={t("lowBandwidth")}
+      aria-label={t("lowBandwidth")}
       suppressHydrationWarning
     >
       <SignalIcon width={16} height={16} />
-      <span className="sr-only sm:not-sr-only">{t("lowBandwidth")}</span>
+      {showLabel ? <span>{t("lowBandwidth")}</span> : <span className="sr-only">{t("lowBandwidth")}</span>}
     </button>
   );
 }

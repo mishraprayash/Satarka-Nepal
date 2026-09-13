@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { MapContainer, TileLayer, Polygon, Polyline, CircleMarker, Popup, useMap } from "react-leaflet";
-import type L from "leaflet";
 import type { MapDataResponse, Quake, RiverGauge } from "@/lib/map-data";
 import type { BasinRisk } from "@/lib/map-data";
+import type { HighwayBlockage } from "@/lib/types";
 import type { Locale } from "@/i18n/routing";
-import { formatDateTime, formatNumber, timeAgo } from "@/lib/format";
+import { formatDateTime, formatNumber, timeAgo, localizeText } from "@/lib/format";
 import { ExternalIcon } from "@/components/icons";
 import type { LayerState } from "./hazard-map";
 
@@ -49,10 +49,6 @@ function useThemeColors(): ThemeColors {
   return colors;
 }
 
-function loc(v: { en: string; ne?: string } | undefined, locale: Locale): string {
-  if (!v) return "";
-  return locale === "ne" ? v.ne ?? v.en : v.en;
-}
 
 function riskColor(colors: ThemeColors, risk: BasinRisk): string {
   switch (risk) {
@@ -175,6 +171,47 @@ function QuakeMarker({ quake, colors, locale }: { quake: Quake; colors: ThemeCol
   );
 }
 
+function HighwayMarker({ highway, colors, locale }: { highway: HighwayBlockage; colors: ThemeColors; locale: Locale }) {
+  const isBlocked = highway.status === "BLOCKED";
+  const isPartial = highway.status === "PARTIAL_OPEN";
+  const color = isBlocked ? colors.danger : isPartial ? colors.warning : colors.info;
+
+  return (
+    <CircleMarker
+      center={[highway.lat ?? 0, highway.lng ?? 0]}
+      radius={isBlocked ? 7 : 5}
+      pathOptions={{
+        color,
+        fillColor: color,
+        fillOpacity: 0.9,
+        weight: 2,
+      }}
+    >
+      <Popup>
+        <div className="min-w-[200px] text-sm">
+          <div className="flex items-center justify-between gap-2">
+            <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10px] font-bold">
+              {highway.roadRefno}
+            </span>
+            <span className="text-xs font-bold" style={{ color }}>
+              {highway.status === "BLOCKED" ? "BLOCKED" : highway.status === "PARTIAL_OPEN" ? "PARTIAL OPEN" : "OPEN"}
+            </span>
+          </div>
+          <p className="mt-1 font-semibold text-text">{highway.title}</p>
+          <p className="text-xs text-muted">{highway.location}</p>
+          <p className="mt-1 text-xs font-medium" style={{ color: colors.warning }}>
+            Cause: {highway.closureReason}
+          </p>
+          {highway.repairEta ? <p className="text-xs text-muted">ETA: {highway.repairEta}</p> : null}
+          {highway.effortsBeingMade ? <p className="mt-1 text-xs text-faint">{highway.effortsBeingMade}</p> : null}
+          {highway.contactPerson ? <p className="mt-0.5 text-[11px] text-muted">{highway.contactPerson}</p> : null}
+        </div>
+      </Popup>
+    </CircleMarker>
+  );
+}
+
+
 function MapViewController({
   focusTarget,
 }: {
@@ -222,6 +259,11 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
   const quakePoints = useMemo(
     () => data.quakes.filter((q) => q.lat !== undefined && q.lng !== undefined && !Number.isNaN(q.lat!) && !Number.isNaN(q.lng!)),
     [data.quakes],
+  );
+
+  const highwayPoints = useMemo(
+    () => (data.highways ?? []).filter((h) => h.lat !== undefined && h.lng !== undefined && !Number.isNaN(h.lat!) && !Number.isNaN(h.lng!)),
+    [data.highways],
   );
 
   const atDanger = data.rivers.filter((g) => g.atDanger).length;
@@ -281,7 +323,7 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                         {locale === "ne" ? f.nameNe ?? f.name : f.name}
                       </p>
-                      <p className="mt-1 text-xs text-muted">{loc(f.note, locale)}</p>
+                      <p className="mt-1 text-xs text-muted">{localizeText(f.note, locale)}</p>
                     </div>
                   </Popup>
                 </Polyline>
@@ -296,7 +338,7 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                         {locale === "ne" ? f.nameNe ?? f.name : f.name}
                       </p>
-                      <p className="mt-1 text-xs text-muted">{loc(f.note, locale)}</p>
+                      <p className="mt-1 text-xs text-muted">{localizeText(f.note, locale)}</p>
                     </div>
                   </Popup>
                 </Polygon>
@@ -325,7 +367,7 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
                     <p className="mt-1 font-medium">
                       {t(l.risk === "high" ? "riskHigh" : "riskModerate")}
                     </p>
-                    {l.note ? <p className="mt-1 text-xs text-muted">{loc(l.note, locale)}</p> : null}
+                    {l.note ? <p className="mt-1 text-xs text-muted">{localizeText(l.note, locale)}</p> : null}
                     <p className="mt-1 text-xs text-faint">{t("referenceNote")}</p>
                   </div>
                 </Popup>
@@ -335,6 +377,7 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
 
         {layers.rivers ? gaugePoints.map((g) => <GaugeMarker key={g.id} gauge={g} colors={colors} locale={locale} />) : null}
         {layers.quakes ? quakePoints.map((q) => <QuakeMarker key={q.id} quake={q} colors={colors} locale={locale} />) : null}
+        {layers.highways ? highwayPoints.map((h) => <HighwayMarker key={h.id} highway={h} colors={colors} locale={locale} />) : null}
 
         {focusTarget ? (
           <CircleMarker

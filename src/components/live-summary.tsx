@@ -22,7 +22,6 @@ function maxSeverity(items: Alert[]): Severity | null {
   return top;
 }
 
-/** Compact by-hazard tally: glyph, name, count, and the worst severity present. */
 function HazardTally({ alerts }: { alerts: Alert[] }) {
   const th = useTranslations("hazards");
   const tc = useTranslations("common");
@@ -37,22 +36,28 @@ function HazardTally({ alerts }: { alerts: Alert[] }) {
             <Link
               href={`/alerts?hazard=${h}`}
               className={cn(
-                "card group flex items-center gap-3 p-3.5 transition-all hover:border-brand hover:shadow-xs cursor-pointer active:scale-98",
-                active ? "border-border-strong bg-surface" : "opacity-75 bg-surface/60",
+                "card group flex items-center gap-3.5 p-4 transition-all duration-200 hover:border-border-strong hover:shadow-xs hover:-translate-y-0.5 cursor-pointer active:scale-98",
+                active ? "border-border bg-surface" : "bg-surface-2/40 border-border/50",
               )}
             >
-              <span className={cn("text-muted transition-colors group-hover:text-brand", active && "text-brand")} aria-hidden>
-                <HazardGlyph hazard={h} width={22} height={22} />
+              <span
+                className={cn(
+                  "inline-flex size-9 items-center justify-center rounded-chip bg-surface-2 text-muted transition-colors group-hover:text-brand group-hover:bg-brand/10",
+                  active && "text-brand bg-brand/10",
+                )}
+                aria-hidden
+              >
+                <HazardGlyph hazard={h} width={18} height={18} />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium text-muted group-hover:text-text transition-colors">
                   {th(`${h}.name`)}
                 </p>
-                <div className="flex items-center justify-between">
-                  <span className="tabular text-lg font-bold leading-none text-text">{items.length}</span>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="tabular text-xl font-bold leading-none text-text">{items.length}</span>
                   {worst ? (
                     <span
-                      className={cn("size-2 rounded-full", SEVERITY_BAR[worst])}
+                      className={cn("size-2 rounded-full ring-2 ring-surface", SEVERITY_BAR[worst])}
                       aria-hidden
                     />
                   ) : null}
@@ -109,6 +114,7 @@ export function LiveSummary({ initialData }: { initialData?: AlertsResponse }) {
       {fromCache ? (
         <p
           role="status"
+          suppressHydrationWarning
           className="rounded-card border border-watch/40 bg-watch-soft px-4 py-2.5 text-sm text-watch"
         >
           {to("banner", { time: timeAgo(new Date(cachedAt ?? Date.now()).toISOString(), locale) })}
@@ -119,8 +125,8 @@ export function LiveSummary({ initialData }: { initialData?: AlertsResponse }) {
 
       {top.length > 0 ? (
         <div className="grid gap-5 sm:gap-6 md:grid-cols-3">
-          {top.map((a) => (
-            <AlertCard key={a.id} alert={a} />
+          {top.map((a, idx) => (
+            <AlertCard key={`${a.id}-${idx}`} alert={a} />
           ))}
         </div>
       ) : (
@@ -131,7 +137,7 @@ export function LiveSummary({ initialData }: { initialData?: AlertsResponse }) {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-faint">
-        <span className="tabular">
+        <span className="tabular" suppressHydrationWarning>
           {tc("updatedAgo", { time: timeAgo(response.generatedAt, locale) })} ·{" "}
           {th("reachable", { ok: okCount, total })}
         </span>

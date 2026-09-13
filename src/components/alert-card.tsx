@@ -8,17 +8,12 @@ import { timeAgo } from "@/lib/format";
 import { SEVERITY_BAR, SEVERITY_TEXT } from "@/lib/ui";
 import { StatusBadge } from "@/components/badges";
 import { SeverityGlyph, HazardGlyph, ArrowIcon } from "@/components/icons";
+import { localizeText } from "@/lib/format";
 
 const AlertDetailModal = dynamic(
   () => import("@/components/alert-detail-modal").then((m) => m.AlertDetailModal),
   { ssr: false }
 );
-
-
-function loc(v: { en: string; ne?: string } | undefined, locale: Locale): string {
-  if (!v) return "";
-  return locale === "ne" ? v.ne ?? v.en : v.en;
-}
 
 function getHighlightMetric(alert: Alert): { label: string; value: string } | null {
   const m = alert.meta ?? {};
@@ -52,7 +47,7 @@ export const AlertCard = memo(function AlertCard({
   const th = useTranslations("hazards");
   const ta = useTranslations("alerts");
 
-  const title = loc(alert.title, locale) || alert.title.en;
+  const title = localizeText(alert.title, locale) || alert.title.en;
   const place =
     alert.location?.name ??
     alert.location?.district ??
@@ -81,74 +76,87 @@ export const AlertCard = memo(function AlertCard({
             handleOpen();
           }
         }}
-        className="card group relative flex h-full cursor-pointer flex-col justify-between overflow-hidden p-5 sm:p-6 transition-all hover:border-border-strong hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        className="card group relative flex h-full cursor-pointer flex-col justify-between overflow-hidden p-5 sm:p-5.5 transition-all duration-200 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
-        {/* Severity accent bar */}
-        <span className={cn("absolute inset-y-0 left-0 w-1", SEVERITY_BAR[alert.severity])} aria-hidden />
+        {/* Continuous precision severity accent bar */}
+        <span
+          className={cn("absolute inset-y-0 left-0 w-1 sm:w-1.5 transition-all", SEVERITY_BAR[alert.severity])}
+          aria-hidden
+        />
 
-        <div className="flex flex-col gap-3">
-          {/* Top bar: Severity + Hazard + Timeframe */}
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className={cn("inline-flex shrink-0 items-center gap-1.5 text-sm font-bold", SEVERITY_TEXT[alert.severity])}>
-                <SeverityGlyph severity={alert.severity} width={15} height={15} />
-                {tsev(`${alert.severity}.label`)}
-              </span>
-              <span className="h-3.5 w-px shrink-0 bg-border" aria-hidden />
-              <span className="inline-flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted">
-                <HazardGlyph hazard={alert.hazard} width={15} height={15} className="shrink-0" />
+        <div className="flex flex-col gap-3 pl-1">
+          {/* Top telemetry header: Severity Badge + Hazard Type + Timeframe */}
+          <div className="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <StatusBadge status={alert.source.status} className="shrink-0 text-[11px] py-0.5 px-2" />
+              <span className="h-3 w-px bg-border shrink-0" aria-hidden />
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
+                <HazardGlyph hazard={alert.hazard} width={14} height={14} className="shrink-0 text-brand" />
                 <span className="truncate">{th(`${alert.hazard}.name`)}</span>
               </span>
             </div>
-            <span className="eyebrow shrink-0">{tf(alert.timeframe)}</span>
+            <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-medium text-muted shrink-0 tabular">
+              {tf(alert.timeframe)}
+            </span>
           </div>
 
           {/* Headline title & place */}
-          <div className="space-y-1 pt-0.5">
-            <h3
-              className={cn(
-                "h3 font-bold text-[15px] leading-snug break-words transition-colors group-hover:text-brand",
-                locale === "ne" ? "tracking-normal" : "tracking-tight"
-              )}
-            >
-              {title}
-            </h3>
-            {place ? <p className="text-sm font-medium text-muted break-words">{place}</p> : null}
+          <div className="space-y-1 pt-1">
+            <div className="flex items-start gap-2">
+              <span className={cn("mt-0.5 shrink-0 inline-flex items-center", SEVERITY_TEXT[alert.severity])}>
+                <SeverityGlyph severity={alert.severity} width={15} height={15} />
+              </span>
+              <h3
+                className={cn(
+                  "font-bold text-[15px] sm:text-base leading-snug break-words transition-colors group-hover:text-brand",
+                  locale === "ne" ? "tracking-normal" : "tracking-tight text-text"
+                )}
+              >
+                {title}
+              </h3>
+            </div>
+            {place ? (
+              <p className="text-xs sm:text-sm font-medium text-muted break-words pl-5.5 flex items-center gap-1">
+                <span>📍</span>
+                <span>{place}</span>
+              </p>
+            ) : null}
           </div>
 
-          {/* Key highlight metric chip & trend */}
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            {highlight ? (
-              <span className="inline-flex items-center gap-1.5 rounded-chip border border-border/80 bg-surface-2/60 px-2.5 py-1 text-xs font-semibold tabular text-text">
-                <span className="text-[10px] uppercase tracking-wider text-muted">{highlight.label}:</span>
-                <span>{highlight.value}</span>
-              </span>
-            ) : null}
-            {typeof alert.meta?.trend === "string" && alert.meta.trend.trim().length > 0 ? (
-              <span className={cn(
-                "inline-flex items-center gap-1 rounded-chip px-2 py-0.5 text-[11px] font-bold uppercase tabular",
-                alert.meta.trend.trim().toUpperCase() === "RISING"
-                  ? "bg-danger-soft text-danger border border-danger/20"
-                  : alert.meta.trend.trim().toUpperCase() === "FALLING"
-                    ? "bg-advisory-soft text-advisory border border-advisory/20"
-                    : "bg-surface-2 text-muted border border-border",
-              )}>
-                <span>{alert.meta.trend.trim().toUpperCase() === "RISING" ? "↑" : alert.meta.trend.trim().toUpperCase() === "FALLING" ? "↓" : "→"}</span>
-                <span>{alert.meta.trend.trim().toUpperCase()}</span>
-              </span>
-            ) : null}
-          </div>
+          {/* Key highlight metric chip & trend readout */}
+          {(highlight || (typeof alert.meta?.trend === "string" && alert.meta.trend.trim().length > 0)) ? (
+            <div className="flex flex-wrap items-center gap-2 pt-1 pl-5.5">
+              {highlight ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 px-2.5 py-0.5 text-xs font-semibold tabular text-text">
+                  <span className="text-[10px] uppercase tracking-wider text-muted">{highlight.label}:</span>
+                  <span>{highlight.value}</span>
+                </span>
+              ) : null}
+              {typeof alert.meta?.trend === "string" && alert.meta.trend.trim().length > 0 ? (
+                <span className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tabular",
+                  alert.meta.trend.trim().toUpperCase() === "RISING"
+                    ? "bg-danger-soft text-danger border border-danger/20"
+                    : alert.meta.trend.trim().toUpperCase() === "FALLING"
+                      ? "bg-advisory-soft text-advisory border border-advisory/20"
+                      : "bg-surface-2 text-muted border border-border",
+                )}>
+                  <span>{alert.meta.trend.trim().toUpperCase() === "RISING" ? "↑" : alert.meta.trend.trim().toUpperCase() === "FALLING" ? "↓" : "→"}</span>
+                  <span>{alert.meta.trend.trim().toUpperCase()}</span>
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
-        {/* Footer: Updated time + "View details" with ArrowIcon */}
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border pt-3.5 text-xs">
-          <div className="flex min-w-0 items-center gap-2 text-muted">
-            <StatusBadge status={alert.source.status} className="shrink-0" />
-            <span className="tabular truncate">{tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}</span>
-          </div>
-          <span className="inline-flex items-center gap-1 font-semibold text-brand transition-colors group-hover:text-brand-strong">
+        {/* Footer: Source provenance + Relative time + "View details" prompt */}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 pt-3 text-xs pl-1">
+          <span className="tabular text-muted text-[11px] truncate" suppressHydrationWarning>
+            {tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand transition-colors group-hover:text-brand-strong">
             <span>{ta("viewDetails")}</span>
-            <ArrowIcon width={12} height={12} className="shrink-0 transition-transform group-hover:translate-x-0.5" />
+            <ArrowIcon width={12} height={12} className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>
         </div>
       </article>

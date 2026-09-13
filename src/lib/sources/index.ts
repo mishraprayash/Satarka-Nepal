@@ -1,6 +1,5 @@
 import type { Alert, AlertsResponse, SourceHealth } from "@/lib/types";
-import { haversineKm } from "@/lib/distance";
-import { SEVERITY_RANK } from "@/lib/types";
+import { deduplicateAlerts, sortAlerts } from "@/lib/deduplication";
 import type { SourceContext, SourceDescriptor } from "./base";
 import {
   bipadAlertSource,
@@ -10,100 +9,24 @@ import {
 } from "./bipad";
 import { usgsSource } from "./usgs";
 import { gdacsSource } from "./gdacs";
+import { highwaySource, loadHighways } from "./highway";
 import { geoglowsSource } from "./geoglows";
 import { GEOGLOWS_REACHES } from "./geoglows-reaches";
 import { nowIso } from "./util";
 
 /**
- * The v1 source registry. GEOGloWS is only registered once its reach list is
- * curated — an empty forecast feed would be noise, not honesty.
+ * The unified source registry.
  */
 export const SOURCES: SourceDescriptor[] = [
   bipadAlertSource,
   bipadRiverSource,
   bipadRainSource,
+  highwaySource,
   bipadIncidentSource,
   usgsSource,
   gdacsSource,
   ...(GEOGLOWS_REACHES.length > 0 ? [geoglowsSource] : []),
 ];
-
-/** Most severe first; within a severity, most recent first. */
-function sortAlerts(a: Alert, b: Alert): number {
-  const bySeverity = SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity];
-  if (bySeverity !== 0) return bySeverity;
-  return Date.parse(b.issuedAt || "") - Date.parse(a.issuedAt || "");
-}
-
-/**
- * Remove near-duplicate alerts that represent the same real-world event
- * reported by multiple sources. Keeps the higher-severity / more-trusted entry.
- *
- * O(n²) pairwise comparison — fine at current volume (tens of alerts). Every
- * surviving pair is still compared, so the *result set* is order-independent;
- * only which specific row wins a same-severity/same-trust tie depends on input
- * order. If the feed ever grows to hundreds of alerts, switch to spatial
- * bucketing (grid by rounded lat/lng) before this becomes a hot path.
- */
-function deduplicateAlerts(alerts: Alert[]): Alert[] {
-  const STATUS_TRUST: Record<string, number> = {
-    live: 3,
-    recent: 2,
-    reference: 1,
-    "report-only": 0,
-    "no-feed": 0,
-  };
-
-  const dominated = new Set<number>();
-
-  for (let i = 0; i < alerts.length; i++) {
-    if (dominated.has(i)) continue;
-    for (let j = i + 1; j < alerts.length; j++) {
-      if (dominated.has(j)) continue;
-      const a = alerts[i];
-      const b = alerts[j];
-
-      // Must be the same hazard type
-      if (a.hazard !== b.hazard) continue;
-
-      // Must be issued within 24h of each other
-      const timeDiff = Math.abs(Date.parse(a.issuedAt) - Date.parse(b.issuedAt));
-      if (timeDiff > 24 * 3600_000) continue;
-
-      // Must have co-located coordinates (within 5 km)
-      if (
-        a.location?.lat == null || a.location?.lng == null ||
-        b.location?.lat == null || b.location?.lng == null
-      ) continue;
-      const km = haversineKm(
-        { lat: a.location.lat, lng: a.location.lng },
-        { lat: b.location.lat, lng: b.location.lng },
-      );
-      if (km > 5) continue;
-
-      // They are duplicates — drop the weaker one
-      const sevDiff = SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity];
-      if (sevDiff > 0) {
-        dominated.add(i);
-        break; // i is dominated, stop comparing it
-      } else if (sevDiff < 0) {
-        dominated.add(j);
-      } else {
-        // Same severity — prefer higher trust source
-        const trustA = STATUS_TRUST[a.source.status] ?? 0;
-        const trustB = STATUS_TRUST[b.source.status] ?? 0;
-        if (trustB > trustA) {
-          dominated.add(i);
-          break;
-        } else {
-          dominated.add(j);
-        }
-      }
-    }
-  }
-
-  return alerts.filter((_, idx) => !dominated.has(idx));
-}
 
 /**
  * In-memory stale-while-revalidate. NOTE: this cache is per-instance and only
@@ -113,10 +36,12 @@ function deduplicateAlerts(alerts: Alert[]): Alert[] {
  * revalidate` on the route). This layer just avoids re-running the fan-out +
  * dedup on rapid successive hits to the same warm instance.
  */
+import { CONFIG } from "@/lib/config";
+
 let cachedSnapshot: AlertsResponse | null = null;
 let lastFetchedEpoch = 0;
 let refreshPromise: Promise<AlertsResponse> | null = null;
-const CACHE_FRESHNESS_MS = 45_000;
+const CACHE_FRESHNESS_MS = CONFIG.cache.alertsFreshnessMs;
 
 /**
  * Kick off a background refresh at most once at a time. Errors are swallowed on
@@ -182,8 +107,19 @@ async function fetchFreshAlerts(): Promise<AlertsResponse> {
  * Run every source concurrently with server-side in-memory stale-while-revalidate.
  * Returns sub-millisecond cached responses while refreshing upstream APIs in the background.
  */
-export async function loadAllAlerts(): Promise<AlertsResponse> {
+export async function loadAllAlerts(fresh = false): Promise<AlertsResponse> {
   const now = Date.now();
+
+  // If forced fresh by client refresh action, coalesce in-flight or debounce within 5s
+  if (fresh) {
+    if (cachedSnapshot && now - lastFetchedEpoch < 5_000) {
+      return cachedSnapshot;
+    }
+    if (refreshPromise) {
+      return refreshPromise;
+    }
+    return startBackgroundRefresh();
+  }
 
   // If cache is fresh, return immediately
   if (cachedSnapshot && now - lastFetchedEpoch < CACHE_FRESHNESS_MS) {
@@ -201,3 +137,4 @@ export async function loadAllAlerts(): Promise<AlertsResponse> {
 }
 
 export { loadReports, RELIEFWEB_PUBLIC_URL } from "./reliefweb";
+export { loadHighways } from "./highway";

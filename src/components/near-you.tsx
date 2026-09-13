@@ -8,7 +8,7 @@ import { SEVERITY_RANK } from "@/lib/types";
 import type { Locale } from "@/i18n/routing";
 import dynamic from "next/dynamic";
 import { haversineKm, type LatLng } from "@/lib/distance";
-import { timeAgo } from "@/lib/format";
+import { timeAgo, localizeText } from "@/lib/format";
 import { SEVERITY_BAR } from "@/lib/ui";
 import { useAlerts } from "@/lib/use-alerts";
 import { cn } from "@/lib/cn";
@@ -22,13 +22,14 @@ const AlertDetailModal = dynamic(
   { ssr: false }
 );
 
+import { useUserLocation } from "@/lib/use-user-location";
+
 const CONSENT_KEY = "satarka-nearby";
 const DISTRICT_KEY = "satarka-nearby-district";
 const MAX_SHOWN = 6;
 const RADII = [5, 10, 25, 50];
 
 type Consent = "prompt" | "on" | "off";
-type LocStatus = "idle" | "locating" | "ok" | "denied" | "error" | "unsupported";
 
 function readConsent(): Consent {
   if (typeof window === "undefined") return "prompt";
@@ -43,22 +44,6 @@ function storeConsent(c: Consent) {
   try {
     localStorage.setItem(CONSENT_KEY, c);
   } catch {}
-}
-
-function locate(onDone: (status: LocStatus, pos: LatLng | null) => void) {
-  if (typeof navigator === "undefined" || !navigator.geolocation) {
-    onDone("unsupported", null);
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    (p) => onDone("ok", { lat: p.coords.latitude, lng: p.coords.longitude }),
-    (err) => onDone(err && err.code === 1 ? "denied" : "error", null),
-    { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
-  );
-}
-
-function locTitle(v: { en: string; ne?: string } | undefined, locale: Locale): string {
-  return v ? (locale === "ne" ? v.ne ?? v.en : v.en) : "";
 }
 
 /** Banner accent per worst nearby severity — static strings so Tailwind sees them. */
@@ -78,8 +63,13 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
   const { response } = useAlerts(120_000, initialData);
 
   const [consent, setConsent] = useState<Consent>("prompt");
-  const [locStatus, setLocStatus] = useState<LocStatus>("idle");
-  const [pos, setPos] = useState<LatLng | null>(null);
+  const {
+    coords: pos,
+    setCoords: setPos,
+    status: locStatus,
+    requestLocation: triggerLocation,
+    clearLocation,
+  } = useUserLocation();
   const [radiusKm, setRadiusKm] = useState<number>(10);
   const [selectedDistrict, setSelectedDistrict] = useState<DistrictCentroid | null>(null);
   const [inspectAlert, setInspectAlert] = useState<Alert | null>(null);
@@ -94,11 +84,10 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
         if (d) {
           setSelectedDistrict(d);
           setPos({ lat: d.lat, lng: d.lng });
-          setLocStatus("ok");
         }
       }
     } catch {}
-  }, []);
+  }, [setPos]);
 
   const selectDistrict = useCallback((distId: string) => {
     if (!distId) return;
@@ -106,25 +95,20 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
     if (!d) return;
     setSelectedDistrict(d);
     setPos({ lat: d.lat, lng: d.lng });
-    setLocStatus("ok");
     setConsent("on");
     storeConsent("on");
     try {
       localStorage.setItem(DISTRICT_KEY, d.id);
     } catch {}
-  }, []);
+  }, [setPos]);
 
   const request = useCallback(() => {
-    setLocStatus("locating");
     setSelectedDistrict(null);
     try {
       localStorage.removeItem(DISTRICT_KEY);
     } catch {}
-    locate((status, position) => {
-      setLocStatus(status);
-      setPos(position);
-    });
-  }, []);
+    triggerLocation();
+  }, [triggerLocation]);
 
   // Auto-locate once consent is already granted and no district chosen
   useEffect(() => {
@@ -154,13 +138,12 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
   const turnOff = useCallback(() => {
     setConsent("off");
     storeConsent("off");
-    setPos(null);
+    clearLocation();
     setSelectedDistrict(null);
     try {
       localStorage.removeItem(DISTRICT_KEY);
     } catch {}
-    setLocStatus("idle");
-  }, []);
+  }, [clearLocation]);
 
   const enable = useCallback(() => {
     setConsent("on");
@@ -255,9 +238,13 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
   }
 
   // ── Location failed or denied ──────────────────────────────────────────────
-  if (locStatus === "denied" || locStatus === "error" || locStatus === "unsupported") {
+  if (locStatus === "denied" || locStatus === "timeout" || locStatus === "unavailable") {
     const message =
-      locStatus === "denied" ? tn("denied") : locStatus === "unsupported" ? tn("unsupported") : tn("error");
+      locStatus === "denied"
+        ? tn("denied")
+        : locStatus === "unavailable"
+          ? tn("unsupported")
+          : tn("error");
     return (
       <div className="card border-warning/40 bg-warning-soft/30 p-4 sm:p-5">
         <p className="text-sm">{message}</p>
@@ -279,7 +266,7 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
           </select>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {locStatus !== "unsupported" ? (
+          {locStatus !== "unavailable" ? (
             <button
               type="button"
               onClick={request}
@@ -423,9 +410,9 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
       </div>
 
       <ul className="mt-4 grid gap-4 sm:gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {shown.map(({ alert, km }) => (
+        {shown.map(({ alert, km }, idx) => (
           <li
-            key={alert.id}
+            key={`${alert.id}-${idx}`}
             role="button"
             tabIndex={0}
             onClick={() => setInspectAlert(alert)}
@@ -444,12 +431,12 @@ export function NearYou({ initialData }: { initialData?: AlertsResponse }) {
                 <HazardChip hazard={alert.hazard} />
               </div>
               <h3 className="mt-2 text-sm font-semibold leading-snug break-words group-hover:text-brand transition-colors">
-                {locTitle(alert.title, locale)}
+                {localizeText(alert.title, locale)}
               </h3>
             </div>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs border-t border-border/60 pt-2.5">
               <span className="tabular font-bold text-danger">{tn("kmAway", { km })}</span>
-              <span className="text-faint">{tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}</span>
+              <span className="text-faint" suppressHydrationWarning>{tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}</span>
             </div>
           </li>
         ))}
