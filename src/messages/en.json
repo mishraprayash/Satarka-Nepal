@@ -12,6 +12,7 @@
     "home": "Home",
     "alerts": "Alerts",
     "map": "Map",
+    "highways": "Highways",
     "learn": "Learn",
     "about": "About",
     "skip": "Skip to main content",
@@ -93,6 +94,10 @@
     "reportsTitle": "Latest situation reports",
     "reportsSub": "Published reports from relief agencies — background, not active warnings.",
     "reachable": "{ok} of {total} sources reachable"
+  },
+  "highways": {
+    "title": "National Highway Passability",
+    "subtitle": "Real-time road blockages, landslide clearances, and transit status from the Department of Roads (DOR)."
   },
   "alerts": {
     "title": "Live alerts",
@@ -184,6 +189,7 @@
     "layerGlacial": "At-risk glacial lakes",
     "layerRivers": "River gauges (live)",
     "layerQuakes": "Earthquakes (live)",
+    "layerHighways": "Highways & Roadblocks (live)",
     "riversOnlyWarning": "Only warning/danger stations",
     "targetAlert": "Focused Incident",
     "riskLow": "Lower risk",

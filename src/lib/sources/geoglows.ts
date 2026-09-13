@@ -18,8 +18,9 @@ import { GEOGLOWS_REACHES, type GeoglowsReach } from "./geoglows-reaches";
  *
  * This is enabled only once GEOGLOWS_REACHES is populated; see that file.
  */
+import { CONFIG } from "@/lib/config";
 
-const BASE = "https://geoglows.ecmwf.int/api/v2";
+const BASE = CONFIG.apis.geoglows;
 
 const V2_FORECAST = (id: number) => `${BASE}/forecast/${id}?format=json`;
 const V2_RETURN = (id: number) => `${BASE}/returnperiods/${id}?format=json`;

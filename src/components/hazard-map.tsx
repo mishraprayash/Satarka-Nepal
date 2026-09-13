@@ -4,8 +4,9 @@ import dynamic from "next/dynamic";
 import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
-import type { MapDataResponse } from "@/lib/map-data";
+import type { MapDataResponse, RiverGauge, Quake } from "@/lib/map-data";
+import type { HighwayBlockage } from "@/lib/types";
+import { useMapData } from "@/lib/use-map-data";
 import { cn } from "@/lib/cn";
 import { ExternalIcon, HazardGlyph, SearchIcon, CloseIcon } from "@/components/icons";
 
@@ -27,6 +28,7 @@ export interface LayerState {
   glacial: boolean;
   rivers: boolean;
   quakes: boolean;
+  highways: boolean;
 }
 
 const DEFAULT_LAYERS: LayerState = {
@@ -35,13 +37,8 @@ const DEFAULT_LAYERS: LayerState = {
   glacial: true,
   rivers: true,
   quakes: true,
+  highways: true,
 };
-
-async function fetchMapData(): Promise<MapDataResponse> {
-  const res = await fetch("/api/map-data", { headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return (await res.json()) as MapDataResponse;
-}
 
 export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
   const t = useTranslations("map");
@@ -49,12 +46,7 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
   const ta = useTranslations("actions");
   const searchParams = useSearchParams();
 
-  const { data, isError, refetch } = useQuery({
-    queryKey: ["map-data"],
-    queryFn: fetchMapData,
-    initialData,
-    refetchInterval: 5 * 60_000,
-  });
+  const { data, isError, refetch } = useMapData(initialData);
 
 
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS);
@@ -94,8 +86,8 @@ interface StationMatch {
     const q = stationQuery.trim().toLowerCase();
     if (!q || !data) return [];
     const riverMatches: StationMatch[] = data.rivers
-      .filter((r) => r.station.toLowerCase().includes(q) || (r.basin && r.basin.toLowerCase().includes(q)))
-      .map((r) => ({
+      .filter((r: RiverGauge) => r.station.toLowerCase().includes(q) || (r.basin && r.basin.toLowerCase().includes(q)))
+      .map((r: RiverGauge) => ({
         id: `r-${r.id}`,
         name: r.station,
         sub: r.basin ? `${r.basin} basin` : "River gauge",
@@ -103,15 +95,28 @@ interface StationMatch {
         lng: r.lng!,
       }));
     const quakeMatches: StationMatch[] = data.quakes
-      .filter((qk) => qk.place.toLowerCase().includes(q))
-      .map((qk) => ({
+      .filter((qk: Quake) => qk.place.toLowerCase().includes(q))
+      .map((qk: Quake) => ({
         id: `q-${qk.id}`,
         name: qk.place,
         sub: `M ${qk.mag?.toFixed(1) ?? ""} Earthquake`,
         lat: qk.lat!,
         lng: qk.lng!,
       }));
-    return [...riverMatches, ...quakeMatches].slice(0, 5);
+    const highwayMatches: StationMatch[] = (data.highways ?? [])
+      .filter((h: HighwayBlockage) => h.lat != null && h.lng != null && (
+        h.title.toLowerCase().includes(q) ||
+        h.roadRefno.toLowerCase().includes(q) ||
+        h.location.toLowerCase().includes(q)
+      ))
+      .map((h: HighwayBlockage) => ({
+        id: `h-${h.id}`,
+        name: `${h.roadRefno}: ${h.location || h.title}`,
+        sub: `${h.status} (${h.closureReason})`,
+        lat: h.lat!,
+        lng: h.lng!,
+      }));
+    return [...riverMatches, ...quakeMatches, ...highwayMatches].slice(0, 7);
   }, [stationQuery, data]);
 
   const toggles: { key: keyof LayerState; label: string; count?: number; icon?: React.ReactNode }[] = [
@@ -120,6 +125,12 @@ interface StationMatch {
       label: t("layerRivers"),
       count: data?.rivers.length,
       icon: <HazardGlyph hazard="flood" width={14} height={14} />,
+    },
+    {
+      key: "highways",
+      label: t("layerHighways"),
+      count: data?.highways.length,
+      icon: <HazardGlyph hazard="landslide" width={14} height={14} />,
     },
     {
       key: "quakes",

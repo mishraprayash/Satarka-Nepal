@@ -17,8 +17,8 @@ import {
 } from "@/components/icons";
 
 interface PaletteItem {
+  category: "emergency" | "navigation" | "guide" | "highway" | "district" | "history";
   id: string;
-  category: "emergency" | "navigation" | "guide" | "district" | "history";
   title: string;
   subtitle?: string;
   badge?: string;
@@ -46,42 +46,32 @@ export function CommandPalette({
   const tnav = useTranslations("nav");
   const thaz = useTranslations("hazards");
 
-  // Global keydown for Cmd+K / Ctrl+K
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        if (isOpen) {
-          onClose();
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
   // Focus input when opened and lock body scroll
   useEffect(() => {
-    if (isOpen) {
-      setQuery("");
-      setSelectedIndex(0);
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+    if (!isOpen) return;
 
-      const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          onClose();
-        }
-      };
-      window.addEventListener("keydown", handleEscape);
-      return () => {
-        clearTimeout(timer);
-        document.body.style.overflow = prevOverflow;
-        window.removeEventListener("keydown", handleEscape);
-      };
-    }
+    setQuery("");
+    setSelectedIndex(0);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const timer = setTimeout(() => inputRef.current?.focus(), 50);
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (
+        e.key === "Escape" ||
+        ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")
+      ) {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKey);
+    };
   }, [isOpen, onClose]);
 
   // Static datasets
@@ -138,6 +128,14 @@ export function CommandPalette({
         title: tnav("map"),
         subtitle: isNe ? "नदी स्टेशन, भूकम्पीय क्षेत्र र हिमताल नक्सा" : "Hydrological gauges, fault lines, glacial lakes",
         url: "/map",
+      },
+      {
+        id: "nav-highways",
+        category: "navigation",
+        title: isNe ? "राष्ट्रिय राजमार्ग" : "National Highways",
+        subtitle: isNe ? "सडक विभागबाट प्रत्यक्ष सडक अवरोध तथा आवागमन" : "Real-time road blockages, landslides, repair ETAs",
+        url: "/highways",
+        badge: "ROAD",
       },
       {
         id: "nav-learn",
@@ -199,6 +197,65 @@ export function CommandPalette({
       badge: `${d.lat.toFixed(1)}°N, ${d.lng.toFixed(1)}°E`,
     }));
 
+    const highwayItems: PaletteItem[] = [
+      {
+        id: "hw-nh44",
+        category: "highway",
+        title: isNe ? "पृथ्वी राजमार्ग (NH44 / मुग्लिङ-काठमाडौं)" : "Prithvi Highway (NH44 / Mugling-Kathmandu)",
+        subtitle: isNe ? "मुख्य आपूर्ति मार्ग · प्रत्यक्ष अवरोध स्थिति" : "Critical supply lifeline · Real-time road status",
+        url: "/highways",
+        badge: "NH44",
+      },
+      {
+        id: "hw-nh08",
+        category: "highway",
+        title: isNe ? "बी.पी. राजमार्ग (NH08 / बनेपा-सिन्धुली-बर्दिबास)" : "BP Highway (NH08 / Banepa-Sindhuli-Bardibas)",
+        subtitle: isNe ? "पूर्वी नेपाल जोड्ने द्रुतमार्ग · पहिरो निगरानी" : "Eastern corridor expressway · Landslide monitoring",
+        url: "/highways",
+        badge: "NH08",
+      },
+      {
+        id: "hw-nh47",
+        category: "highway",
+        title: isNe ? "सिद्धार्थ राजमार्ग (NH47 / बुटवल-पाल्पा-पोखरा)" : "Siddhartha Highway (NH47 / Butwal-Palpa-Pokhara)",
+        subtitle: isNe ? "सिद्धबाबा खण्ड तथा पाल्पा पहिरो क्षेत्र" : "Siddhababa section & Palpa landslide transit",
+        url: "/highways",
+        badge: "NH47",
+      },
+      {
+        id: "hw-nh41",
+        category: "highway",
+        title: isNe ? "त्रिभुवन राजपथ (NH41 / नौबिसे-दामन-हेटौंडा)" : "Tribhuvan Highway (NH41 / Naubise-Daman-Hetauda)",
+        subtitle: isNe ? "ऐतिहासिक पहाडी सडक मार्ग" : "Historic mountain transit route",
+        url: "/highways",
+        badge: "NH41",
+      },
+      {
+        id: "hw-nh58",
+        category: "highway",
+        title: isNe ? "कर्णाली राजमार्ग (NH58 / सुर्खेत-जुम्ला)" : "Karnali Highway (NH58 / Surkhet-Jumla)",
+        subtitle: isNe ? "कर्णाली करिडोर · पहिरो जोखिम अनुगमन" : "Karnali corridor · Landslide vulnerability monitoring",
+        url: "/highways",
+        badge: "NH58",
+      },
+      {
+        id: "hw-nh01",
+        category: "highway",
+        title: isNe ? "पूर्व-पश्चिम राजमार्ग (NH01 / महेन्द्र राजमार्ग)" : "East-West Highway (NH01 / Mahendra Highway)",
+        subtitle: isNe ? "तराई लाइफलाइन · बाढी तथा पुल डाइभर्सन" : "Terai arterial lifeline · Flood & bridge diversions",
+        url: "/highways",
+        badge: "NH01",
+      },
+      {
+        id: "hw-nh03",
+        category: "highway",
+        title: isNe ? "पुष्पलाल मध्यपहाडी राजमार्ग (NH03)" : "Pushpalal Mid-Hill Highway (NH03)",
+        subtitle: isNe ? "मध्यपहाडी लोकमार्ग खण्डहरू" : "Mid-hill trans-Nepal connector",
+        url: "/highways",
+        badge: "NH03",
+      },
+    ];
+
     const historyItems: PaletteItem[] = HISTORIC_DISASTERS.map((h) => ({
       id: `hist-${h.id}`,
       category: "history",
@@ -209,7 +266,7 @@ export function CommandPalette({
       badge: `${h.year}`,
     }));
 
-    return [...emergencyItems, ...navItems, ...guideItems, ...districtItems, ...historyItems];
+    return [...emergencyItems, ...navItems, ...guideItems, ...highwayItems, ...districtItems, ...historyItems];
   }, [locale, tnav, thaz]);
 
   // Filter items
@@ -353,7 +410,7 @@ export function CommandPalette({
                         "flex size-8 shrink-0 items-center justify-center rounded-lg border",
                         item.category === "emergency"
                           ? "border-warning/40 bg-warning/10 text-warning"
-                          : item.category === "district"
+                          : item.category === "district" || item.category === "highway"
                             ? "border-brand/40 bg-brand/10 text-brand"
                             : "border-border bg-surface text-muted",
                       )}
@@ -362,6 +419,8 @@ export function CommandPalette({
                         <PhoneIcon width={15} height={15} />
                       ) : item.category === "district" ? (
                         <MapPinIcon width={15} height={15} />
+                      ) : item.category === "highway" ? (
+                        <HazardGlyph hazard="landslide" width={15} height={15} />
                       ) : item.hazard ? (
                         <HazardGlyph hazard={item.hazard} width={15} height={15} />
                       ) : (

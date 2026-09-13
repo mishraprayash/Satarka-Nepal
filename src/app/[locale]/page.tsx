@@ -42,67 +42,95 @@ export default async function HomePage({
 
 
 
-      {/* Hero — the thesis, framed by the topographic-contour signature and the
-          bilingual सतर्क / Satarka wordmark that states the mission in both scripts. */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-surface/50 to-bg">
-        <div className="contour-field decor absolute inset-0 -z-10 opacity-70" aria-hidden />
-        <div className="shell py-10 sm:py-16 lg:py-20">
-          <div className="grid items-center gap-8 lg:grid-cols-[1.25fr_0.75fr]">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs">
-                <span className="size-1.5 rounded-full bg-brand" aria-hidden />
-                <span className="eyebrow !text-text">{t("eyebrow")}</span>
-              </div>
-              <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                {t("title")}
-              </h1>
-              <p className="mt-4 max-w-xl text-base sm:text-lg leading-relaxed text-muted">{t("body")}</p>
-
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Link
-                  href="/alerts"
-                  className="inline-flex items-center gap-2 rounded-chip bg-brand px-5 py-2.5 font-semibold text-brand-fg transition-all hover:bg-brand-strong active:scale-95 shadow-xs"
-                >
-                  <span>{t("ctaAlerts")}</span>
-                  <ArrowIcon width={16} height={16} />
-                </Link>
-                <Link
-                  href="/map"
-                  className="inline-flex items-center gap-2 rounded-chip border border-border-strong bg-surface px-5 py-2.5 font-semibold text-text transition-all hover:bg-surface-2 active:scale-95 shadow-xs"
-                >
-                  <span>{ta("openMap")}</span>
-                </Link>
-              </div>
-
-              <p className="mt-6 flex max-w-lg items-start gap-2.5 rounded-xl border border-border/80 bg-surface/70 p-3 text-xs text-muted">
-                <span className="mt-0.5 shrink-0 text-watch" aria-hidden>
-                  <SeverityGlyph severity="info" width={15} height={15} />
-                </span>
-                <span>{t("disclaimer")}</span>
-              </p>
+      {/* Hero — Simple. Calm. Precise. Premium. Intentional. */}
+      <section className="relative border-b border-border/60 bg-gradient-to-b from-surface/60 via-bg to-bg py-12 sm:py-16 lg:py-20">
+        <div className="shell">
+          <div className="max-w-3xl">
+            {/* Live Operational Status Tag */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-surface px-3 py-1 text-xs shadow-2xs">
+              <span className="size-2 rounded-full bg-advisory animate-pulse" aria-hidden />
+              <span className="font-semibold text-text">{t("eyebrow")}</span>
             </div>
 
-            {/* Bilingual wordmark as graphic — the Devanagari↔Latin pairing, decorative. */}
-            <div
-              className="decor relative hidden select-none justify-self-end lg:block"
-              aria-hidden
-            >
-              <span
-                lang="ne"
-                className="block font-deva text-[8rem] font-bold leading-none text-brand/20 select-none"
+            <h1 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-text leading-[1.12]">
+              {t("title")}
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-base sm:text-lg leading-relaxed text-muted">
+              {t("body")}
+            </p>
+
+            {/* CTAs */}
+            <div className="mt-8 flex flex-wrap items-center gap-3.5">
+              <Link
+                href="/alerts"
+                className="inline-flex items-center gap-2 rounded-chip bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg transition-all hover:bg-brand-strong active:scale-98 shadow-sm"
               >
-                सतर्क
-              </span>
-              <span className="eyebrow mt-2 block text-right !text-sm tracking-[0.3em] text-brand/50">
-                Satarka
-              </span>
+                <span>{t("ctaAlerts")}</span>
+                <ArrowIcon width={16} height={16} />
+              </Link>
+              <Link
+                href="/map"
+                className="inline-flex items-center gap-2 rounded-chip border border-border/80 bg-surface px-5 py-2.5 text-sm font-semibold text-text transition-all hover:bg-surface-2 hover:border-border-strong active:scale-98 shadow-2xs"
+              >
+                <span>{ta("openMap")}</span>
+              </Link>
+            </div>
+
+            {/* Quiet official disclaimer */}
+            <div className="mt-7 flex items-center gap-2 text-xs text-faint">
+              <SeverityGlyph severity="info" width={14} height={14} className="shrink-0 text-muted" />
+              <span>{t("disclaimer")}</span>
+            </div>
+          </div>
+
+          {/* Operational Pulse Bar — Live Telemetry at a glance */}
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 pt-8 border-t border-border/60">
+            <div className="card p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Active Threats</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-2xl font-bold tabular text-text">
+                  {initialAlerts.alerts.filter((a) => a.severity === "danger" || a.severity === "warning").length}
+                </span>
+                <span className="text-xs text-muted">Danger / Warning</span>
+              </div>
+            </div>
+
+            <div className="card p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Telemetry Gauges</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-2xl font-bold tabular text-text">
+                  {initialAlerts.alerts.filter((a) => a.hazard === "flood" || a.hazard === "glof").length}
+                </span>
+                <span className="text-xs text-muted">River Stations</span>
+              </div>
+            </div>
+
+            <div className="card p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Seismic & Storm</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-2xl font-bold tabular text-text">
+                  {initialAlerts.alerts.filter((a) => a.hazard === "earthquake" || a.hazard === "landslide").length}
+                </span>
+                <span className="text-xs text-muted">Tracked Events</span>
+              </div>
+            </div>
+
+            <div className="card p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Data Sources</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-2xl font-bold tabular text-brand">
+                  {initialAlerts.sources.filter((s) => s.ok).length} / {initialAlerts.sources.length}
+                </span>
+                <span className="text-xs text-muted">Operational</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="shell space-y-16 py-14 sm:py-16">
-        {/* Near-you alerts — most prominent, at the very top */}
+      <div className="shell space-y-16 py-12 sm:py-16">
+        {/* Near-you alerts — most prominent contextual module */}
         <NearYou initialData={initialAlerts} />
 
         {/* Live dashboard summary */}
@@ -123,21 +151,23 @@ export default async function HomePage({
               <li key={h}>
                 <Link
                   href={`/learn/${h}`}
-                  className="card group flex h-full flex-col gap-3 p-5 transition-colors hover:border-border-strong"
+                  className="card group flex h-full flex-col justify-between gap-4 p-5 transition-all duration-200 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5 active:scale-98"
                 >
-                  <span className="text-brand" aria-hidden>
-                    <HazardGlyph hazard={h} width={26} height={26} />
-                  </span>
-                  <div>
-                    <h3 className="text-base font-semibold">{th(`${h}.name`)}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-muted">{th(`${h}.short`)}</p>
+                  <div className="space-y-3">
+                    <span className="inline-flex size-10 items-center justify-center rounded-chip bg-surface-2 text-brand group-hover:bg-brand group-hover:text-brand-fg transition-colors" aria-hidden>
+                      <HazardGlyph hazard={h} width={22} height={22} />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-text group-hover:text-brand transition-colors">{th(`${h}.name`)}</h3>
+                      <p className="mt-1 text-xs sm:text-sm leading-relaxed text-muted">{th(`${h}.short`)}</p>
+                    </div>
                   </div>
-                  <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-medium text-brand">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
                     {ta("learnMore")}
                     <ArrowIcon
-                      width={14}
-                      height={14}
-                      className="transition-transform group-hover:translate-x-0.5"
+                      width={12}
+                      height={12}
+                      className="transition-transform duration-200 group-hover:translate-x-0.5"
                     />
                   </span>
                 </Link>
@@ -156,7 +186,7 @@ export default async function HomePage({
           <ReportsList initialData={initialReports} />
         </section>
 
-        {/* Map + Learn teasers (Alerts + Prepare are the hero CTAs) */}
+        {/* Map + Learn teasers */}
         <section className="grid gap-4 md:grid-cols-2">
           <TeaserCard
             href="/map"
@@ -190,17 +220,18 @@ function TeaserCard({
   return (
     <Link
       href={href}
-      className="card group relative flex flex-col gap-2 overflow-hidden p-6 transition-colors hover:border-border-strong"
+      className="card group relative flex flex-col justify-between gap-3 overflow-hidden p-6 sm:p-7 transition-all duration-200 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5 active:scale-98"
     >
-      <div className="contour-field decor absolute inset-0 -z-10 opacity-40" aria-hidden />
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="max-w-md text-sm leading-relaxed text-muted">{body}</p>
-      <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand">
-        {cta}
+      <div>
+        <h3 className="text-lg font-bold text-text group-hover:text-brand transition-colors">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
+      </div>
+      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand">
+        <span>{cta}</span>
         <ArrowIcon
           width={14}
           height={14}
-          className="transition-transform group-hover:translate-x-0.5"
+          className="transition-transform duration-200 group-hover:translate-x-0.5"
         />
       </span>
     </Link>

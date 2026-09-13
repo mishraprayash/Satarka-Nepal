@@ -14,6 +14,7 @@ import { timeAgo } from "@/lib/format";
 import { HAZARD_ORDER, SEVERITY_ORDER, SEVERITY_CHIP, SEVERITY_TEXT } from "@/lib/ui";
 import { haversineKm, type LatLng } from "@/lib/distance";
 import { useAlerts } from "@/lib/use-alerts";
+import { useUserLocation } from "@/lib/use-user-location";
 import { AlertCard } from "@/components/alert-card";
 import { SourceHealthList } from "@/components/source-health-list";
 import { SectionHeader } from "@/components/section";
@@ -88,8 +89,13 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
     return s === "date" || s === "distance" ? s : "severity";
   });
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(() => searchParams?.get("alert") ?? null);
-  const [userPos, setUserPos] = useState<LatLng | null>(null);
-  const [locating, setLocating] = useState(false);
+  const { coords: userPos, locating, requestLocation: triggerLocation } = useUserLocation();
+
+  const requestLocation = useCallback(() => {
+    triggerLocation(() => {
+      setSortMode("distance");
+    });
+  }, [triggerLocation]);
 
   // Sync state to URL params seamlessly
   useEffect(() => {
@@ -104,20 +110,6 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
     const target = qs ? `${pathname}?${qs}` : pathname;
     router.replace(target, { scroll: false });
   }, [searchQuery, hazard, severity, sortMode, selectedAlertId, pathname, router]);
-
-  const requestLocation = useCallback(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (p) => {
-        setUserPos({ lat: p.coords.latitude, lng: p.coords.longitude });
-        setSortMode("distance");
-        setLocating(false);
-      },
-      () => setLocating(false),
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
-    );
-  }, []);
 
   const alerts = response?.alerts ?? [];
 
@@ -233,6 +225,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
       {fromCache ? (
         <p
           role="status"
+          suppressHydrationWarning
           className="rounded-card border border-watch/40 bg-watch-soft px-4 py-2.5 text-sm text-watch"
         >
           {to("banner", { time: timeAgo(new Date(cachedAt ?? Date.now()).toISOString(), locale) })}
@@ -275,7 +268,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
         {/* Freshness & Refresh button group */}
         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
           <div className="text-left sm:text-right text-xs text-faint">
-            <p className="tabular">{tc("updatedAgo", { time: timeAgo(response.generatedAt, locale) })}</p>
+            <p className="tabular" suppressHydrationWarning>{tc("updatedAgo", { time: timeAgo(response.generatedAt, locale) })}</p>
             <p>{thome("reachable", { ok: okCount, total })}</p>
           </div>
           <button
@@ -410,9 +403,9 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
       {/* Results Grid */}
       {filtered.length > 0 ? (
         <div className="grid gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((a) => (
+          {filtered.map((a, idx) => (
             <AlertCard
-              key={a.id}
+              key={`${a.id}-${idx}`}
               alert={a}
               onSelect={handleSelectAlert}
             />
