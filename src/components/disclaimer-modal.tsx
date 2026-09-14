@@ -210,7 +210,7 @@ export function DisclaimerModal() {
             ref={acknowledgeButtonRef}
             type="button"
             onClick={handleAcknowledge}
-            className="inline-flex items-center justify-center gap-2 rounded-card bg-brand px-5 py-2.5 text-sm font-semibold text-brand-contrast shadow-sm hover:brightness-110 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 rounded-card bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg shadow-sm hover:brightness-110 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             <CheckIcon className="h-4 w-4" />
             <span>{t("acknowledge")}</span>
