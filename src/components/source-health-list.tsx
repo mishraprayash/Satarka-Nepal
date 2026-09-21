@@ -45,7 +45,7 @@ export function SourceHealthList({ sources }: { sources: SourceHealth[] }) {
                   {typeof s.scanned === "number" ? tc("recordsChecked", { count: s.scanned }) : null}
                   {typeof s.scanned === "number" && s.surfaced > 0 ? " · " : null}
                   {s.surfaced > 0 ? tc("itemsSurfaced", { count: s.surfaced }) : null}
-                  {!s.scanned && !s.surfaced ? ts(`${STATUS_KEY[s.status]}.desc`) : null}
+                  {typeof s.scanned !== "number" && s.surfaced === 0 ? ts(`${STATUS_KEY[s.status]}.desc`) : null}
                 </>
               ) : (
                 <span className="text-danger">{ta("unavailable")}</span>
