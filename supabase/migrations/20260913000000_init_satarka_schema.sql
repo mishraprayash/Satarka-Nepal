@@ -239,4 +239,9 @@ CREATE POLICY "Service role write source health" ON source_health
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Enable Realtime Pub/Sub on critical alerts table
-ALTER PUBLICATION supabase_realtime ADD TABLE alerts;
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE alerts;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
