@@ -87,42 +87,42 @@ export default async function HomePage({
           {/* Operational Pulse Bar — Live Telemetry at a glance */}
           <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 pt-8 border-t border-border/60">
             <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Active Threats</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.activeThreats")}</span>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-2xl font-bold tabular text-text">
                   {initialAlerts.alerts.filter((a) => a.severity === "danger" || a.severity === "warning").length}
                 </span>
-                <span className="text-xs text-muted">Danger / Warning</span>
+                <span className="text-xs text-muted">{t("stats.dangerWarning")}</span>
               </div>
             </div>
 
             <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Telemetry Gauges</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.telemetryGauges")}</span>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-2xl font-bold tabular text-text">
                   {initialAlerts.alerts.filter((a) => a.hazard === "flood" || a.hazard === "glof").length}
                 </span>
-                <span className="text-xs text-muted">River Stations</span>
+                <span className="text-xs text-muted">{t("stats.riverStations")}</span>
               </div>
             </div>
 
             <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Seismic & Storm</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.seismicStorm")}</span>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-2xl font-bold tabular text-text">
                   {initialAlerts.alerts.filter((a) => a.hazard === "earthquake" || a.hazard === "landslide").length}
                 </span>
-                <span className="text-xs text-muted">Tracked Events</span>
+                <span className="text-xs text-muted">{t("stats.trackedEvents")}</span>
               </div>
             </div>
 
             <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Data Sources</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.dataSources")}</span>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-2xl font-bold tabular text-brand">
                   {initialAlerts.sources.filter((s) => s.ok).length} / {initialAlerts.sources.length}
                 </span>
-                <span className="text-xs text-muted">Operational</span>
+                <span className="text-xs text-muted">{t("stats.operational")}</span>
               </div>
             </div>
           </div>

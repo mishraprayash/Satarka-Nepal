@@ -93,7 +93,17 @@
     "learnTeaserBody": "What causes each hazard, the local warning signs, and what to do before, during, and after.",
     "reportsTitle": "Latest situation reports",
     "reportsSub": "Published reports from relief agencies — background, not active warnings.",
-    "reachable": "{ok} of {total} sources reachable"
+    "reachable": "{ok} of {total} sources reachable",
+    "stats": {
+      "activeThreats": "Active Threats",
+      "dangerWarning": "Danger / Warning",
+      "telemetryGauges": "Telemetry Gauges",
+      "riverStations": "River Stations",
+      "seismicStorm": "Seismic & Storm",
+      "trackedEvents": "Tracked Events",
+      "dataSources": "Data Sources",
+      "operational": "Operational"
+    }
   },
   "highways": {
     "title": "National Highway Passability",

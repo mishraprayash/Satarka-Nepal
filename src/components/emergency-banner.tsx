@@ -65,8 +65,8 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
       )}
     >
       <div className="shell flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs sm:text-sm">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="shrink-0" aria-hidden="true">
+        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+          <span className="shrink-0 mt-0.5 sm:mt-0" aria-hidden="true">
             <SeverityGlyph
               severity={
                 status.level === "danger"
@@ -81,17 +81,17 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
           </span>
           <span
             className={cn(
-              "rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider shrink-0",
+              "rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider shrink-0 mt-0.5 sm:mt-0",
               status.badgeClass,
             )}
           >
             {status.badge}
           </span>
-          <div className="min-w-0 flex items-baseline gap-2">
-            <p className="font-semibold text-text truncate">
+          <div className="min-w-0 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p className="font-semibold text-text">
               {status.title}
             </p>
-            <p className="hidden md:inline text-xs text-muted truncate">
+            <p className="hidden md:inline text-xs text-muted">
               {status.sub}
             </p>
           </div>
