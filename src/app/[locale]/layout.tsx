@@ -68,7 +68,7 @@ export default async function LocaleLayout({
               {t("skip")}
             </a>
             <GlobalNav />
-            <main id="main" className="flex-1 pb-mobile-nav md:pb-0">{children}</main>
+            <main id="main" className="flex-1">{children}</main>
             <SiteFooter />
           </Providers>
         </NextIntlClientProvider>
