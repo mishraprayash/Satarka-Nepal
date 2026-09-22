@@ -18,6 +18,7 @@ import {
   MapPinIcon,
 } from "@/components/icons";
 import { AlertMiniMap } from "@/components/alert-mini-map";
+import { RiverGaugeChart } from "@/components/river-gauge-chart";
 
 export interface AlertDetailModalProps {
   alert: Alert;
@@ -360,12 +361,15 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           {/* River Gauge Level Meter (when hydrological water level data exists) */}
           {typeof alert.meta?.waterLevel === "number" &&
           (alert.meta?.warningLevel != null || alert.meta?.dangerLevel != null) ? (
-            <RiverGaugeMeter
-              waterLevel={alert.meta.waterLevel as number}
-              warningLevel={typeof alert.meta.warningLevel === "number" ? alert.meta.warningLevel : undefined}
-              dangerLevel={typeof alert.meta.dangerLevel === "number" ? alert.meta.dangerLevel : undefined}
-              trend={typeof alert.meta.trend === "string" ? alert.meta.trend : undefined}
-            />
+            <>
+              <RiverGaugeMeter
+                waterLevel={alert.meta.waterLevel as number}
+                warningLevel={typeof alert.meta.warningLevel === "number" ? alert.meta.warningLevel : undefined}
+                dangerLevel={typeof alert.meta.dangerLevel === "number" ? alert.meta.dangerLevel : undefined}
+                trend={typeof alert.meta.trend === "string" ? alert.meta.trend : undefined}
+              />
+              <RiverGaugeChart stationId={alert.id} />
+            </>
           ) : null}
 
           {/* Instrument Readouts grid */}
@@ -527,6 +531,23 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
             <span>{tact("viewSource")}</span>
             <ExternalIcon width={13} height={13} />
           </a>
+
+          <button
+            type="button"
+            onClick={async () => {
+              const url = typeof window !== "undefined" ? window.location.origin + window.location.pathname + `?alert=${alert.id}` : "";
+              const text = `${title} - Satarka Nepal`;
+              if (navigator.share) {
+                try { await navigator.share({ title: text, text, url }); } catch (e) {}
+              } else {
+                navigator.clipboard.writeText(url);
+                window.alert("Link copied to clipboard!");
+              }
+            }}
+            className="inline-flex items-center gap-1.5 rounded-chip border border-border bg-surface px-4 py-2 text-xs sm:text-sm font-medium text-text hover:bg-surface-2 transition-colors min-h-[40px] cursor-pointer"
+          >
+            <span>Share</span>
+          </button>
 
           <button
             type="button"

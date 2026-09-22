@@ -19,6 +19,7 @@ import { AlertCard } from "@/components/alert-card";
 import { SourceHealthList } from "@/components/source-health-list";
 import { SectionHeader } from "@/components/section";
 import { HazardGlyph, SeverityGlyph, SearchIcon, CloseIcon } from "@/components/icons";
+import { usePagination, PaginationControl } from "@/components/pagination";
 
 
 const AlertDetailModal = dynamic(
@@ -96,6 +97,10 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
       setSortMode("distance");
     });
   }, [triggerLocation]);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const showFetching = mounted && isFetching;
 
   // Sync state to URL params seamlessly
   useEffect(() => {
@@ -219,6 +224,17 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
     setSelectedAlertId(a.id);
   }, []);
 
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    goToPage
+  } = usePagination(filtered, 12);
+
+  useEffect(() => {
+    goToPage(1);
+  }, [searchQuery, hazard, severity, sortMode]);
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Honest state banners */}
@@ -274,10 +290,10 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
           <button
             type="button"
             onClick={() => refetch()}
-            disabled={isFetching}
+            disabled={showFetching}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-chip border border-border-strong bg-surface px-3.5 py-2.5 text-xs font-semibold text-text shadow-xs transition-all hover:bg-surface-2 hover:border-text active:scale-95",
-              isFetching && "opacity-60 cursor-not-allowed",
+              showFetching && "opacity-60 cursor-not-allowed",
             )}
           >
             <svg
@@ -289,7 +305,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
               strokeWidth={2.5}
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={isFetching ? "animate-spin text-brand" : "text-muted"}
+              className={showFetching ? "animate-spin text-brand" : "text-muted"}
             >
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
@@ -402,16 +418,25 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
 
       {/* Results Grid */}
       {filtered.length > 0 ? (
-        <div className="grid gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((a, idx) => (
-            <AlertCard
-              key={`${a.id}-${idx}`}
-              alert={a}
-              onSelect={handleSelectAlert}
-            />
-          ))}
-        </div>
-
+        <>
+          <div className="grid gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {paginatedItems.map((a, idx) => (
+              <AlertCard
+                key={`${a.id}-${idx}`}
+                alert={a}
+                onSelect={handleSelectAlert}
+              />
+            ))}
+          </div>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => {
+              goToPage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        </>
       ) : hasActiveFilters ? (
         <div className="card border-dashed p-8 text-center">
           <p className="text-sm font-semibold text-text">{ta("noMatches")}</p>

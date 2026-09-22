@@ -4,7 +4,8 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/i18n/routing";
 import { formatDateTime } from "@/lib/format";
 import { useReports } from "@/lib/use-reports";
-import { ArrowIcon, ExternalIcon } from "@/components/icons";
+import { ExternalIcon, ArrowIcon } from "@/components/icons";
+import { usePagination, PaginationControl } from "@/components/pagination";
 import type { ReportsResponse } from "@/lib/types";
 
 export function ReportsList({ initialData }: { initialData?: ReportsResponse }) {
@@ -14,7 +15,7 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
   const tact = useTranslations("actions");
   const { data, fromCache, isLoading, isError, refetch } = useReports(initialData);
 
-  if (isLoading) {
+  if (isLoading && !fromCache) {
     return (
       <div className="grid gap-3 sm:grid-cols-2" aria-busy="true">
         {[1, 2, 3, 4].map((i) => (
@@ -33,6 +34,13 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
 
   const reports = data?.ok && data.reports.length > 0 ? data.reports : [];
 
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    goToPage
+  } = usePagination(reports, 6);
+
   return (
     <div className="space-y-4">
       {fromCache ? (
@@ -42,58 +50,65 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
       ) : null}
 
       {reports.length > 0 ? (
-        <div className="grid gap-3.5 sm:grid-cols-2">
-          {reports.map((r) => (
-            <article
-              key={r.id}
-              className="card group relative flex flex-col justify-between p-4 sm:p-5 transition-all hover:border-brand/60 hover:shadow-xs"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-muted">
-                    {r.sourceName}
-                  </span>
-                  {r.date ? (
-                    <span className="text-[11px] tabular text-faint">
-                      {formatDateTime(r.date, locale)}
+        <>
+          <div className="grid gap-3.5 sm:grid-cols-2">
+            {paginatedItems.map((r) => (
+              <article
+                key={r.id}
+                className="card group relative flex flex-col justify-between p-4 sm:p-5 transition-all hover:border-brand/60 hover:shadow-xs"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-muted">
+                      {r.sourceName}
                     </span>
-                  ) : null}
+                    {r.date ? (
+                      <span className="text-[11px] tabular text-faint">
+                        {formatDateTime(r.date, locale)}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <h3 className="text-sm font-semibold leading-snug text-text group-hover:text-brand transition-colors">
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-start gap-1.5 focus:outline-none"
+                    >
+                      <span>{r.title}</span>
+                      <ExternalIcon
+                        width={13}
+                        height={13}
+                        className="mt-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity text-brand"
+                      />
+                    </a>
+                  </h3>
                 </div>
 
-                <h3 className="text-sm font-semibold leading-snug text-text group-hover:text-brand transition-colors">
+                <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
+                  <span className="text-faint text-[11px]">
+                    {locale === "ne" ? "आधिकारिक प्रतिवेदन" : "Official Briefing"}
+                  </span>
                   <a
                     href={r.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-start gap-1.5 focus:outline-none"
+                    className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
                   >
-                    <span>{r.title}</span>
-                    <ExternalIcon
-                      width={13}
-                      height={13}
-                      className="mt-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity text-brand"
-                    />
+                    <span>{locale === "ne" ? "हेर्नुहोस्" : "Read report"}</span>
+                    <ArrowIcon width={11} height={11} />
                   </a>
-                </h3>
-              </div>
-
-              <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
-                <span className="text-faint text-[11px]">
-                  {locale === "ne" ? "आधिकारिक प्रतिवेदन" : "Official Briefing"}
-                </span>
-                <a
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
-                >
-                  <span>{locale === "ne" ? "हेर्नुहोस्" : "Read report"}</span>
-                  <ArrowIcon width={11} height={11} />
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => goToPage(page)}
+          />
+        </>
       ) : (
         /* Rich Fallback Directory */
         <div className="card border-dashed p-6 sm:p-8 space-y-4">
