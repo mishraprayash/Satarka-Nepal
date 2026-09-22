@@ -115,7 +115,7 @@ export function DisclaimerModal() {
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
           <p
             id="disclaimer-modal-desc"
             className="text-sm sm:text-base leading-relaxed text-muted"
