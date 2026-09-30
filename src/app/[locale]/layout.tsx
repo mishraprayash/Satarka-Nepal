@@ -4,7 +4,6 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { Providers } from "@/components/providers";
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AppearanceSync, ThemeBoot } from "@/components/settings-controls";
 import { GlobalNav } from "@/components/global-nav";
@@ -27,7 +26,14 @@ export async function generateMetadata({
     applicationName: "Satarka",
     manifest: "/manifest.webmanifest",
     appleWebApp: { capable: true, title: "Satarka", statusBarStyle: "default" },
-    icons: { icon: "/icon.svg", apple: "/icon.svg" },
+    icons: {
+      icon: [
+        { url: "/icon.svg", type: "image/svg+xml" },
+        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    },
   };
 }
 

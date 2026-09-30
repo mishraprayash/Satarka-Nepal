@@ -245,11 +245,13 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
     alert.location?.lat != null &&
     alert.location?.lng != null &&
     !Number.isNaN(alert.location.lat) &&
-    !Number.isNaN(alert.location.lng);
+    !Number.isNaN(alert.location.lng) &&
+    (alert.location.lat !== 0 || alert.location.lng !== 0);
 
   const readouts = getReadouts(alert);
   const { metrics: situationMetrics, paragraphs: situationParagraphs } = parseSituationDetails(description);
-  const duringSteps = LEARN_CONTENT[alert.hazard].during.slice(0, 3);
+  const hazardGuide = LEARN_CONTENT[alert.hazard] ?? LEARN_CONTENT.flood;
+  const duringSteps = (hazardGuide?.during ?? []).slice(0, 3);
 
   return (
     <div
@@ -535,13 +537,25 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           <button
             type="button"
             onClick={async () => {
-              const url = typeof window !== "undefined" ? window.location.origin + window.location.pathname + `?alert=${alert.id}` : "";
+              const url = typeof window !== "undefined"
+                ? `${window.location.origin}/${locale}/alerts?alert=${encodeURIComponent(alert.id)}`
+                : "";
               const text = `${title} - Satarka Nepal`;
               if (navigator.share) {
-                try { await navigator.share({ title: text, text, url }); } catch (e) {}
+                try {
+                  await navigator.share({ title: text, text, url });
+                } catch (e) {
+                  // Ignore cancel/abort
+                }
+              } else if (navigator.clipboard) {
+                try {
+                  await navigator.clipboard.writeText(url);
+                  window.alert("Link copied to clipboard!");
+                } catch {
+                  window.prompt("Copy this link:", url);
+                }
               } else {
-                navigator.clipboard.writeText(url);
-                window.alert("Link copied to clipboard!");
+                window.prompt("Copy this link:", url);
               }
             }}
             className="inline-flex items-center gap-1.5 rounded-chip border border-border bg-surface px-4 py-2 text-xs sm:text-sm font-medium text-text hover:bg-surface-2 transition-colors min-h-[40px] cursor-pointer"

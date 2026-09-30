@@ -5,6 +5,7 @@ import { DisclaimerTrigger } from "@/components/disclaimer-trigger";
 const NAV = [
   { href: "/alerts", key: "alerts" },
   { href: "/map", key: "map" },
+  { href: "/highways", key: "highways" },
   { href: "/learn", key: "learn" },
   { href: "/report", key: "report" },
   { href: "/about", key: "about" },

@@ -202,6 +202,7 @@
     "layerQuakes": "Earthquakes (live)",
     "layerHighways": "Highways & Roadblocks (live)",
     "riversOnlyWarning": "Only warning/danger stations",
+    "highwaysBlockedOnly": "Only blocked roads",
     "targetAlert": "Focused Incident",
     "riskLow": "Lower risk",
     "riskModerate": "Elevated risk",
@@ -232,7 +233,20 @@
     "fatalitiesLabel": "Casualties",
     "scientificCauseLabel": "Scientific Cause",
     "lessonsLabel": "Key Takeaway",
-    "searchDisasters": "Search by year, district, or disaster name…"
+    "searchDisasters": "Search by year, district, or disaster name…",
+    "emergencyHotlinesTitle": "Official Emergency Hotlines (Nepal)",
+    "emergencyHotlinesSub": "Verified 24/7 toll-free numbers for rescue, medical emergency, and flood warnings.",
+    "emergencyChecklist": "Emergency Action Checklist",
+    "emergencyChecklistSub": "Step-by-step actions to safeguard your family before, during, and after this disaster.",
+    "viewLiveAlerts": "Live {hazard} Alerts",
+    "viewHazardMap": "Hazard Map",
+    "verifiedRecord": "Verified Historical Record",
+    "geologicalInsight": "Geological Insight",
+    "readCauseLessons": "Read scientific cause & lessons",
+    "hideCauseLessons": "Hide scientific details",
+    "noDisastersFound": "No historical disaster found matching \"{query}\".",
+    "tollFree": "Toll-Free",
+    "nepal": "Nepal"
   },
   "about": {
     "title": "About Satarka",
@@ -257,8 +271,12 @@
     "police": "Nepal Police",
     "ambulance": "Ambulance",
     "fire": "Fire",
-    "ndrrma": "NDRRMA hotline",
-    "call": "Call {number}"
+    "ndrrma": "NDRRMA helpline",
+    "dhm": "DHM Flood Info",
+    "call": "Call {number}",
+    "callAction": "Call",
+    "tollFree": "Toll-Free",
+    "emergencyNote": "In an emergency, dial 1149 for the 24/7 NDRRMA Disaster Helpline or 1155 for DHM Flood Inquiries (toll-free). Police (100), Fire (101), and Ambulance (102) operate nationwide."
   },
   "emergencyBanner": {
     "danger": {
@@ -302,6 +320,7 @@
     "ambulance": "Ambulance (102)",
     "fire": "Fire (101)",
     "floodHotline": "DHM Flood Info (1155)",
+    "ndrrma": "NDRRMA Helpline (1149)",
     "acknowledge": "I Understand & Proceed",
     "doNotShowAgain": "Understood. Continue to Satarka."
   }

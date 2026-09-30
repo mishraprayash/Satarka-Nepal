@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useEffect, useState, useSyncExternalStore } from "react";
+import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useServerInsertedHTML } from "next/navigation";
@@ -10,8 +10,11 @@ import { GlobeIcon, MoonIcon, SignalIcon, SunIcon } from "@/components/icons";
 import {
   LOWBW_KEY,
   applyStoredAppearance,
+  readLowBandwidth,
   readTheme,
+  setLowBandwidth,
   setTheme,
+  subscribeLowBandwidth,
   subscribeTheme,
   themeBootScript,
 } from "@/lib/theme";
@@ -48,13 +51,25 @@ export function LanguageToggle() {
   const other = routing.locales.find((l) => l !== locale) ?? routing.defaultLocale;
   const label = other === "ne" ? "नेपाली" : "English";
 
+  const handleToggle = () => {
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    const target = `${pathname}${search}${hash}`;
+    router.replace(target, { locale: other });
+  };
+
   return (
     <button
       type="button"
-      onClick={() => router.replace(pathname, { locale: other })}
+      onClick={handleToggle}
       className={control()}
       lang={other}
-      aria-label={`Switch language to ${label}`}
+      aria-label={
+        locale === "ne"
+          ? `Switch language to ${label}`
+          : `भाषा ${label} मा परिवर्तन गर्नुहोस्`
+      }
+      title={label}
     >
       <GlobeIcon width={16} height={16} />
       {label}
@@ -63,6 +78,7 @@ export function LanguageToggle() {
 }
 
 export function ThemeToggle() {
+  const t = useTranslations("actions");
   // Server snapshot stays "light" so hydration matches; after mount the store
   // re-reads localStorage and corrects the icon without touching the <html>
   // class (already applied by the boot script).
@@ -77,7 +93,8 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       className={control()}
-      aria-label="Switch theme"
+      aria-label={t("toggleTheme")}
+      title={t("toggleTheme")}
       suppressHydrationWarning
     >
       {theme === "dark" ? <MoonIcon width={16} height={16} /> : <SunIcon width={16} height={16} />}
@@ -87,18 +104,10 @@ export function ThemeToggle() {
 
 export function LowBandwidthToggle({ showLabel = false }: { showLabel?: boolean }) {
   const t = useTranslations("actions");
-  const [low, setLow] = useState(false);
-  useEffect(() => {
-    setLow(document.documentElement.dataset.lowbw === "true");
-  }, []);
+  const low = useSyncExternalStore(subscribeLowBandwidth, readLowBandwidth, () => false);
 
   function toggle() {
-    const next = !low;
-    setLow(next);
-    document.documentElement.dataset.lowbw = next ? "true" : "false";
-    try {
-      localStorage.setItem(LOWBW_KEY, String(next));
-    } catch {}
+    setLowBandwidth(!low);
   }
 
   return (

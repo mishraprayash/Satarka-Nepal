@@ -26,20 +26,30 @@ interface ThemeColors {
 
 /** Read severity colours from CSS variables so markers match the active theme. */
 function readColors(): ThemeColors {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return {
+      info: "#35506b",
+      advisory: "#1a7a3e",
+      watch: "#8a5900",
+      warning: "#a3480f",
+      danger: "#b01c2b",
+    };
+  }
   const cs = getComputedStyle(document.documentElement);
-  const get = (n: string) => cs.getPropertyValue(n).trim() || "#667";
+  const get = (n: string) => cs.getPropertyValue(n).trim();
   return {
-    info: get("--sev-info-fg"),
-    advisory: get("--sev-advisory-fg"),
-    watch: get("--sev-watch-fg"),
-    warning: get("--sev-warning-fg"),
-    danger: get("--sev-danger-fg"),
+    info: get("--sev-info-fg") || "#35506b",
+    advisory: get("--sev-advisory-fg") || "#1a7a3e",
+    watch: get("--sev-watch-fg") || "#8a5900",
+    warning: get("--sev-warning-fg") || "#a3480f",
+    danger: get("--sev-danger-fg") || "#b01c2b",
   };
 }
 
 function useThemeColors(): ThemeColors {
   const [colors, setColors] = useState<ThemeColors>(() => readColors());
   useEffect(() => {
+    if (typeof document === "undefined") return;
     const el = document.documentElement;
     const update = () => setColors(readColors());
     const mo = new MutationObserver(update);
@@ -212,6 +222,22 @@ function HighwayMarker({ highway, colors, locale }: { highway: HighwayBlockage; 
 }
 
 
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 120);
+    const onResize = () => map.invalidateSize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [map]);
+  return null;
+}
+
 function MapViewController({
   focusTarget,
 }: {
@@ -219,8 +245,17 @@ function MapViewController({
 }) {
   const map = useMap();
   useEffect(() => {
-    if (focusTarget) {
-      map.flyTo([focusTarget.lat, focusTarget.lng], focusTarget.zoom ?? 12, {
+    if (
+      focusTarget &&
+      Number.isFinite(focusTarget.lat) &&
+      Number.isFinite(focusTarget.lng) &&
+      focusTarget.lat >= -90 &&
+      focusTarget.lat <= 90 &&
+      focusTarget.lng >= -180 &&
+      focusTarget.lng <= 180
+    ) {
+      const zoom = Number.isFinite(focusTarget.zoom) ? focusTarget.zoom! : 12;
+      map.flyTo([focusTarget.lat, focusTarget.lng], zoom, {
         duration: 1.5,
       });
     }
@@ -238,17 +273,32 @@ export interface LeafletMapProps {
     title?: string;
   };
   riversOnlyWarning?: boolean;
+  highwaysBlockedOnly?: boolean;
 }
 
-export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = false }: LeafletMapProps) {
+export function LeafletMap({
+  data,
+  layers,
+  focusTarget,
+  riversOnlyWarning = false,
+  highwaysBlockedOnly = false,
+}: LeafletMapProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations("map");
   const tsev = useTranslations("severity");
   const colors = useThemeColors();
 
   const gaugePoints = useMemo(() => {
-    const pts = data.rivers.filter(
-      (g) => g.lat !== undefined && g.lng !== undefined && !Number.isNaN(g.lat!) && !Number.isNaN(g.lng!),
+    const pts = (data.rivers ?? []).filter(
+      (g) =>
+        g.lat != null &&
+        g.lng != null &&
+        Number.isFinite(g.lat) &&
+        Number.isFinite(g.lng) &&
+        g.lat >= -90 &&
+        g.lat <= 90 &&
+        g.lng >= -180 &&
+        g.lng <= 180,
     );
     if (riversOnlyWarning) {
       return pts.filter((g) => g.atDanger || g.atWarning);
@@ -257,17 +307,100 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
   }, [data.rivers, riversOnlyWarning]);
 
   const quakePoints = useMemo(
-    () => data.quakes.filter((q) => q.lat !== undefined && q.lng !== undefined && !Number.isNaN(q.lat!) && !Number.isNaN(q.lng!)),
+    () =>
+      (data.quakes ?? []).filter(
+        (q) =>
+          q.lat != null &&
+          q.lng != null &&
+          Number.isFinite(q.lat) &&
+          Number.isFinite(q.lng) &&
+          q.lat >= -90 &&
+          q.lat <= 90 &&
+          q.lng >= -180 &&
+          q.lng <= 180,
+      ),
     [data.quakes],
   );
 
-  const highwayPoints = useMemo(
-    () => (data.highways ?? []).filter((h) => h.lat !== undefined && h.lng !== undefined && !Number.isNaN(h.lat!) && !Number.isNaN(h.lng!)),
-    [data.highways],
+  const highwayPoints = useMemo(() => {
+    const pts = (data.highways ?? []).filter(
+      (h) =>
+        h.lat != null &&
+        h.lng != null &&
+        Number.isFinite(h.lat) &&
+        Number.isFinite(h.lng) &&
+        h.lat >= -90 &&
+        h.lat <= 90 &&
+        h.lng >= -180 &&
+        h.lng <= 180,
+    );
+    if (highwaysBlockedOnly) {
+      return pts.filter((h) => h.status === "BLOCKED" || h.status === "PARTIAL_OPEN");
+    }
+    return pts;
+  }, [data.highways, highwaysBlockedOnly]);
+
+  const glacialLakePoints = useMemo(
+    () =>
+      (data.glacialLakes ?? []).filter(
+        (l) =>
+          l.lat != null &&
+          l.lng != null &&
+          Number.isFinite(l.lat) &&
+          Number.isFinite(l.lng) &&
+          l.lat >= -90 &&
+          l.lat <= 90 &&
+          l.lng >= -180 &&
+          l.lng <= 180,
+      ),
+    [data.glacialLakes],
   );
 
-  const atDanger = data.rivers.filter((g) => g.atDanger).length;
-  const atWarning = data.rivers.filter((g) => g.atWarning).length;
+  const validBasins = useMemo(
+    () =>
+      (data.basins ?? [])
+        .map((b) => ({
+          ...b,
+          validPositions: (b.points ?? [])
+            .filter(([lng, lat]) => Number.isFinite(lat) && Number.isFinite(lng))
+            .map(([lng, lat]) => [lat, lng] as [number, number]),
+        }))
+        .filter((b) => b.validPositions.length >= 3),
+    [data.basins],
+  );
+
+  const validSeismic = useMemo(
+    () =>
+      (data.seismic ?? [])
+        .map((f) => ({
+          ...f,
+          validPositions: (f.points ?? [])
+            .filter(([lng, lat]) => Number.isFinite(lat) && Number.isFinite(lng))
+            .map(([lng, lat]) => [lat, lng] as [number, number]),
+        }))
+        .filter((f) => f.validPositions.length >= 2),
+    [data.seismic],
+  );
+
+  const validFocusTarget = useMemo(() => {
+    if (
+      !focusTarget ||
+      focusTarget.lat == null ||
+      focusTarget.lng == null ||
+      !Number.isFinite(focusTarget.lat) ||
+      !Number.isFinite(focusTarget.lng) ||
+      focusTarget.lat < -90 ||
+      focusTarget.lat > 90 ||
+      focusTarget.lng < -180 ||
+      focusTarget.lng > 180
+    ) {
+      return undefined;
+    }
+    return focusTarget;
+  }, [focusTarget]);
+
+  const atDanger = (data.rivers ?? []).filter((g) => g.atDanger).length;
+  const atWarning = (data.rivers ?? []).filter((g) => g.atWarning).length;
 
   return (
     <div className="relative h-[70vh] min-h-[460px]">
@@ -277,17 +410,18 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
         scrollWheelZoom
         className="h-full w-full"
       >
-        <MapViewController focusTarget={focusTarget} />
+        <MapResizer />
+        <MapViewController focusTarget={validFocusTarget} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         {layers.basins
-          ? data.basins.map((b) => (
+          ? validBasins.map((b) => (
               <Polygon
                 key={b.id}
-                positions={b.points.map(([lng, lat]) => [lat, lng] as [number, number])}
+                positions={b.validPositions}
                 pathOptions={{
                   color: riskColor(colors, b.risk),
                   weight: 1,
@@ -311,11 +445,11 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
           : null}
 
         {layers.seismic
-          ? data.seismic.map((f) =>
+          ? validSeismic.map((f) =>
               f.kind === "thrust" ? (
                 <Polyline
                   key={f.id}
-                  positions={f.points.map(([lng, lat]) => [lat, lng] as [number, number])}
+                  positions={f.validPositions}
                   pathOptions={{ color: colors.warning, weight: 2.5, dashArray: "6 6" }}
                 >
                   <Popup>
@@ -330,7 +464,7 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
               ) : (
                 <Polygon
                   key={f.id}
-                  positions={f.points.map(([lng, lat]) => [lat, lng] as [number, number])}
+                  positions={f.validPositions}
                   pathOptions={{ color: colors.warning, weight: 1, fillColor: colors.warning, fillOpacity: 0.08 }}
                 >
                   <Popup>
@@ -347,7 +481,7 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
           : null}
 
         {layers.glacial
-          ? data.glacialLakes.map((l) => (
+          ? glacialLakePoints.map((l) => (
               <CircleMarker
                 key={l.id}
                 center={[l.lat, l.lng]}
@@ -379,9 +513,9 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
         {layers.quakes ? quakePoints.map((q) => <QuakeMarker key={q.id} quake={q} colors={colors} locale={locale} />) : null}
         {layers.highways ? highwayPoints.map((h) => <HighwayMarker key={h.id} highway={h} colors={colors} locale={locale} />) : null}
 
-        {focusTarget ? (
+        {validFocusTarget ? (
           <CircleMarker
-            center={[focusTarget.lat, focusTarget.lng]}
+            center={[validFocusTarget.lat, validFocusTarget.lng]}
             radius={11}
             pathOptions={{
               color: colors.danger,
@@ -396,10 +530,10 @@ export function LeafletMap({ data, layers, focusTarget, riversOnlyWarning = fals
                   {t("targetAlert") ?? "Focused Incident"}
                 </p>
                 <p className="mt-1 font-bold text-text">
-                  {focusTarget.title || `${focusTarget.lat.toFixed(4)}°N, ${focusTarget.lng.toFixed(4)}°E`}
+                  {validFocusTarget.title || `${validFocusTarget.lat.toFixed(4)}°N, ${validFocusTarget.lng.toFixed(4)}°E`}
                 </p>
                 <p className="mt-1 text-xs tabular text-faint">
-                  {focusTarget.lat.toFixed(4)}°N, {focusTarget.lng.toFixed(4)}°E
+                  {validFocusTarget.lat.toFixed(4)}°N, {validFocusTarget.lng.toFixed(4)}°E
                 </p>
               </div>
             </Popup>

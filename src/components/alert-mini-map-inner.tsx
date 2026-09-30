@@ -60,7 +60,12 @@ function MapResizer() {
     const timer = setTimeout(() => {
       map.invalidateSize();
     }, 120);
-    return () => clearTimeout(timer);
+    const onResize = () => map.invalidateSize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", onResize);
+    };
   }, [map]);
   return null;
 }
@@ -68,6 +73,24 @@ function MapResizer() {
 export function AlertMiniMapInner({ lat, lng, severity, title, place }: AlertMiniMapInnerProps) {
   const colors = useThemeColors();
   const color = colors[severity] || colors.info;
+
+  const isValid =
+    lat != null &&
+    lng != null &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180;
+
+  if (!isValid) {
+    return (
+      <div className="relative flex h-48 sm:h-56 w-full items-center justify-center rounded-card border border-border bg-surface-2/40 text-xs text-muted">
+        <span>Coordinates unavailable</span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative h-48 sm:h-56 w-full overflow-hidden rounded-card border border-border shadow-inner">

@@ -16,14 +16,36 @@ import {
 } from "@/components/icons";
 import { AlertMiniMap } from "@/components/alert-mini-map";
 
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { alertRowToAlert } from "@/lib/supabase/types";
+
+async function findAlert(id: string): Promise<Alert | null> {
+  const decodedId = decodeURIComponent(id);
+  const data = await loadAllAlerts();
+  const found = data.alerts.find((a) => a.id === id || a.id === decodedId);
+  if (found) return found;
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    try {
+      const { data: row } = await supabase
+        .from("alerts")
+        .select("*")
+        .eq("id", decodedId)
+        .maybeSingle();
+      if (row) return alertRowToAlert(row);
+    } catch {}
+  }
+  return null;
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
-  const data = await loadAllAlerts();
-  const alert = data.alerts.find((a) => a.id === id || a.id === decodeURIComponent(id));
+  const alert = await findAlert(id);
 
   if (!alert) {
     return { title: "Alert Not Found — Satarka" };
@@ -48,14 +70,12 @@ export default async function AlertDetailPage({
   const { locale, id } = await params;
   setRequestLocale(locale);
 
-  const [t, th, tc, data] = await Promise.all([
+  const [t, th, tc, alert] = await Promise.all([
     getTranslations("alerts"),
     getTranslations("hazards"),
     getTranslations("common"),
-    loadAllAlerts(),
+    findAlert(id),
   ]);
-
-  const alert = data.alerts.find((a) => a.id === id || a.id === decodeURIComponent(id));
 
   if (!alert) {
     return (

@@ -80,8 +80,8 @@ export const LEARN_CONTENT: Record<HazardType, HazardGuide> = {
         ne: "अग्लो ठाउँसम्म पुग्ने बाटो सिक्नुहोस् र परिवारको भेट्ने ठाउँ तय गर्नुहोस्।",
       },
       {
-        en: "Save the official numbers: police 100, fire 101, ambulance 102, disaster hotline 1234.",
-        ne: "आधिकारिक नम्बरहरू राख्नुहोस्: प्रहरी १००, दमकल १०१, एम्बुलेन्स १०२, प्रकोप हटलाइन १२३४।",
+        en: "Save official emergency numbers: Nepal Police (100), Fire Brigade (101), Ambulance (102), DHM Flood Info (1155), and NDRRMA Disaster Helpline (1149).",
+        ne: "आधिकारिक आपत्कालीन नम्बरहरू सुरक्षित गर्नुहोस्: नेपाल प्रहरी (१००), दमकल (१०१), एम्बुलेन्स (१०२), जलविज्ञान बाढी सूचना (११५५), र विपद् व्यवस्थापन हटलाइन (११४९)।",
       },
     ],
     during: [
@@ -182,6 +182,10 @@ export const LEARN_CONTENT: Record<HazardType, HazardGuide> = {
         en: "Learn where the community early-warning sirens and meeting points are.",
         ne: "समुदायको पूर्व-चेतावनी साइरन र भेट्ने ठाउँहरू कहाँ छन् सिक्नुहोस्।",
       },
+      {
+        en: "Save valley emergency hotlines: Nepal Police (100), Fire (101), Ambulance (102), DHM Flood Info (1155), and NDRRMA Helpline (1149).",
+        ne: "उपत्यका आपत्कालीन हटलाइनहरू सुरक्षित गर्नुहोस्: नेपाल प्रहरी (१००), दमकल (१०१), एम्बुलेन्स (१०२), जलविज्ञान बाढी सूचना (११५५), र विपद् हटलाइन (११४९)।",
+      },
     ],
     during: [
       {
@@ -263,6 +267,10 @@ export const LEARN_CONTENT: Record<HazardType, HazardGuide> = {
       {
         en: "Identify open ground away from buildings as a family meeting point.",
         ne: "भवनबाट टाढाको खुला चौरलाई परिवारको भेट्ने ठाउँ बनाउनुहोस्।",
+      },
+      {
+        en: "Save official emergency numbers: Nepal Police (100), Fire Brigade (101), Ambulance (102), and NDRRMA Disaster Helpline (1149).",
+        ne: "आधिकारिक आपत्कालीन नम्बरहरू सुरक्षित गर्नुहोस्: नेपाल प्रहरी (१००), दमकल (१०१), एम्बुलेन्स (१०२), र विपद् व्यवस्थापन हटलाइन (११४९)।",
       },
     ],
     during: [
@@ -361,6 +369,10 @@ export const LEARN_CONTENT: Record<HazardType, HazardGuide> = {
       {
         en: "Keep a go-bag ready, and stay watchful after heavy rain.",
         ne: "गो-ब्याग तयार राख्नुहोस् र भारी वर्षापछि सतर्क रहनुहोस्।",
+      },
+      {
+        en: "Save official response hotlines: Nepal Police (100), Fire (101), Ambulance (102), DHM Flood & River Watch (1155), and NDRRMA Hotline (1149).",
+        ne: "आधिकारिक आपत्कालीन हटलाइनहरू सुरक्षित राख्नुहोस्: नेपाल प्रहरी (१००), दमकल (१०१), एम्बुलेन्स (१०२), बाढी सूचना (११५५), र विपद् हटलाइन (११४९)।",
       },
     ],
     during: [

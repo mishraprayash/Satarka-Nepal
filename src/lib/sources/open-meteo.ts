@@ -1,8 +1,11 @@
 import type { DistrictWeather } from "@/lib/types";
 import { NEPAL_DISTRICTS } from "@/lib/districts";
 import { fetchJson, num, str } from "./util";
+import { CONFIG } from "@/lib/config";
 
 interface OpenMeteoWeatherResponse {
+  error?: boolean;
+  reason?: string;
   current?: {
     time?: string;
     temperature_2m?: number;
@@ -22,6 +25,8 @@ interface OpenMeteoWeatherResponse {
 }
 
 interface OpenMeteoAqiResponse {
+  error?: boolean;
+  reason?: string;
   current?: {
     pm10?: number;
     pm2_5?: number;
@@ -29,8 +34,6 @@ interface OpenMeteoAqiResponse {
     european_aqi?: number;
   };
 }
-
-import { CONFIG } from "@/lib/config";
 
 /**
  * Fetches real-time weather and air quality for any coordinate in Nepal via Open-Meteo.
@@ -56,33 +59,59 @@ export async function getCoordinatesWeather(
       fetchJson<OpenMeteoAqiResponse>(aqiUrl, { revalidate: 1800 }),
     ]);
 
-    if (wRes.status !== "fulfilled" || !wRes.value?.current) {
+    if (wRes.status === "rejected") {
+      console.warn(`[open-meteo] weather fetch failed for (${lat}, ${lng}):`, wRes.reason);
+    }
+    if (aqiRes.status === "rejected") {
+      console.warn(`[open-meteo] aqi fetch failed for (${lat}, ${lng}):`, aqiRes.reason);
+    }
+
+    if (wRes.status !== "fulfilled" || !wRes.value || typeof wRes.value !== "object") {
+      return null;
+    }
+
+    if (wRes.value.error) {
+      console.warn(
+        `[open-meteo] weather API returned error for (${lat}, ${lng}):`,
+        wRes.value.reason ?? "Unknown error",
+      );
       return null;
     }
 
     const w = wRes.value.current;
+    if (!w || typeof w !== "object") {
+      console.warn(`[open-meteo] missing current weather block for (${lat}, ${lng})`);
+      return null;
+    }
+
     const daily = wRes.value.daily;
-    const aqi = aqiRes.status === "fulfilled" ? aqiRes.value?.current : undefined;
+    const aqi =
+      aqiRes.status === "fulfilled" &&
+      aqiRes.value &&
+      typeof aqiRes.value === "object" &&
+      !aqiRes.value.error
+        ? aqiRes.value.current
+        : undefined;
 
     const forecast =
-      Array.isArray(daily?.time) && daily?.time.length
-        ? daily.time.map((date, idx) => ({
-            date,
-            weatherCode: daily.weather_code?.[idx] ?? 0,
-            tempMax: daily.temperature_2m_max?.[idx] ?? 0,
-            tempMin: daily.temperature_2m_min?.[idx] ?? 0,
-            precipitationSum: daily.precipitation_sum?.[idx] ?? 0,
+      daily && Array.isArray(daily.time) && daily.time.length > 0
+        ? daily.time.slice(0, 5).map((date, idx) => ({
+            date: str(date) ?? "",
+            weatherCode: num(daily.weather_code?.[idx]) ?? 0,
+            tempMax: num(daily.temperature_2m_max?.[idx]) ?? 0,
+            tempMin: num(daily.temperature_2m_min?.[idx]) ?? 0,
+            precipitationSum: Math.max(0, num(daily.precipitation_sum?.[idx]) ?? 0),
           }))
         : undefined;
 
     return {
       districtId,
       temperature: num(w.temperature_2m) ?? 0,
-      humidity: num(w.relative_humidity_2m) ?? 0,
-      rain: num(w.rain) ?? 0,
-      precipitationSum: num(w.precipitation) ?? 0,
+      humidity: Math.min(100, Math.max(0, num(w.relative_humidity_2m) ?? 0)),
+      rain: Math.max(0, num(w.rain) ?? 0),
+      precipitationSum: Math.max(0, num(w.precipitation) ?? 0),
       weatherCode: num(w.weather_code) ?? 0,
-      windSpeed: num(w.wind_speed_10m) ?? 0,
+      windSpeed: Math.max(0, num(w.wind_speed_10m) ?? 0),
       aqi: num(aqi?.us_aqi) ?? undefined,
       pm25: num(aqi?.pm2_5) ?? undefined,
       pm10: num(aqi?.pm10) ?? undefined,
@@ -90,7 +119,7 @@ export async function getCoordinatesWeather(
       forecast,
     };
   } catch (err) {
-    console.error(`[open-meteo] weather fetch failed for (${lat}, ${lng}):`, err);
+    console.error(`[open-meteo] unexpected weather fetch error for (${lat}, ${lng}):`, err);
     return null;
   }
 }

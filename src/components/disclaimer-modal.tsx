@@ -11,6 +11,7 @@ export function DisclaimerModal() {
   const [isOpen, setIsOpen] = useState(false);
   const acknowledgeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 
   // Check on mount if user has already acknowledged
   useEffect(() => {
@@ -18,15 +19,20 @@ export function DisclaimerModal() {
       const acknowledged = localStorage.getItem(STORAGE_KEY);
       if (!acknowledged) {
         // First time visitor: show disclaimer
+        previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null;
         setIsOpen(true);
       }
     } catch {
       // If localStorage is unavailable (e.g. private browsing restriction), default to open
+      previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null;
       setIsOpen(true);
     }
 
     // Allow opening modal programmatically from footer or other links
-    const handleOpenEvent = () => setIsOpen(true);
+    const handleOpenEvent = () => {
+      previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null;
+      setIsOpen(true);
+    };
     window.addEventListener("satarka:open-disclaimer", handleOpenEvent);
     return () => {
       window.removeEventListener("satarka:open-disclaimer", handleOpenEvent);
@@ -40,9 +46,12 @@ export function DisclaimerModal() {
       // Ignore localStorage error
     }
     setIsOpen(false);
+    if (previouslyFocusedElementRef.current && typeof previouslyFocusedElementRef.current.focus === "function") {
+      previouslyFocusedElementRef.current.focus();
+    }
   }, []);
 
-  // Keyboard navigation & body scroll locking
+  // Keyboard navigation, focus trapping & body scroll locking
   useEffect(() => {
     if (!isOpen) return;
 
@@ -51,7 +60,40 @@ export function DisclaimerModal() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
         handleAcknowledge();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        if (!dialogRef.current) return;
+        const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const focusable = Array.from(focusableElements).filter(
+          (el) => el.offsetParent !== null || el.offsetWidth > 0 || el.offsetHeight > 0
+        );
+
+        if (focusable.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || !dialogRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !dialogRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
 
@@ -59,7 +101,7 @@ export function DisclaimerModal() {
     // Focus the acknowledge button once opened
     const timer = setTimeout(() => {
       acknowledgeButtonRef.current?.focus();
-    }, 100);
+    }, 50);
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -67,6 +109,12 @@ export function DisclaimerModal() {
       clearTimeout(timer);
     };
   }, [isOpen, handleAcknowledge]);
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      handleAcknowledge();
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -76,6 +124,7 @@ export function DisclaimerModal() {
       aria-modal="true"
       aria-labelledby="disclaimer-modal-title"
       aria-describedby="disclaimer-modal-desc"
+      onClick={handleBackdropClick}
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 sm:py-8 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
     >
       {/* Modal Container */}
@@ -108,7 +157,7 @@ export function DisclaimerModal() {
             type="button"
             onClick={handleAcknowledge}
             aria-label="Close disclaimer"
-            className="rounded-card p-1.5 text-muted hover:bg-canvas hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors"
+            className="rounded-card p-1.5 text-muted hover:bg-canvas hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors cursor-pointer"
           >
             <CloseIcon className="h-5 w-5" />
           </button>
@@ -168,7 +217,7 @@ export function DisclaimerModal() {
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted">
               {t("hotlinesTitle")}
             </h4>
-            <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
               <a
                 href="tel:100"
                 className="flex items-center justify-center gap-1.5 rounded-card border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text hover:border-brand/50 hover:text-brand transition-colors"
@@ -197,6 +246,13 @@ export function DisclaimerModal() {
                 <PhoneIcon className="h-3.5 w-3.5 text-brand" />
                 <span>{t("floodHotline")}</span>
               </a>
+              <a
+                href="tel:1149"
+                className="flex items-center justify-center gap-1.5 rounded-card border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text hover:border-brand/50 hover:text-brand transition-colors"
+              >
+                <PhoneIcon className="h-3.5 w-3.5 text-brand" />
+                <span>{t("ndrrma")}</span>
+              </a>
             </div>
           </div>
         </div>
@@ -210,7 +266,7 @@ export function DisclaimerModal() {
             ref={acknowledgeButtonRef}
             type="button"
             onClick={handleAcknowledge}
-            className="inline-flex items-center justify-center gap-2 rounded-card bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg shadow-sm hover:brightness-110 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 rounded-card bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg shadow-sm hover:brightness-110 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
           >
             <CheckIcon className="h-4 w-4" />
             <span>{t("acknowledge")}</span>

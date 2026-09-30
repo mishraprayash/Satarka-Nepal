@@ -5,6 +5,7 @@
   },
   "brand": {
     "name": "सतर्क",
+    "script": "सतर्क",
     "tagline": "सतर्क। सचेत। तयार।"
   },
   "nav": {
@@ -201,6 +202,7 @@
     "layerQuakes": "भूकम्प (प्रत्यक्ष)",
     "layerHighways": "राजमार्ग तथा सडक अवरोध (प्रत्यक्ष)",
     "riversOnlyWarning": "चेतावनी/खतरा मात्र",
+    "highwaysBlockedOnly": "अवरुद्ध सडक मात्र",
     "targetAlert": "केन्द्रित घटना",
     "riskLow": "कम जोखिम",
     "riskModerate": "बढेको जोखिम",
@@ -231,7 +233,20 @@
     "fatalitiesLabel": "मानवीय क्षति",
     "scientificCauseLabel": "वैज्ञानिक कारण",
     "lessonsLabel": "सिकेको पाठ",
-    "searchDisasters": "वर्ष, जिल्ला वा विपद्को नाम खोज्नुहोस्…"
+    "searchDisasters": "वर्ष, जिल्ला वा विपद्को नाम खोज्नुहोस्…",
+    "emergencyHotlinesTitle": "आधिकारिक आपत्कालीन हटलाइनहरू (नेपाल)",
+    "emergencyHotlinesSub": "तत्काल उद्धार, स्वास्थ्य उपचार तथा बाढी पूर्वसूचनाका लागि प्रमाणित २४/७ निःशुल्क नम्बरहरू।",
+    "emergencyChecklist": "आपत्कालीन सुरक्षा चेकलिस्ट",
+    "emergencyChecklistSub": "यस विपद्को समयमा आफ्नो र परिवारको जीवन रक्षा गर्न गर्नुपर्ने आवश्यक कदमहरू।",
+    "viewLiveAlerts": "{hazard} प्रत्यक्ष चेतावनीहरू",
+    "viewHazardMap": "प्रकोप नक्सामा हेर्नुहोस्",
+    "verifiedRecord": "प्रमाणित ऐतिहासिक अभिलेख",
+    "geologicalInsight": "भौगर्भिक तथ्य",
+    "readCauseLessons": "वैज्ञानिक कारण र सिकिएका पाठहरू",
+    "hideCauseLessons": "वैज्ञानिक विवरण लुकाउनुहोस्",
+    "noDisastersFound": "\"{query}\" सँग मिल्ने कुनै ऐतिहासिक विपद् फेला परेन।",
+    "tollFree": "निःशुल्क",
+    "nepal": "नेपाल"
   },
   "about": {
     "title": "सतर्कको बारेमा",
@@ -256,8 +271,12 @@
     "police": "नेपाल प्रहरी",
     "ambulance": "एम्बुलेन्स",
     "fire": "दमकल",
-    "ndrrma": "NDRRMA हटलाइन",
-    "call": "{number} मा कल गर्नुहोस्"
+    "ndrrma": "NDRRMA विपद् हटलाइन",
+    "dhm": "बाढी सूचना (DHM)",
+    "call": "{number} मा कल गर्नुहोस्",
+    "callAction": "कल",
+    "tollFree": "निःशुल्क",
+    "emergencyNote": "विपद् सम्बन्धी जानकारीका लागि २४/७ NDRRMA हटलाइन ११४९ वा DHM बाढी सूचना ११५५ मा निःशुल्क सम्पर्क गर्नुहोस्। प्रहरी (१००), दमकल (१०१) र एम्बुलेन्स (१०२) देशभर उपलब्ध छन्।"
   },
   "emergencyBanner": {
     "danger": {
@@ -301,6 +320,7 @@
     "ambulance": "एम्बुलेन्स (१०२)",
     "fire": "दमकल (१०१)",
     "floodHotline": "DHM बाढी सूचना (११५५)",
+    "ndrrma": "NDRRMA हटलाइन (११४९)",
     "acknowledge": "मैले बुझें र अगाडि बढ्छु",
     "doNotShowAgain": "बुझें, सतर्कमा प्रवेश गर्नुहोस्"
   }

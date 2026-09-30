@@ -7,6 +7,7 @@ import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 import { NEPAL_DISTRICTS } from "@/lib/districts";
 import { HISTORIC_DISASTERS } from "@/lib/disaster-history";
+import { readTheme, setTheme } from "@/lib/theme";
 import {
   CloseIcon,
   HazardGlyph,
@@ -14,10 +15,13 @@ import {
   PhoneIcon,
   SearchIcon,
   ArrowIcon,
+  SeverityGlyph,
+  MoonIcon,
+  GlobeIcon,
 } from "@/components/icons";
 
 interface PaletteItem {
-  category: "emergency" | "navigation" | "guide" | "highway" | "district" | "history";
+  category: "emergency" | "action" | "navigation" | "guide" | "highway" | "district" | "history";
   id: string;
   title: string;
   subtitle?: string;
@@ -25,6 +29,8 @@ interface PaletteItem {
   url?: string;
   phone?: string;
   hazard?: "flood" | "glof" | "earthquake" | "landslide";
+  keywords?: string[];
+  action?: () => void;
 }
 
 export function CommandPalette({
@@ -42,11 +48,12 @@ export function CommandPalette({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const isBackdropMouseDown = useRef(false);
 
   const tnav = useTranslations("nav");
   const thaz = useTranslations("hazards");
 
-  // Focus input when opened and lock body scroll
+  // Focus input when opened, lock body scroll, and capture keyboard shortcuts
   useEffect(() => {
     if (!isOpen) return;
 
@@ -62,19 +69,23 @@ export function CommandPalette({
         ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")
       ) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         onClose();
       }
     };
-    window.addEventListener("keydown", handleKey);
+
+    // Capture phase prevents conflict with underlying modals and parent window listeners
+    window.addEventListener("keydown", handleKey, true);
 
     return () => {
       clearTimeout(timer);
       document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("keydown", handleKey, true);
     };
   }, [isOpen, onClose]);
 
-  // Static datasets
+  // Static datasets with comprehensive bilingual indexing
   const allItems: PaletteItem[] = useMemo(() => {
     const isNe = locale === "ne";
 
@@ -83,37 +94,191 @@ export function CommandPalette({
         id: "em-police",
         category: "emergency",
         title: isNe ? "नेपाल प्रहरी" : "Nepal Police",
-        subtitle: isNe ? "आपतकालीन सेवा" : "Emergency Police Response",
+        subtitle: isNe ? "आपतकालीन सेवा · डायल १००" : "Emergency Police Response · Dial 100",
         phone: "100",
         badge: "100",
+        keywords: [
+          "100",
+          "police",
+          "nepal police",
+          "security",
+          "cop",
+          "प्रहरी",
+          "नेपाल प्रहरी",
+          "सुरक्षा",
+          "आपतकालीन",
+        ],
       },
       {
         id: "em-fire",
         category: "emergency",
         title: isNe ? "दमकल (अग्नि नियन्त्रक)" : "Fire Brigade",
-        subtitle: isNe ? "आगो तथा उद्धार" : "Fire & Rescue Operations",
+        subtitle: isNe ? "आगो तथा उद्धार · डायल १०१" : "Fire & Rescue Operations · Dial 101",
         phone: "101",
         badge: "101",
+        keywords: [
+          "101",
+          "fire",
+          "brigade",
+          "rescue",
+          "flame",
+          "दमकल",
+          "अग्नि",
+          "आगो",
+          "उद्धार",
+        ],
       },
       {
         id: "em-amb",
         category: "emergency",
         title: isNe ? "एम्बुलेन्स सेवा" : "Ambulance Service",
-        subtitle: isNe ? "स्वास्थ्य तथा प्राथमिक उपचार" : "Medical Emergency Transport",
+        subtitle: isNe ? "स्वास्थ्य तथा प्राथमिक उपचार · डायल १०२" : "Medical Emergency Transport · Dial 102",
         phone: "102",
         badge: "102",
+        keywords: [
+          "102",
+          "ambulance",
+          "medical",
+          "hospital",
+          "health",
+          "doctor",
+          "एम्बुलेन्स",
+          "अस्पताल",
+          "स्वास्थ्य",
+          "उपचार",
+        ],
+      },
+      {
+        id: "em-dhm",
+        category: "emergency",
+        title: isNe ? "बाढी सूचना हटलाइन (DHM)" : "DHM Flood Watch Toll-Free",
+        subtitle: isNe ? "जल तथा मौसम विज्ञान विभाग · डायल ११५५" : "Hydrology & River Level Center · Dial 1155",
+        phone: "1155",
+        badge: "1155",
+        keywords: [
+          "1155",
+          "dhm",
+          "flood",
+          "river",
+          "hydrology",
+          "toll-free",
+          "water",
+          "बाढी",
+          "जल",
+          "मौसम",
+          "नदी",
+          "हटलाइन",
+        ],
       },
       {
         id: "em-ndrrma",
         category: "emergency",
         title: isNe ? "विपद् व्यवस्थापन हटलाइन (NDRRMA)" : "NDRRMA Disaster Hotline",
-        subtitle: isNe ? "राष्ट्रिय विपद् जोखिम न्यूनीकरण" : "National Disaster Response Authority",
-        phone: "1234",
-        badge: "1234",
+        subtitle: isNe ? "राष्ट्रिय विपद् जोखिम न्यूनीकरण · डायल ११४९" : "National Disaster Response Authority · Dial 1149",
+        phone: "1149",
+        badge: "1149",
+        keywords: [
+          "1149",
+          "ndrrma",
+          "bipad",
+          "disaster",
+          "management",
+          "helpline",
+          "विपद्",
+          "व्यवस्थापन",
+          "जोखिम",
+          "गृह मन्त्रालय",
+        ],
+      },
+    ];
+
+    const actionItems: PaletteItem[] = [
+      {
+        id: "action-disclaimer",
+        category: "action",
+        title: isNe ? "सुरक्षा सल्लाह तथा अस्वीकरण" : "Safety Advisory & Disclaimer",
+        subtitle: isNe ? "आधिकारिक कार्यविधि, डाटा संकलन तथा जनसुरक्षा सूचना" : "Official protocols, telemetry gaps & safety disclaimer modal",
+        badge: "MODAL",
+        keywords: [
+          "disclaimer",
+          "safety",
+          "advisory",
+          "notice",
+          "modal",
+          "protocols",
+          "legal",
+          "guidelines",
+          "अस्वीकरण",
+          "सल्लाह",
+          "सूचना",
+          "प्रोटोकल",
+          "कानुनी",
+          "जानकारी",
+        ],
+        action: () => {
+          window.dispatchEvent(new CustomEvent("satarka:open-disclaimer"));
+        },
+      },
+      {
+        id: "action-theme",
+        category: "action",
+        title: isNe ? "थिम परिवर्तन गर्नुहोस्" : "Toggle Theme (Light / Dark)",
+        subtitle: isNe ? "अँध्यारो वा उज्यालो मोडमा बदल्नुहोस्" : "Switch between dark and light appearance",
+        badge: "THEME",
+        keywords: [
+          "theme",
+          "dark",
+          "light",
+          "mode",
+          "appearance",
+          "color",
+          "थिम",
+          "अँध्यारो",
+          "उज्यालो",
+          "रंग",
+        ],
+        action: () => {
+          setTheme(readTheme() === "dark" ? "light" : "dark");
+        },
+      },
+      {
+        id: "action-language",
+        category: "action",
+        title: isNe ? "Switch Language to English" : "नेपाली भाषामा परिवर्तन गर्नुहोस्",
+        subtitle: isNe ? "View Satarka in English" : "सतर्क नेपाली भाषामा हेर्नुहोस्",
+        badge: isNe ? "EN" : "नेपाली",
+        keywords: [
+          "language",
+          "english",
+          "nepali",
+          "locale",
+          "translate",
+          "भाषा",
+          "नेपाली",
+          "अंग्रेजी",
+        ],
+        action: () => {
+          const nextLocale = isNe ? "en" : "ne";
+          const search = typeof window !== "undefined" ? window.location.search : "";
+          const hash = typeof window !== "undefined" ? window.location.hash : "";
+          const pathnameWithoutLocale =
+            typeof window !== "undefined"
+              ? window.location.pathname.replace(/^\/(en|ne)/, "") || "/"
+              : "/";
+          router.replace(`${pathnameWithoutLocale}${search}${hash}`, { locale: nextLocale });
+        },
       },
     ];
 
     const navItems: PaletteItem[] = [
+      {
+        id: "nav-home",
+        category: "navigation",
+        title: tnav("home"),
+        subtitle: isNe ? "मुख्य पृष्ठ तथा प्रत्यक्ष सारांश" : "Main dashboard & live hazard overview",
+        url: "/",
+        keywords: ["home", "dashboard", "main", "satarka", "गृह", "मुख्य"],
+      },
       {
         id: "nav-alerts",
         category: "navigation",
@@ -121,6 +286,7 @@ export function CommandPalette({
         subtitle: isNe ? "सक्रिय बाढी, पहिरो तथा भूकम्प सूचनाहरू" : "Active multi-hazard verified alerts",
         url: "/alerts",
         badge: "LIVE",
+        keywords: ["alerts", "warning", "danger", "advisory", "चेतावनी", "सूचना", "खतरा", "सतर्कता"],
       },
       {
         id: "nav-map",
@@ -128,6 +294,7 @@ export function CommandPalette({
         title: tnav("map"),
         subtitle: isNe ? "नदी स्टेशन, भूकम्पीय क्षेत्र र हिमताल नक्सा" : "Hydrological gauges, fault lines, glacial lakes",
         url: "/map",
+        keywords: ["map", "gis", "stations", "gauges", "rivers", "faults", "नक्सा", "स्टेशन", "नदी"],
       },
       {
         id: "nav-highways",
@@ -136,6 +303,7 @@ export function CommandPalette({
         subtitle: isNe ? "सडक विभागबाट प्रत्यक्ष सडक अवरोध तथा आवागमन" : "Real-time road blockages, landslides, repair ETAs",
         url: "/highways",
         badge: "ROAD",
+        keywords: ["highways", "roads", "dor", "traffic", "blockage", "landslide", "राजमार्ग", "सडक", "पहिरो", "अवरोध"],
       },
       {
         id: "nav-learn",
@@ -143,6 +311,15 @@ export function CommandPalette({
         title: tnav("learn"),
         subtitle: isNe ? "विपद् पूर्वतयारी तथा सुरक्षा उपायहरू" : "Preparedness guides & historical data",
         url: "/learn",
+        keywords: ["learn", "guides", "preparedness", "education", "सुरक्षा", "तयारी", "जानकारी", "गाइड"],
+      },
+      {
+        id: "nav-report",
+        category: "navigation",
+        title: tnav("report"),
+        subtitle: isNe ? "सामुदायिक विपद् घटना रिपोर्टिङ" : "Report a community hazard or incident",
+        url: "/report",
+        keywords: ["report", "community", "incident", "hazard", "रिपोर्ट", "घटना", "जानकारी"],
       },
       {
         id: "nav-about",
@@ -150,6 +327,7 @@ export function CommandPalette({
         title: tnav("about"),
         subtitle: isNe ? "उद्देश्य, डेटा स्रोत र आपतकालीन सम्पर्क" : "Mission, methodology & emergency contacts",
         url: "/about",
+        keywords: ["about", "mission", "sources", "methodology", "बारेमा", "उद्देश्य", "स्रोत"],
       },
     ];
 
@@ -161,6 +339,7 @@ export function CommandPalette({
         subtitle: thaz("flood.short"),
         url: "/learn/flood",
         hazard: "flood",
+        keywords: ["flood", "river", "rain", "monsoon", "बाढी", "नदी", "वर्षा"],
       },
       {
         id: "guide-glof",
@@ -169,6 +348,7 @@ export function CommandPalette({
         subtitle: thaz("glof.short"),
         url: "/learn/glof",
         hazard: "glof",
+        keywords: ["glof", "glacial", "lake", "glacier", "हिमताल", "हिमनदी", "विस्फोट"],
       },
       {
         id: "guide-earthquake",
@@ -177,6 +357,7 @@ export function CommandPalette({
         subtitle: thaz("earthquake.short"),
         url: "/learn/earthquake",
         hazard: "earthquake",
+        keywords: ["earthquake", "seismic", "tremor", "fault", "भूकम्प", "कम्पन"],
       },
       {
         id: "guide-landslide",
@@ -185,6 +366,7 @@ export function CommandPalette({
         subtitle: thaz("landslide.short"),
         url: "/learn/landslide",
         hazard: "landslide",
+        keywords: ["landslide", "debris", "slope", "rockfall", "पहिरो", "भिर"],
       },
     ];
 
@@ -192,9 +374,10 @@ export function CommandPalette({
       id: `dist-${d.id}`,
       category: "district",
       title: isNe ? d.ne : d.en,
-      subtitle: isNe ? `जिल्ला · नक्सामा हेर्नुहोस्` : `District · View on Hazard Map`,
+      subtitle: isNe ? `जिल्ला (${d.en}) · नक्सामा हेर्नुहोस्` : `District (${d.ne}) · View on Hazard Map`,
       url: `/map?lat=${d.lat}&lng=${d.lng}&zoom=11&title=${encodeURIComponent(isNe ? d.ne : d.en)}`,
       badge: `${d.lat.toFixed(1)}°N, ${d.lng.toFixed(1)}°E`,
+      keywords: [d.en, d.ne, d.id, "district", "जिल्ला"],
     }));
 
     const highwayItems: PaletteItem[] = [
@@ -205,6 +388,7 @@ export function CommandPalette({
         subtitle: isNe ? "मुख्य आपूर्ति मार्ग · प्रत्यक्ष अवरोध स्थिति" : "Critical supply lifeline · Real-time road status",
         url: "/highways",
         badge: "NH44",
+        keywords: ["nh44", "prithvi", "mugling", "kathmandu", "पृथ्वी", "मुग्लिङ", "काठमाडौं"],
       },
       {
         id: "hw-nh08",
@@ -213,6 +397,7 @@ export function CommandPalette({
         subtitle: isNe ? "पूर्वी नेपाल जोड्ने द्रुतमार्ग · पहिरो निगरानी" : "Eastern corridor expressway · Landslide monitoring",
         url: "/highways",
         badge: "NH08",
+        keywords: ["nh08", "bp", "banepa", "sindhuli", "bardibas", "बनेपा", "सिन्धुली", "बर्दिबास"],
       },
       {
         id: "hw-nh47",
@@ -221,6 +406,7 @@ export function CommandPalette({
         subtitle: isNe ? "सिद्धबाबा खण्ड तथा पाल्पा पहिरो क्षेत्र" : "Siddhababa section & Palpa landslide transit",
         url: "/highways",
         badge: "NH47",
+        keywords: ["nh47", "siddhartha", "butwal", "palpa", "pokhara", "बुटवल", "पाल्पा", "पोखरा"],
       },
       {
         id: "hw-nh41",
@@ -229,6 +415,7 @@ export function CommandPalette({
         subtitle: isNe ? "ऐतिहासिक पहाडी सडक मार्ग" : "Historic mountain transit route",
         url: "/highways",
         badge: "NH41",
+        keywords: ["nh41", "tribhuvan", "naubise", "daman", "hetauda", "त्रिभुवन", "नौबिसे", "हेटौंडा"],
       },
       {
         id: "hw-nh58",
@@ -237,6 +424,7 @@ export function CommandPalette({
         subtitle: isNe ? "कर्णाली करिडोर · पहिरो जोखिम अनुगमन" : "Karnali corridor · Landslide vulnerability monitoring",
         url: "/highways",
         badge: "NH58",
+        keywords: ["nh58", "karnali", "surkhet", "jumla", "कर्णाली", "सुर्खेत", "जुम्ला"],
       },
       {
         id: "hw-nh01",
@@ -245,6 +433,7 @@ export function CommandPalette({
         subtitle: isNe ? "तराई लाइफलाइन · बाढी तथा पुल डाइभर्सन" : "Terai arterial lifeline · Flood & bridge diversions",
         url: "/highways",
         badge: "NH01",
+        keywords: ["nh01", "mahendra", "east-west", "terai", "महेन्द्र", "पूर्व-पश्चिम"],
       },
       {
         id: "hw-nh03",
@@ -253,6 +442,7 @@ export function CommandPalette({
         subtitle: isNe ? "मध्यपहाडी लोकमार्ग खण्डहरू" : "Mid-hill trans-Nepal connector",
         url: "/highways",
         badge: "NH03",
+        keywords: ["nh03", "mid-hill", "pushpalal", "मध्यपहाडी", "पुष्पलाल"],
       },
     ];
 
@@ -264,37 +454,71 @@ export function CommandPalette({
       url: `/learn/${h.hazard}`,
       hazard: h.hazard,
       badge: `${h.year}`,
+      keywords: [
+        h.title.en,
+        h.title.ne,
+        h.location.en,
+        h.location.ne,
+        String(h.year),
+        h.bsYear,
+        h.hazard,
+      ],
     }));
 
-    return [...emergencyItems, ...navItems, ...guideItems, ...highwayItems, ...districtItems, ...historyItems];
-  }, [locale, tnav, thaz]);
+    return [
+      ...emergencyItems,
+      ...actionItems,
+      ...navItems,
+      ...guideItems,
+      ...highwayItems,
+      ...districtItems,
+      ...historyItems,
+    ];
+  }, [locale, router, tnav, thaz]);
 
-  // Filter items
+  // Tokenized multi-term search filtering
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) {
-      // Return top emergency, primary navigation, and guides
+      // Default view: top emergency, actions, primary navigation, and guides
       return allItems.filter(
-        (item) => item.category === "emergency" || item.category === "navigation" || item.category === "guide",
+        (item) =>
+          item.category === "emergency" ||
+          item.category === "action" ||
+          item.category === "navigation" ||
+          item.category === "guide",
       );
     }
 
+    const tokens = q.split(/\s+/).filter(Boolean);
+
     return allItems
       .filter((item) => {
-        const title = item.title.toLowerCase();
-        const sub = item.subtitle?.toLowerCase() ?? "";
-        const badge = item.badge?.toLowerCase() ?? "";
-        const phone = item.phone ?? "";
-        return title.includes(q) || sub.includes(q) || badge.includes(q) || phone.includes(q);
+        const searchable = [
+          item.title,
+          item.subtitle ?? "",
+          item.badge ?? "",
+          item.phone ?? "",
+          item.url ?? "",
+          ...(item.keywords ?? []),
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return tokens.every((token) => searchable.includes(token));
       })
       .slice(0, 16);
   }, [allItems, query]);
 
-  // Handle selection
+  // Handle selection (dialing, actions, routing)
   const handleSelect = (item: PaletteItem) => {
     onClose();
     if (item.phone) {
       window.location.href = `tel:${item.phone}`;
+      return;
+    }
+    if (item.action) {
+      item.action();
       return;
     }
     if (item.url) {
@@ -304,7 +528,7 @@ export function CommandPalette({
     }
   };
 
-  // Keyboard navigation
+  // Keyboard navigation within results
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -333,15 +557,21 @@ export function CommandPalette({
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 md:pt-20 bg-black/60 backdrop-blur-sm"
+      onMouseDown={(e) => {
+        isBackdropMouseDown.current = e.target === e.currentTarget;
+      }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (isBackdropMouseDown.current && e.target === e.currentTarget) {
+          onClose();
+        }
+        isBackdropMouseDown.current = false;
       }}
       role="presentation"
     >
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Quick Command and Search"
+        aria-label={locale === "ne" ? "सतर्क द्रुत खोजी तथा कमान्ड" : "Satarka Quick Command and Search"}
         className="flex flex-col w-full max-w-xl max-h-[85vh] rounded-2xl border border-border bg-surface text-text shadow-2xl overflow-hidden focus:outline-none"
       >
         {/* Search Input Bar */}
@@ -371,8 +601,8 @@ export function CommandPalette({
                 setSelectedIndex(0);
                 inputRef.current?.focus();
               }}
-              className="rounded-chip p-1 text-muted hover:text-text"
-              aria-label="Clear query"
+              className="rounded-chip p-1 text-muted hover:text-text cursor-pointer"
+              aria-label={locale === "ne" ? "खोजी खाली गर्नुहोस्" : "Clear query"}
             >
               <CloseIcon width={16} height={16} />
             </button>
@@ -410,13 +640,23 @@ export function CommandPalette({
                         "flex size-8 shrink-0 items-center justify-center rounded-lg border",
                         item.category === "emergency"
                           ? "border-warning/40 bg-warning/10 text-warning"
-                          : item.category === "district" || item.category === "highway"
+                          : item.category === "action"
                             ? "border-brand/40 bg-brand/10 text-brand"
-                            : "border-border bg-surface text-muted",
+                            : item.category === "district" || item.category === "highway"
+                              ? "border-brand/40 bg-brand/10 text-brand"
+                              : "border-border bg-surface text-muted",
                       )}
                     >
                       {item.category === "emergency" ? (
                         <PhoneIcon width={15} height={15} />
+                      ) : item.category === "action" ? (
+                        item.id === "action-theme" ? (
+                          <MoonIcon width={15} height={15} />
+                        ) : item.id === "action-language" ? (
+                          <GlobeIcon width={15} height={15} />
+                        ) : (
+                          <SeverityGlyph severity="warning" width={15} height={15} />
+                        )
                       ) : item.category === "district" ? (
                         <MapPinIcon width={15} height={15} />
                       ) : item.category === "highway" ? (
@@ -471,8 +711,8 @@ export function CommandPalette({
           ) : (
             <li className="p-8 text-center text-sm text-muted">
               {locale === "ne"
-                ? `"${query}" को लागि कुनै नतिजा भेटिएन।`
-                : `No results found for "${query}". Try typing a district or hazard name.`}
+                ? `"${query}" को लागि कुनै नतिजा भेटिएन। जिल्ला वा विपद्को नाम खोज्नुहोस्।`
+                : `No results found for "${query}". Try searching districts, emergency numbers, or guides.`}
             </li>
           )}
         </ul>
@@ -482,14 +722,20 @@ export function CommandPalette({
           <div className="hidden sm:flex items-center gap-3">
             <span>
               <kbd className="rounded bg-surface px-1 py-0.5 border border-border">↑</kbd>{" "}
-              <kbd className="rounded bg-surface px-1 py-0.5 border border-border">↓</kbd> navigate
+              <kbd className="rounded bg-surface px-1 py-0.5 border border-border">↓</kbd>{" "}
+              {locale === "ne" ? "सार्नुहोस्" : "navigate"}
             </span>
             <span>
-              <kbd className="rounded bg-surface px-1 py-0.5 border border-border">↵</kbd> select
+              <kbd className="rounded bg-surface px-1 py-0.5 border border-border">↵</kbd>{" "}
+              {locale === "ne" ? "खोल्नुहोस्" : "select"}
+            </span>
+            <span>
+              <kbd className="rounded bg-surface px-1 py-0.5 border border-border">ESC</kbd>{" "}
+              {locale === "ne" ? "बन्द" : "close"}
             </span>
           </div>
           <span className="ml-auto">
-            {locale === "ne" ? "सतर्क द्रुत खोजी" : "Satarka Quick Action"}
+            {locale === "ne" ? "सतर्क द्रुत कमान्ड" : "Satarka Quick Action"}
           </span>
         </div>
       </div>

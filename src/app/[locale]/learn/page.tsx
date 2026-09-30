@@ -3,9 +3,17 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { DisasterHistorySection } from "@/components/disaster-history-section";
 import { SectionHeader } from "@/components/section";
-import { HazardGlyph, ArrowIcon } from "@/components/icons";
+import { HazardGlyph, ArrowIcon, PhoneIcon } from "@/components/icons";
 import { HAZARD_ORDER } from "@/lib/ui";
 import { LEARN_IMAGES } from "@/lib/learn-images";
+
+const EMERGENCY_HELPLINES = [
+  { key: "police", number: "100", labelEn: "Police", labelNe: "प्रहरी" },
+  { key: "fire", number: "101", labelEn: "Fire", labelNe: "दमकल" },
+  { key: "ambulance", number: "102", labelEn: "Ambulance", labelNe: "एम्बुलेन्स" },
+  { key: "dhm", number: "1155", labelEn: "DHM Flood Watch", labelNe: "बाढी सूचना", tollFree: true },
+  { key: "ndrrma", number: "1149", labelEn: "NDRRMA Helpline", labelNe: "विपद् हटलाइन", tollFree: true },
+] as const;
 
 export async function generateMetadata({
   params,
@@ -28,7 +36,17 @@ export default async function LearnPage({
   const th = await getTranslations("hazards");
 
   return (
-    <div className="shell space-y-14 py-10 sm:py-14">
+    <div className="shell space-y-12 py-10 sm:py-14">
+      {/* Breadcrumb navigation */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted">
+        <Link href="/" className="hover:text-text transition-colors">
+          {locale === "ne" ? "गृह" : "Home"}
+        </Link>
+        <span>/</span>
+        <span className="text-text font-medium">{t("title")}</span>
+      </nav>
+
+      {/* Hazard Guides Hero Section */}
       <div className="space-y-8">
         <SectionHeader title={t("title")} sub={t("subtitle")} />
 
@@ -74,6 +92,34 @@ export default async function LearnPage({
             );
           })}
         </ul>
+      </div>
+
+      {/* Quick Emergency Hotlines Bar */}
+      <div className="rounded-2xl border border-warning/40 bg-warning-soft/20 p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-text flex items-center gap-2">
+              <PhoneIcon width={16} height={16} className="text-warning shrink-0" />
+              <span>{t("emergencyHotlinesTitle")}</span>
+            </h3>
+            <p className="text-xs text-muted mt-0.5">
+              {t("emergencyHotlinesSub")}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {EMERGENCY_HELPLINES.map((item) => (
+              <a
+                key={item.number}
+                href={`tel:${item.number}`}
+                className="inline-flex items-center gap-1.5 rounded-chip border border-warning/30 bg-surface/90 px-3 py-1.5 text-xs font-semibold text-text hover:border-warning hover:bg-surface hover:text-warning transition-colors shadow-2xs"
+              >
+                <PhoneIcon width={11} height={11} className="text-warning" />
+                <span>{locale === "ne" ? item.labelNe : item.labelEn}</span>
+                <span className="tabular font-bold text-warning">({item.number})</span>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Historical Disasters Archive & Scientific Realities */}

@@ -73,7 +73,7 @@ export function DisasterHistorySection() {
                     {locale === "ne" ? fact.topic.ne : fact.topic.en}
                   </span>
                   <span className="text-[11px] rounded bg-surface-2 px-2 py-0.5 text-faint font-semibold">
-                    Geological Insight
+                    {tl("geologicalInsight")}
                   </span>
                 </div>
 
@@ -258,10 +258,10 @@ export function DisasterHistorySection() {
                       onClick={() => setExpandedId(isExpanded ? null : item.id)}
                       className="inline-flex items-center gap-1 rounded-chip border border-border bg-surface-2/60 px-3 py-1.5 font-semibold text-brand hover:border-brand hover:bg-brand-soft/40 transition-colors cursor-pointer"
                     >
-                      {isExpanded ? "▲ Hide scientific details" : "▼ Read scientific cause & lessons"}
+                      {isExpanded ? `▲ ${tl("hideCauseLessons")}` : `▼ ${tl("readCauseLessons")}`}
                     </button>
                     <span className="text-[11px] text-faint">
-                      Verified Historical Record
+                      {tl("verifiedRecord")}
                     </span>
                   </div>
                 </article>
@@ -270,7 +270,7 @@ export function DisasterHistorySection() {
           </div>
         ) : (
           <div className="card border-dashed p-8 text-center text-sm text-muted">
-            No historical disaster found matching &ldquo;{searchQuery}&rdquo;.
+            {tl("noDisastersFound", { query: searchQuery })}
           </div>
         )}
       </section>

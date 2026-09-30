@@ -6,6 +6,7 @@ import { CONFIG } from "@/lib/config";
 import { SOURCES } from "@/lib/sources";
 
 let serverClient: SupabaseClient<Database> | null = null;
+let adminClient: SupabaseClient<Database> | null = null;
 
 export function getSupabaseServerClient(): SupabaseClient<Database> | null {
   if (!CONFIG.supabase.url) return null;
@@ -23,6 +24,26 @@ export function getSupabaseServerClient(): SupabaseClient<Database> | null {
   }
 
   return serverClient;
+}
+
+export function getSupabaseAdminClient(): SupabaseClient<Database> | null {
+  if (!CONFIG.supabase.url || !CONFIG.supabase.serviceRoleKey) return null;
+
+  if (!adminClient) {
+    adminClient = createClient<Database>(CONFIG.supabase.url, CONFIG.supabase.serviceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+
+  return adminClient;
+}
+
+export function resetSupabaseClients(): void {
+  serverClient = null;
+  adminClient = null;
 }
 
 /**
@@ -50,6 +71,10 @@ export async function getAlertsFromDb(): Promise<AlertsResponse | null> {
     if (alertsRes.error) {
       console.warn("[supabase] alerts fetch failed:", alertsRes.error.message);
       return null;
+    }
+
+    if (healthRes.error) {
+      console.warn("[supabase] source_health fetch failed:", healthRes.error.message);
     }
 
     const sourceLookup = Object.fromEntries(

@@ -272,13 +272,14 @@ export function highwayRowToHighway(row: HighwayRow): HighwayBlockage {
 
 export function highwayToHighwayInsert(h: HighwayBlockage): HighwayInsert {
   const hasCoords = h.lat != null && h.lng != null;
+  const status: HighwayStatus = h.status === "CLOSED" ? "BLOCKED" : h.status;
   return {
     id: h.id,
     road_refno: h.roadRefno,
     title: h.title,
     location: h.location ?? null,
     district: h.district ?? null,
-    status: h.status,
+    status,
     closure_reason: h.closureReason,
     repair_eta: h.repairEta ?? null,
     efforts_being_made: h.effortsBeingMade ?? null,
@@ -295,6 +296,7 @@ export function highwayToHighwayInsert(h: HighwayBlockage): HighwayInsert {
       images: h.images ?? [],
       affectedDemography: h.affectedDemography ?? null,
     },
+    updated_at: new Date().toISOString(),
   };
 }
 

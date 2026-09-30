@@ -49,3 +49,121 @@ describe("map-data static reference data integrity", () => {
     }
   });
 });
+
+describe("mapDataToGeoJson", () => {
+  it("converts map data to valid RFC 7946 GeoJSON FeatureCollection", async () => {
+    const { mapDataToGeoJson } = await import("./map-data");
+    const sampleData = {
+      generatedAt: new Date().toISOString(),
+      basins: [
+        {
+          id: "koshi",
+          name: "Koshi",
+          nameNe: "कोशी",
+          risk: "high" as const,
+          points: [
+            [85.0, 27.0],
+            [86.0, 27.0],
+            [86.0, 28.0],
+            [85.0, 27.0],
+          ] as [number, number][],
+        },
+      ],
+      glacialLakes: [
+        {
+          id: "tsho-rolpa",
+          name: "Tsho Rolpa",
+          district: "Dolakha",
+          lat: 27.85,
+          lng: 86.47,
+          risk: "high" as const,
+        },
+      ],
+      seismic: [
+        {
+          id: "mft",
+          name: "Main Frontal Thrust",
+          kind: "thrust" as const,
+          note: { en: "Main Frontal Thrust" },
+          points: [
+            [80.0, 28.0],
+            [85.0, 27.0],
+          ] as [number, number][],
+        },
+      ],
+      rivers: [
+        {
+          id: "gauge-1",
+          station: "Chatara",
+          lat: 26.8,
+          lng: 87.1,
+          atDanger: true,
+          atWarning: false,
+        },
+        {
+          id: "gauge-invalid",
+          station: "Invalid Station",
+          lat: NaN,
+          lng: undefined,
+          atDanger: false,
+          atWarning: false,
+        },
+      ],
+      quakes: [
+        {
+          id: "quake-1",
+          place: "Gorkha",
+          lat: 28.1,
+          lng: 84.7,
+          mag: 7.8,
+          depthKm: 15,
+        },
+      ],
+      highways: [
+        {
+          id: "hw-1",
+          title: "BP Highway",
+          roadRefno: "H06",
+          location: "Nepalthok",
+          lat: 27.4,
+          lng: 85.9,
+          status: "BLOCKED" as const,
+          closureReason: "Landslide",
+          images: [],
+        },
+      ],
+      riverOk: true,
+      quakeOk: true,
+      highwayOk: true,
+      errors: [],
+    };
+
+    const geojson = mapDataToGeoJson(sampleData);
+    expect(geojson.type).toBe("FeatureCollection");
+    expect(geojson.features.length).toBe(6); // 1 basin, 1 lake, 1 thrust, 1 river (valid), 1 quake, 1 highway
+
+    // Check invalid river is excluded
+    const invalidRiver = geojson.features.find((f) => f.id === "gauge-invalid");
+    expect(invalidRiver).toBeUndefined();
+
+    // Check valid river
+    const validRiver = geojson.features.find((f) => f.id === "gauge-1");
+    expect(validRiver).toBeDefined();
+    expect(validRiver?.geometry.type).toBe("Point");
+    expect(validRiver?.geometry.coordinates).toEqual([87.1, 26.8]); // [lng, lat]
+    expect(validRiver?.properties.layer).toBe("rivers");
+    expect(validRiver?.properties.hazard).toBe("flood");
+
+    // Check highway blockage
+    const highway = geojson.features.find((f) => f.id === "hw-1");
+    expect(highway).toBeDefined();
+    expect(highway?.geometry.type).toBe("Point");
+    expect(highway?.geometry.coordinates).toEqual([85.9, 27.4]);
+    expect(highway?.properties.status).toBe("BLOCKED");
+
+    // Check layer filter
+    const riverOnly = mapDataToGeoJson(sampleData, "rivers");
+    expect(riverOnly.features.length).toBe(1);
+    expect(riverOnly.features[0].id).toBe("gauge-1");
+  });
+});

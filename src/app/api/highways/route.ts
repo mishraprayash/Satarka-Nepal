@@ -6,22 +6,27 @@ import type { HighwaysResponse } from "@/lib/types";
 
 export const revalidate = 120; // 2 minutes
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    // Attempt fast read from Supabase first
-    const dbData = await getHighwaysFromDb();
-    if (dbData && dbData.highways.length > 0) {
-      return NextResponse.json(dbData, {
-        headers: {
-          "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
-          "X-Data-Source": "supabase",
-        },
-      });
+    const { searchParams } = new URL(req.url);
+    const fresh = searchParams.get("fresh") === "1" || searchParams.get("fresh") === "true";
+
+    // Attempt fast read from Supabase first if not forced fresh
+    if (!fresh) {
+      const dbData = await getHighwaysFromDb();
+      if (dbData && dbData.highways.length > 0) {
+        return NextResponse.json(dbData, {
+          headers: {
+            "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+            "X-Data-Source": "supabase",
+          },
+        });
+      }
     }
 
-    // Upstream fallback
+    // Upstream fallback / fresh fetch
     const highways = await loadHighways();
-    const blockedCount = highways.filter((h) => h.status === "BLOCKED").length;
+    const blockedCount = highways.filter((h) => h.status === "BLOCKED" || h.status === "CLOSED").length;
     const partialCount = highways.filter((h) => h.status === "PARTIAL_OPEN").length;
     const openCount = highways.filter((h) => h.status === "OPEN").length;
 
@@ -39,7 +44,9 @@ export async function GET() {
 
     return NextResponse.json(res, {
       headers: {
-        "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+        "Cache-Control": fresh
+          ? "no-cache, no-store, max-age=0"
+          : "public, s-maxage=120, stale-while-revalidate=300",
         "X-Data-Source": "upstream-isr",
       },
     });

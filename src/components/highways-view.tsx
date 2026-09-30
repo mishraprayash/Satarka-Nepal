@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import type { HighwayBlockage, HighwaysResponse, HighwayStatus } from "@/lib/types";
 import { useHighways } from "@/lib/use-highways";
+import { usePagination, PaginationControl } from "@/components/pagination";
 import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/format";
 import {
@@ -32,14 +33,15 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
 
   const highways = data?.highways ?? [];
 
-  const blocked = useMemo(() => highways.filter((h) => h.status === "BLOCKED"), [highways]);
+  const blocked = useMemo(() => highways.filter((h) => h.status === "BLOCKED" || h.status === "CLOSED"), [highways]);
   const partial = useMemo(() => highways.filter((h) => h.status === "PARTIAL_OPEN"), [highways]);
   const open = useMemo(() => highways.filter((h) => h.status === "OPEN"), [highways]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return highways.filter((h) => {
-      if (statusFilter !== "all" && h.status !== statusFilter) return false;
+      if (statusFilter === "BLOCKED" && !(h.status === "BLOCKED" || h.status === "CLOSED")) return false;
+      if (statusFilter !== "all" && statusFilter !== "BLOCKED" && h.status !== statusFilter) return false;
       if (!q) return true;
 
       const title = h.title.toLowerCase();
@@ -57,6 +59,17 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
       );
     });
   }, [highways, statusFilter, search]);
+
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    goToPage,
+  } = usePagination(filtered, 12);
+
+  useEffect(() => {
+    goToPage(1);
+  }, [search, statusFilter]);
 
   return (
     <div className="space-y-8">
@@ -239,18 +252,28 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((item) => (
-            <HighwayCard key={item.id} item={item} locale={locale} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {paginatedItems.map((item) => (
+              <HighwayCard key={item.id} item={item} locale={locale} />
+            ))}
+          </div>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => {
+              goToPage(page);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        </>
       )}
     </div>
   );
 }
 
 function HighwayCard({ item, locale }: { item: HighwayBlockage; locale: Locale }) {
-  const isBlocked = item.status === "BLOCKED";
+  const isBlocked = item.status === "BLOCKED" || item.status === "CLOSED";
   const isPartial = item.status === "PARTIAL_OPEN";
 
   const statusBadgeClass = isBlocked

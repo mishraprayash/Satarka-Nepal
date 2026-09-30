@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 import {
@@ -73,6 +73,7 @@ function isActive(pathname: string, href: string) {
 
 export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) {
   const t = useTranslations("nav");
+  const locale = useLocale();
   const pathname = usePathname();
 
   const NAV_ITEMS = [
@@ -85,7 +86,7 @@ export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) 
 
   return (
     <nav
-      aria-label="Mobile Navigation Bar"
+      aria-label={locale === "ne" ? "मोबाइल नेभिगेसन बार" : "Mobile Navigation Bar"}
       className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-surface/92 backdrop-blur-lg md:hidden transition-transform duration-200"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
@@ -98,17 +99,25 @@ export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) 
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-0.5 py-1 px-1 text-center transition-colors min-w-[54px] min-h-[44px]",
+                "flex flex-1 h-full flex-col items-center justify-center gap-0.5 py-1 px-1 text-center transition-colors min-h-[48px]",
                 active ? "text-brand font-semibold" : "text-muted hover:text-text",
               )}
             >
-              <span className={cn("relative flex items-center justify-center p-1 rounded-full transition-transform active:scale-95", active && "bg-brand/10")}>
+              <span
+                className={cn(
+                  "relative flex items-center justify-center p-1.5 rounded-full transition-transform active:scale-95",
+                  active && "bg-brand/10 text-brand",
+                )}
+              >
                 {item.icon}
                 {active && (
-                  <span className="absolute -bottom-1 size-1 rounded-full bg-brand" aria-hidden="true" />
+                  <span
+                    className="absolute -bottom-0.5 size-1 rounded-full bg-brand"
+                    aria-hidden="true"
+                  />
                 )}
               </span>
-              <span className="text-[10.5px] leading-tight tracking-tight mt-0.5 truncate max-w-[62px]">
+              <span className="text-[10.5px] sm:text-[11px] leading-tight tracking-tight mt-0.5 truncate max-w-[62px]">
                 {item.label}
               </span>
             </Link>
@@ -119,14 +128,14 @@ export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) 
         <button
           type="button"
           onClick={onOpenSearch}
-          aria-label="Quick Search"
-          className="flex flex-col items-center justify-center gap-0.5 py-1 px-1 text-center text-muted hover:text-brand transition-colors min-w-[50px] min-h-[44px]"
+          aria-label={locale === "ne" ? "द्रुत खोजी" : "Quick Search"}
+          className="flex flex-1 h-full flex-col items-center justify-center gap-0.5 py-1 px-1 text-center text-muted hover:text-brand transition-colors min-h-[48px] cursor-pointer"
         >
-          <span className="flex items-center justify-center p-1 rounded-full transition-transform active:scale-95">
-            <SearchIcon width={19} height={19} />
+          <span className="flex items-center justify-center p-1.5 rounded-full transition-transform active:scale-95">
+            <SearchIcon width={20} height={20} />
           </span>
-          <span className="text-[10.5px] leading-tight tracking-tight mt-0.5">
-            Search
+          <span className="text-[10.5px] sm:text-[11px] leading-tight tracking-tight mt-0.5 truncate max-w-[62px]">
+            {locale === "ne" ? "खोजी" : "Search"}
           </span>
         </button>
       </div>

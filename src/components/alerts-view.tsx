@@ -102,8 +102,10 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
   useEffect(() => setMounted(true), []);
   const showFetching = mounted && isFetching;
 
-  // Sync state to URL params seamlessly
+  // Sync state to URL params seamlessly without unnecessary router transitions on mount
   useEffect(() => {
+    if (!mounted) return;
+    const currentQs = searchParams?.toString() ?? "";
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     if (hazard !== "all") params.set("hazard", hazard);
@@ -112,9 +114,11 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
     if (selectedAlertId) params.set("alert", selectedAlertId);
 
     const qs = params.toString();
-    const target = qs ? `${pathname}?${qs}` : pathname;
-    router.replace(target, { scroll: false });
-  }, [searchQuery, hazard, severity, sortMode, selectedAlertId, pathname, router]);
+    if (qs !== currentQs) {
+      const target = qs ? `${pathname}?${qs}` : pathname;
+      router.replace(target, { scroll: false });
+    }
+  }, [searchQuery, hazard, severity, sortMode, selectedAlertId, pathname, router, mounted, searchParams]);
 
   const alerts = response?.alerts ?? [];
 
@@ -182,6 +186,21 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
     [alerts, selectedAlertId],
   );
 
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    goToPage
+  } = usePagination(filtered, 12);
+
+  useEffect(() => {
+    goToPage(1);
+  }, [searchQuery, hazard, severity, sortMode]);
+
+  const handleSelectAlert = useCallback((a: Alert) => {
+    setSelectedAlertId(a.id);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="card grid place-items-center p-12 text-sm text-muted" aria-busy>
@@ -219,21 +238,6 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
   const verdictKey =
     worstSeverity && SEVERITY_RANK[worstSeverity] >= SEVERITY_RANK.watch ? worstSeverity : "none";
   const verdictTone: Severity = verdictKey === "none" ? "info" : (verdictKey as Severity);
-
-  const handleSelectAlert = useCallback((a: Alert) => {
-    setSelectedAlertId(a.id);
-  }, []);
-
-  const {
-    currentPage,
-    totalPages,
-    paginatedItems,
-    goToPage
-  } = usePagination(filtered, 12);
-
-  useEffect(() => {
-    goToPage(1);
-  }, [searchQuery, hazard, severity, sortMode]);
 
   return (
     <div className="space-y-6 sm:space-y-8">

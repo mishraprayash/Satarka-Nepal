@@ -32,6 +32,14 @@ const nextConfig: NextConfig = {
       "tailwind-merge",
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/manifest.json",
+        destination: "/manifest.webmanifest",
+      },
+    ];
+  },
   async headers() {
     return [
       {

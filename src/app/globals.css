@@ -280,6 +280,7 @@
 
 /* ── Leaflet map theming ──────────────────────────────────────────────────── */
 .leaflet-container {
+  isolation: isolate;
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);

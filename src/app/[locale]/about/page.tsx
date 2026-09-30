@@ -6,26 +6,28 @@ import { ExternalIcon, PhoneIcon } from "@/components/icons";
 import { DisclaimerTrigger } from "@/components/disclaimer-trigger";
 
 interface SourceLine {
-  name: string;
+  nameEn: string;
+  nameNe: string;
   url: string;
   status: SourceStatus;
 }
 
 const SOURCES: SourceLine[] = [
-  { name: "NDRRMA — BIPAD Portal", url: "https://bipadportal.gov.np/", status: "live" },
-  { name: "DHM — River & Rain Watch (via BIPAD)", url: "https://bipadportal.gov.np/realtime-monitoring", status: "live" },
-  { name: "USGS Earthquake Hazards Program", url: "https://earthquake.usgs.gov/", status: "live" },
-  { name: "GDACS (JRC / United Nations)", url: "https://www.gdacs.org/", status: "live" },
-  { name: "GEOGloWS v2 streamflow forecast (ECMWF)", url: "https://data.geoglows.org/", status: "no-feed" },
-  { name: "ICIMOD — glacial lake inventory", url: "https://www.icimod.org/", status: "reference" },
-  { name: "ReliefWeb (UN OCHA)", url: "https://reliefweb.int/", status: "report-only" },
+  { nameEn: "NDRRMA — BIPAD Portal", nameNe: "NDRRMA — विपद् पोर्टल", url: "https://bipadportal.gov.np/", status: "live" },
+  { nameEn: "DHM — River & Rain Watch (via BIPAD)", nameNe: "जल तथा मौसम विज्ञान विभाग — नदी तथा वर्षा मापन", url: "https://bipadportal.gov.np/realtime-monitoring", status: "live" },
+  { nameEn: "USGS Earthquake Hazards Program", nameNe: "USGS भूकम्प जोखिम कार्यक्रम", url: "https://earthquake.usgs.gov/", status: "live" },
+  { nameEn: "GDACS (JRC / United Nations)", nameNe: "GDACS (संयुक्त राष्ट्र संघ / JRC)", url: "https://www.gdacs.org/", status: "live" },
+  { nameEn: "GEOGloWS v2 streamflow forecast (ECMWF)", nameNe: "GEOGloWS v2 नदी बहाव पूर्वानुमान (ECMWF)", url: "https://data.geoglows.org/", status: "no-feed" },
+  { nameEn: "ICIMOD — glacial lake inventory", nameNe: "ICIMOD — हिमताल सूची", url: "https://www.icimod.org/", status: "reference" },
+  { nameEn: "ReliefWeb (UN OCHA)", nameNe: "ReliefWeb (संयुक्त राष्ट्र सङ्घ OCHA)", url: "https://reliefweb.int/", status: "report-only" },
 ];
 
-const EMERGENCY: { key: "police" | "ambulance" | "fire" | "ndrrma"; number: string }[] = [
+const EMERGENCY: { key: "police" | "ambulance" | "fire" | "dhm" | "ndrrma"; number: string; tollFree?: boolean }[] = [
   { key: "police", number: "100" },
   { key: "fire", number: "101" },
   { key: "ambulance", number: "102" },
-  { key: "ndrrma", number: "1234" },
+  { key: "dhm", number: "1155", tollFree: true },
+  { key: "ndrrma", number: "1149", tollFree: true },
 ];
 
 export async function generateMetadata({
@@ -70,6 +72,7 @@ export default async function AboutPage({
               <li key={c.key}>
                 <a
                   href={`tel:${c.number}`}
+                  aria-label={te("call", { number: c.number })}
                   className="flex items-center justify-between gap-3 rounded-xl border border-warning/30 bg-surface/80 p-3 text-sm font-medium transition-all hover:bg-surface hover:border-warning/60 hover:shadow-xs active:scale-[0.98]"
                 >
                   <span className="inline-flex items-center gap-2 font-semibold text-text">
@@ -78,13 +81,15 @@ export default async function AboutPage({
                   </span>
                   <span className="inline-flex items-center gap-1.5 tabular rounded-chip bg-warning/15 px-3 py-1 text-sm font-bold text-warning">
                     <span>{c.number}</span>
-                    <span className="text-[11px] font-normal text-warning/80">({te("call", { number: c.number }).split(" ")[0]})</span>
+                    <span className="text-[11px] font-normal text-warning/80">
+                      ({c.tollFree ? te("tollFree") : te("callAction")})
+                    </span>
                   </span>
                 </a>
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-muted">{te("call", { number: "1234" })}</p>
+          <p className="mt-3 text-xs text-muted leading-relaxed">{te("emergencyNote")}</p>
         </section>
       </div>
 
@@ -116,7 +121,7 @@ export default async function AboutPage({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-sm font-semibold hover:text-brand"
               >
-                {s.name}
+                {locale === "ne" ? s.nameNe : s.nameEn}
                 <ExternalIcon width={12} height={12} />
               </a>
               <span className="eyebrow ml-auto shrink-0">{ts(`${STATUS_KEY[s.status]}.label`)}</span>

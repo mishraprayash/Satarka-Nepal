@@ -139,10 +139,10 @@ export function useAlerts(pollMs = 120_000, initialData?: AlertsResponse) {
   const refetchFresh = async () => {
     try {
       const freshData = await fetchAlerts(true);
-      query.refetch();
+      queryClient.setQueryData(["alerts"], freshData);
       return freshData;
     } catch {
-      return query.refetch();
+      return (await query.refetch()).data;
     }
   };
 

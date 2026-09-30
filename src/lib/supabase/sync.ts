@@ -1,17 +1,34 @@
 import { getSupabaseServerClient } from "./server";
 import { alertToAlertInsert, highwayToHighwayInsert, type TelemetryInsert } from "./types";
 import type { Alert, HighwayBlockage, SourceHealth } from "@/lib/types";
+import { CONFIG } from "@/lib/config";
+
+const BATCH_CHUNK_SIZE = 100;
+
+export interface AlertSyncResult {
+  alertsSynced: number;
+  telemetryRecorded: number;
+  staleDeactivated: number;
+}
 
 /**
  * Idempotently syncs canonical alerts and source health metrics into Supabase.
- * Uses batch upsert (ON CONFLICT (id) DO UPDATE).
+ * - Uses batch chunked upsert (ON CONFLICT (id) DO UPDATE).
+ * - Transitions stale official alerts from healthy sources to is_active = false.
+ * - Safely batches telemetry history and source health updates.
  */
 export async function syncAlertsToSupabase(
   alerts: Alert[],
   sources: SourceHealth[],
-): Promise<{ alertsSynced: number; telemetryRecorded: number } | null> {
+): Promise<AlertSyncResult | null> {
   const supabase = getSupabaseServerClient();
   if (!supabase) return null;
+
+  if (!CONFIG.supabase.serviceRoleKey) {
+    console.warn(
+      "[supabase-sync] SUPABASE_SERVICE_ROLE_KEY is not configured; write operations may fail RLS policies.",
+    );
+  }
 
   try {
     const alertInserts = alerts.map(alertToAlertInsert);
@@ -34,27 +51,101 @@ export async function syncAlertsToSupabase(
       }
     }
 
-    // 1. Batch upsert alerts
+    // 1. Batch chunked upsert for active alerts
+    let alertsSynced = 0;
     if (alertInserts.length > 0) {
-      const { error: alertErr } = await supabase
+      for (let i = 0; i < alertInserts.length; i += BATCH_CHUNK_SIZE) {
+        const chunk = alertInserts.slice(i, i + BATCH_CHUNK_SIZE);
+        const { error: alertErr } = await supabase
+          .from("alerts")
+          .upsert(chunk, { onConflict: "id" });
+
+        if (alertErr) {
+          console.error(
+            `[supabase-sync] alerts upsert error on chunk ${Math.floor(i / BATCH_CHUNK_SIZE)}:`,
+            alertErr.message,
+            alertErr.details ?? "",
+          );
+        } else {
+          alertsSynced += chunk.length;
+        }
+      }
+    }
+
+    // 2. Active flag transitions: Deactivate stale alerts for sources that ran successfully
+    let staleDeactivated = 0;
+    const healthySources = sources.filter((s) => s.ok);
+
+    for (const s of healthySources) {
+      const currentIdsForSource = new Set(
+        alerts.filter((a) => a.source.id === s.id).map((a) => a.id),
+      );
+
+      // Find all currently active official alerts in DB for this source
+      const { data: dbRows, error: fetchErr } = await supabase
         .from("alerts")
-        .upsert(alertInserts, { onConflict: "id" });
-      if (alertErr) {
-        console.warn("[supabase-sync] alerts upsert error:", alertErr.message);
+        .select("id")
+        .eq("source_id", s.id)
+        .eq("is_active", true)
+        .eq("provenance", "official");
+
+      if (fetchErr) {
+        console.error(
+          `[supabase-sync] failed to fetch active alerts for stale check on source ${s.id}:`,
+          fetchErr.message,
+        );
+        continue;
+      }
+
+      const staleIds = (dbRows ?? [])
+        .map((r) => r.id)
+        .filter((id) => !currentIdsForSource.has(id));
+
+      if (staleIds.length > 0) {
+        for (let i = 0; i < staleIds.length; i += BATCH_CHUNK_SIZE) {
+          const chunk = staleIds.slice(i, i + BATCH_CHUNK_SIZE);
+          const { error: deactErr } = await supabase
+            .from("alerts")
+            .update({
+              is_active: false,
+              updated_at: new Date().toISOString(),
+            })
+            .in("id", chunk);
+
+          if (deactErr) {
+            console.error(
+              `[supabase-sync] failed to deactivate stale alerts for source ${s.id}:`,
+              deactErr.message,
+            );
+          } else {
+            staleDeactivated += chunk.length;
+          }
+        }
       }
     }
 
-    // 2. Batch insert telemetry history (for hydrographs)
+    // 3. Batch chunked insert for telemetry history (for hydrographs)
+    let telemetryRecorded = 0;
     if (telemetryInserts.length > 0) {
-      const { error: telemErr } = await supabase
-        .from("river_telemetry_history")
-        .insert(telemetryInserts);
-      if (telemErr) {
-        console.warn("[supabase-sync] telemetry insert error:", telemErr.message);
+      for (let i = 0; i < telemetryInserts.length; i += BATCH_CHUNK_SIZE) {
+        const chunk = telemetryInserts.slice(i, i + BATCH_CHUNK_SIZE);
+        const { error: telemErr } = await supabase
+          .from("river_telemetry_history")
+          .insert(chunk);
+
+        if (telemErr) {
+          console.error(
+            `[supabase-sync] telemetry insert error on chunk ${Math.floor(i / BATCH_CHUNK_SIZE)}:`,
+            telemErr.message,
+            telemErr.details ?? "",
+          );
+        } else {
+          telemetryRecorded += chunk.length;
+        }
       }
     }
 
-    // 3. Batch upsert source health
+    // 4. Batch chunked upsert for source health
     if (sources.length > 0) {
       const healthInserts = sources.map((s) => ({
         id: s.id,
@@ -68,26 +159,36 @@ export async function syncAlertsToSupabase(
         error_message: s.error ?? null,
       }));
 
-      const { error: healthErr } = await supabase
-        .from("source_health")
-        .upsert(healthInserts, { onConflict: "id" });
-      if (healthErr) {
-        console.warn("[supabase-sync] source health upsert error:", healthErr.message);
+      for (let i = 0; i < healthInserts.length; i += BATCH_CHUNK_SIZE) {
+        const chunk = healthInserts.slice(i, i + BATCH_CHUNK_SIZE);
+        const { error: healthErr } = await supabase
+          .from("source_health")
+          .upsert(chunk, { onConflict: "id" });
+
+        if (healthErr) {
+          console.error(
+            `[supabase-sync] source health upsert error on chunk ${Math.floor(i / BATCH_CHUNK_SIZE)}:`,
+            healthErr.message,
+            healthErr.details ?? "",
+          );
+        }
       }
     }
 
     return {
-      alertsSynced: alertInserts.length,
-      telemetryRecorded: telemetryInserts.length,
+      alertsSynced,
+      telemetryRecorded,
+      staleDeactivated,
     };
   } catch (err) {
-    console.warn("[supabase-sync] exception during sync:", err);
+    console.error("[supabase-sync] exception during sync:", err);
     return null;
   }
 }
 
 /**
  * Idempotently syncs national highway status into Supabase.
+ * Batches inserts in chunks with comprehensive error logging.
  */
 export async function syncHighwaysToSupabase(
   highways: HighwayBlockage[],
@@ -99,18 +200,27 @@ export async function syncHighwaysToSupabase(
     const inserts = highways.map(highwayToHighwayInsert);
     if (inserts.length === 0) return 0;
 
-    const { error } = await supabase
-      .from("highway_blockages")
-      .upsert(inserts, { onConflict: "id" });
+    let syncedCount = 0;
+    for (let i = 0; i < inserts.length; i += BATCH_CHUNK_SIZE) {
+      const chunk = inserts.slice(i, i + BATCH_CHUNK_SIZE);
+      const { error } = await supabase
+        .from("highway_blockages")
+        .upsert(chunk, { onConflict: "id" });
 
-    if (error) {
-      console.warn("[supabase-sync] highways upsert error:", error.message);
-      return null;
+      if (error) {
+        console.error(
+          `[supabase-sync] highways upsert error on chunk ${Math.floor(i / BATCH_CHUNK_SIZE)}:`,
+          error.message,
+          error.details ?? "",
+        );
+      } else {
+        syncedCount += chunk.length;
+      }
     }
 
-    return inserts.length;
+    return syncedCount;
   } catch (err) {
-    console.warn("[supabase-sync] highway sync exception:", err);
+    console.error("[supabase-sync] highway sync exception:", err);
     return null;
   }
 }

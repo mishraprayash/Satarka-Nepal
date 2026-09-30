@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -33,6 +33,14 @@ export function SiteHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
   const locale = useLocale() as Locale;
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [shortcutKey, setShortcutKey] = useState("⌘K");
+
+  useEffect(() => {
+    const isMac =
+      typeof navigator !== "undefined" &&
+      /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform || navigator.userAgent);
+    setShortcutKey(isMac ? "⌘K" : "Ctrl+K");
+  }, []);
 
   const { response } = useAlerts();
 
@@ -142,19 +150,26 @@ export function SiteHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
             </Link>
           ) : null}
 
-          {/* Global Search Trigger button — Mac Spotlight styling */}
+          {/* Global Search Trigger button — Spotlight styling */}
           <button
             type="button"
             onClick={onOpenSearch}
             className="flex items-center gap-2 rounded-full border border-border/80 bg-surface-2/60 px-3 py-1.5 text-xs font-medium text-muted hover:border-border-strong hover:text-text hover:bg-surface-2 transition-all cursor-pointer shadow-2xs"
-            aria-label="Quick search (Press Command+K)"
+            aria-label={
+              locale === "ne"
+                ? `द्रुत खोजी (${shortcutKey} थिच्नुहोस्)`
+                : `Quick search (Press ${shortcutKey})`
+            }
           >
             <SearchIcon width={13} height={13} className="text-muted shrink-0" />
             <span className="hidden xl:inline whitespace-nowrap">
               {locale === "ne" ? "खोज्नुहोस्…" : "Search…"}
             </span>
-            <kbd className="hidden sm:inline-flex items-center rounded border border-border/70 bg-surface px-1.5 py-0.5 text-[10px] font-mono text-faint">
-              ⌘K
+            <kbd
+              suppressHydrationWarning
+              className="hidden sm:inline-flex items-center rounded border border-border/70 bg-surface px-1.5 py-0.5 text-[10px] font-mono text-faint"
+            >
+              {shortcutKey}
             </kbd>
           </button>
 

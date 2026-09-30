@@ -81,16 +81,17 @@ interface Drf<T> {
 }
 
 /** Every monitored river gauge, pulling from river-stations with legacy fallback. */
-async function loadRiverGauges(): Promise<RiverGauge[]> {
+async function loadRiverGauges(fresh = false): Promise<RiverGauge[]> {
   let rows: Record<string, unknown>[] = [];
+  const revalidate = fresh ? 0 : 300;
   try {
     const data = await fetchJson<Drf<Record<string, unknown>>>(BIPAD_RIVER_STATIONS_URL, {
-      revalidate: 300,
+      revalidate,
     });
     rows = data.results ?? [];
   } catch {
     const data = await fetchJson<Drf<Record<string, unknown>>>(BIPAD_RIVER_LEGACY_URL, {
-      revalidate: 300,
+      revalidate,
     });
     rows = data.results ?? [];
   }
@@ -155,12 +156,12 @@ async function loadRiverGauges(): Promise<RiverGauge[]> {
   return gauges;
 }
 
-async function loadQuakes(): Promise<Quake[]> {
+async function loadQuakes(fresh = false): Promise<Quake[]> {
   const startTime = new Date(
     Date.now() - CONFIG.thresholds.earthquakeMaxAgeDays * 86400_000,
   ).toISOString();
   const url = `${USGS_URL}&starttime=${encodeURIComponent(startTime)}`;
-  const data = await fetchJson<{ features?: unknown[] }>(url, { revalidate: 120 });
+  const data = await fetchJson<{ features?: unknown[] }>(url, { revalidate: fresh ? 0 : 120 });
   const features = data.features ?? [];
   const quakes: Quake[] = [];
   const nowMs = Date.now();
@@ -206,12 +207,12 @@ async function loadQuakes(): Promise<Quake[]> {
   return quakes;
 }
 
-export async function loadMapData(): Promise<MapDataResponse> {
+export async function loadMapData(fresh = false): Promise<MapDataResponse> {
   const generatedAt = nowIso();
   const [rivers, quakes, highways] = await Promise.allSettled([
-    loadRiverGauges(),
-    loadQuakes(),
-    loadHighways(),
+    loadRiverGauges(fresh),
+    loadQuakes(fresh),
+    loadHighways(fresh),
   ]);
   const errors: string[] = [];
 
@@ -235,6 +236,229 @@ export async function loadMapData(): Promise<MapDataResponse> {
     quakeOk,
     highwayOk,
     errors,
+  };
+}
+
+export interface GeoJsonFeature {
+  type: "Feature";
+  id?: string;
+  geometry: {
+    type: "Point" | "LineString" | "Polygon";
+    coordinates: number[] | number[][] | number[][][];
+  };
+  properties: Record<string, unknown>;
+}
+
+export interface GeoJsonFeatureCollection {
+  type: "FeatureCollection";
+  features: GeoJsonFeature[];
+  metadata?: {
+    generatedAt: string;
+    riverOk: boolean;
+    quakeOk: boolean;
+    highwayOk: boolean;
+    totalFeatures: number;
+  };
+}
+
+export function mapDataToGeoJson(data: MapDataResponse, filterLayer?: string): GeoJsonFeatureCollection {
+  const features: GeoJsonFeature[] = [];
+  const layer = filterLayer?.toLowerCase().trim();
+
+  // Rivers: GeoJSON points [lng, lat]
+  if (!layer || layer === "rivers" || layer === "flood") {
+    for (const r of data.rivers) {
+      if (r.lng != null && r.lat != null && Number.isFinite(r.lng) && Number.isFinite(r.lat)) {
+        features.push({
+          type: "Feature",
+          id: r.id,
+          geometry: {
+            type: "Point",
+            coordinates: [r.lng, r.lat],
+          },
+          properties: {
+            layer: "rivers",
+            hazard: "flood",
+            station: r.station,
+            basin: r.basin,
+            waterLevel: r.waterLevel,
+            warningLevel: r.warningLevel,
+            dangerLevel: r.dangerLevel,
+            status: r.status,
+            trend: r.trend,
+            atDanger: r.atDanger,
+            atWarning: r.atWarning,
+            stale: r.stale,
+            elevation: r.elevation,
+            issuedAt: r.issuedAt,
+          },
+        });
+      }
+    }
+  }
+
+  // Quakes: GeoJSON points [lng, lat, depth]
+  if (!layer || layer === "quakes" || layer === "earthquake") {
+    for (const q of data.quakes) {
+      if (q.lng != null && q.lat != null && Number.isFinite(q.lng) && Number.isFinite(q.lat)) {
+        features.push({
+          type: "Feature",
+          id: q.id,
+          geometry: {
+            type: "Point",
+            coordinates: q.depthKm != null ? [q.lng, q.lat, q.depthKm] : [q.lng, q.lat],
+          },
+          properties: {
+            layer: "quakes",
+            hazard: "earthquake",
+            place: q.place,
+            mag: q.mag,
+            depthKm: q.depthKm,
+            issuedAt: q.issuedAt,
+            url: q.url,
+          },
+        });
+      }
+    }
+  }
+
+  // Highways: GeoJSON points [lng, lat]
+  if (!layer || layer === "highways" || layer === "landslide") {
+    for (const h of data.highways ?? []) {
+      if (h.lng != null && h.lat != null && Number.isFinite(h.lng) && Number.isFinite(h.lat)) {
+        features.push({
+          type: "Feature",
+          id: h.id,
+          geometry: {
+            type: "Point",
+            coordinates: [h.lng, h.lat],
+          },
+          properties: {
+            layer: "highways",
+            hazard: "landslide",
+            title: h.title,
+            roadRefno: h.roadRefno,
+            location: h.location,
+            status: h.status,
+            closureReason: h.closureReason,
+            repairEta: h.repairEta,
+            effortsBeingMade: h.effortsBeingMade,
+            contactPerson: h.contactPerson,
+          },
+        });
+      }
+    }
+  }
+
+  // Glacial Lakes: GeoJSON points [lng, lat]
+  if (!layer || layer === "glacial" || layer === "glof") {
+    for (const l of data.glacialLakes) {
+      if (Number.isFinite(l.lng) && Number.isFinite(l.lat)) {
+        features.push({
+          type: "Feature",
+          id: l.id,
+          geometry: {
+            type: "Point",
+            coordinates: [l.lng, l.lat],
+          },
+          properties: {
+            layer: "glacial",
+            hazard: "glof",
+            name: l.name,
+            district: l.district,
+            risk: l.risk,
+            note: l.note,
+          },
+        });
+      }
+    }
+  }
+
+  // Basins: GeoJSON Polygons [[lng, lat], ...]
+  if (!layer || layer === "basins" || layer === "flood") {
+    for (const b of data.basins) {
+      const coords = b.points.filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat));
+      if (coords.length >= 3) {
+        const ring = coords.map(([lng, lat]) => [lng, lat]);
+        const first = ring[0];
+        const last = ring[ring.length - 1];
+        if (first[0] !== last[0] || first[1] !== last[1]) {
+          ring.push([first[0], first[1]]);
+        }
+        features.push({
+          type: "Feature",
+          id: b.id,
+          geometry: {
+            type: "Polygon",
+            coordinates: [ring],
+          },
+          properties: {
+            layer: "basins",
+            name: b.name,
+            nameNe: b.nameNe,
+            risk: b.risk,
+          },
+        });
+      }
+    }
+  }
+
+  // Seismic: LineString or Polygon
+  if (!layer || layer === "seismic" || layer === "earthquake") {
+    for (const s of data.seismic) {
+      const coords = s.points.filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat));
+      if (s.kind === "thrust" && coords.length >= 2) {
+        features.push({
+          type: "Feature",
+          id: s.id,
+          geometry: {
+            type: "LineString",
+            coordinates: coords.map(([lng, lat]) => [lng, lat]),
+          },
+          properties: {
+            layer: "seismic",
+            name: s.name,
+            nameNe: s.nameNe,
+            kind: s.kind,
+            note: s.note,
+          },
+        });
+      } else if (coords.length >= 3) {
+        const ring = coords.map(([lng, lat]) => [lng, lat]);
+        const first = ring[0];
+        const last = ring[ring.length - 1];
+        if (first[0] !== last[0] || first[1] !== last[1]) {
+          ring.push([first[0], first[1]]);
+        }
+        features.push({
+          type: "Feature",
+          id: s.id,
+          geometry: {
+            type: "Polygon",
+            coordinates: [ring],
+          },
+          properties: {
+            layer: "seismic",
+            name: s.name,
+            nameNe: s.nameNe,
+            kind: s.kind,
+            note: s.note,
+          },
+        });
+      }
+    }
+  }
+
+  return {
+    type: "FeatureCollection",
+    features,
+    metadata: {
+      generatedAt: data.generatedAt,
+      riverOk: data.riverOk,
+      quakeOk: data.quakeOk,
+      highwayOk: data.highwayOk,
+      totalFeatures: features.length,
+    },
   };
 }
 

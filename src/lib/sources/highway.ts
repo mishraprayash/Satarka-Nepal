@@ -29,10 +29,10 @@ function parseImages(val: unknown): string[] {
 /**
  * Loads raw highway rows from BIPAD and normalizes them into structured HighwayBlockage items.
  */
-export async function loadHighways(): Promise<HighwayBlockage[]> {
+export async function loadHighways(fresh = false): Promise<HighwayBlockage[]> {
   try {
     const data = await fetchJson<Drf<Row>>(`${BASE}/highway/?limit=100&ordering=-modifiedOn`, {
-      revalidate: 180,
+      revalidate: fresh ? 0 : 180,
     });
     const rows = data.results ?? [];
     const items: HighwayBlockage[] = [];

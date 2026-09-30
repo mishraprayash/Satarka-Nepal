@@ -28,7 +28,7 @@ export default async function HighwaysPage({
     loadHighways(),
   ]);
 
-  const blockedCount = highways.filter((h) => h.status === "BLOCKED").length;
+  const blockedCount = highways.filter((h) => h.status === "BLOCKED" || h.status === "CLOSED").length;
   const partialCount = highways.filter((h) => h.status === "PARTIAL_OPEN").length;
   const openCount = highways.filter((h) => h.status === "OPEN").length;
 

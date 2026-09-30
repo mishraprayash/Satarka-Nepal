@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { HighwaysResponse } from "@/lib/types";
 
 const LS_KEY = "satarka-highways-cache";
@@ -24,6 +24,7 @@ async function fetchHighways(fresh = false): Promise<HighwaysResponse> {
 
 export function useHighways(initialData?: HighwaysResponse) {
   const [isLowBw, setIsLowBw] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const check = () => setIsLowBw(document.documentElement.dataset.lowbw === "true");
@@ -68,10 +69,10 @@ export function useHighways(initialData?: HighwaysResponse) {
   const refetchFresh = async () => {
     try {
       const freshData = await fetchHighways(true);
-      query.refetch();
+      queryClient.setQueryData(["highways"], freshData);
       return freshData;
     } catch {
-      return query.refetch();
+      return (await query.refetch()).data;
     }
   };
 

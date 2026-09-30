@@ -15,6 +15,15 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
   const tact = useTranslations("actions");
   const { data, fromCache, isLoading, isError, refetch } = useReports(initialData);
 
+  const reports = data?.ok && data.reports.length > 0 ? data.reports : [];
+
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    goToPage
+  } = usePagination(reports, 6);
+
   if (isLoading && !fromCache) {
     return (
       <div className="grid gap-3 sm:grid-cols-2" aria-busy="true">
@@ -31,15 +40,6 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
       </div>
     );
   }
-
-  const reports = data?.ok && data.reports.length > 0 ? data.reports : [];
-
-  const {
-    currentPage,
-    totalPages,
-    paginatedItems,
-    goToPage
-  } = usePagination(reports, 6);
 
   return (
     <div className="space-y-4">
@@ -63,7 +63,7 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
                       {r.sourceName}
                     </span>
                     {r.date ? (
-                      <span className="text-[11px] tabular text-faint">
+                      <span className="text-[11px] tabular text-faint" suppressHydrationWarning>
                         {formatDateTime(r.date, locale)}
                       </span>
                     ) : null}

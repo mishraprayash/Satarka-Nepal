@@ -17,13 +17,14 @@ export type Theme = "light" | "dark";
 export const THEME_KEY = "satarka-theme";
 export const LOWBW_KEY = "satarka-lowbw";
 export const THEME_EVENT = "satarka-theme-change";
+export const LOWBW_EVENT = "satarka-lowbw-change";
 
 /** Runs in <head> before first paint; must stay dependency-free and idempotent. */
 export const themeBootScript = `(function(){try{
 var t=localStorage.getItem('${THEME_KEY}');
 if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
 var d=document.documentElement;d.dataset.theme=t;
-if(localStorage.getItem('${LOWBW_KEY}')==='true'){d.dataset.lowbw='true';}
+d.dataset.lowbw=localStorage.getItem('${LOWBW_KEY}')==='true'?'true':'false';
 }catch(e){}})();`;
 
 export function readTheme(): Theme {
@@ -38,6 +39,17 @@ export function readTheme(): Theme {
   } catch {
     return "light";
   }
+}
+
+export function readLowBandwidth(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const v = localStorage.getItem(LOWBW_KEY);
+    if (v !== null) return v === "true";
+  } catch {
+    /* ignore */
+  }
+  return typeof document !== "undefined" && document.documentElement.dataset.lowbw === "true";
 }
 
 export function applyTheme(theme: Theme): void {
@@ -59,6 +71,20 @@ export function setTheme(theme: Theme): void {
   }
 }
 
+export function setLowBandwidth(enabled: boolean): void {
+  document.documentElement.dataset.lowbw = enabled ? "true" : "false";
+  try {
+    localStorage.setItem(LOWBW_KEY, String(enabled));
+  } catch {
+    /* ignore */
+  }
+  try {
+    window.dispatchEvent(new Event(LOWBW_EVENT));
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Re-assert stored preferences on the <html> element (navigation-safe). */
 export function applyStoredAppearance(): void {
   applyTheme(readTheme());
@@ -70,12 +96,50 @@ export function applyStoredAppearance(): void {
   }
 }
 
-/** Subscribe to theme changes (local dispatch + other-tab writes). */
+/** Subscribe to theme changes (local dispatch + other-tab writes + OS color scheme changes). */
 export function subscribeTheme(onChange: () => void): () => void {
   window.addEventListener(THEME_EVENT, onChange);
   window.addEventListener("storage", onChange);
+
+  const mq =
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-color-scheme: dark)")
+      : null;
+
+  const onMediaChange = () => {
+    try {
+      if (!localStorage.getItem(THEME_KEY)) {
+        applyTheme(readTheme());
+        onChange();
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
+  mq?.addEventListener?.("change", onMediaChange);
+
   return () => {
     window.removeEventListener(THEME_EVENT, onChange);
     window.removeEventListener("storage", onChange);
+    mq?.removeEventListener?.("change", onMediaChange);
+  };
+}
+
+/** Subscribe to low-bandwidth toggle changes across instances and tabs. */
+export function subscribeLowBandwidth(onChange: () => void): () => void {
+  window.addEventListener(LOWBW_EVENT, onChange);
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === LOWBW_KEY || e.key === null) {
+      if (typeof document !== "undefined") {
+        document.documentElement.dataset.lowbw = localStorage.getItem(LOWBW_KEY) === "true" ? "true" : "false";
+      }
+      onChange();
+    }
+  };
+  window.addEventListener("storage", handleStorage);
+  return () => {
+    window.removeEventListener(LOWBW_EVENT, onChange);
+    window.removeEventListener("storage", handleStorage);
   };
 }
