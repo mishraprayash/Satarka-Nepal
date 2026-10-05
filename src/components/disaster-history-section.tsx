@@ -56,7 +56,7 @@ export function DisasterHistorySection() {
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text">
             {tl("scienceTitle")}
           </h2>
-          <p className="mt-1 text-sm text-muted max-w-2xl">
+          <p className="mt-1 text-base text-muted max-w-2xl">
             {tl("scienceSub")}
           </p>
         </div>
@@ -69,10 +69,10 @@ export function DisasterHistorySection() {
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="eyebrow !text-brand font-bold uppercase tracking-wider">
+                  <span className="eyebrow !text-brand font-bold">
                     {locale === "ne" ? fact.topic.ne : fact.topic.en}
                   </span>
-                  <span className="text-[11px] rounded bg-surface-2 px-2 py-0.5 text-faint font-semibold">
+                  <span className="text-sm rounded bg-surface-2 px-2 py-0.5 text-muted font-semibold">
                     {tl("geologicalInsight")}
                   </span>
                 </div>
@@ -81,12 +81,12 @@ export function DisasterHistorySection() {
                   {locale === "ne" ? fact.headline.ne : fact.headline.en}
                 </h3>
 
-                <p className="text-sm leading-relaxed text-muted">
+                <p className="text-base leading-relaxed text-muted">
                   {locale === "ne" ? fact.explanation.ne : fact.explanation.en}
                 </p>
               </div>
 
-              <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-3 text-xs">
+              <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-3 text-sm">
                 <span className="font-bold text-brand block mb-0.5">
                   {locale === "ne" ? "जीवन रक्षा नियम:" : "Life-Safety Rule:"}
                 </span>
@@ -105,7 +105,7 @@ export function DisasterHistorySection() {
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text">
             {tl("historyTitle")}
           </h2>
-          <p className="mt-1 text-sm text-muted max-w-3xl">
+          <p className="mt-1 text-base text-muted max-w-3xl">
             {tl("historySub")}
           </p>
         </div>
@@ -118,7 +118,7 @@ export function DisasterHistorySection() {
               type="button"
               onClick={() => setActiveHazard("all")}
               className={cn(
-                "rounded-chip border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer",
+                "inline-flex min-h-11 rounded-chip border-2 px-4 py-2 text-base font-semibold transition-colors cursor-pointer",
                 activeHazard === "all"
                   ? "border-brand bg-brand text-brand-fg"
                   : "border-border text-muted hover:bg-surface-2 hover:text-text",
@@ -132,13 +132,13 @@ export function DisasterHistorySection() {
                 type="button"
                 onClick={() => setActiveHazard(h)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer",
+                  "inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 px-4 py-2 text-base font-semibold transition-colors cursor-pointer",
                   activeHazard === h
                     ? "border-brand bg-brand text-brand-fg"
                     : "border-border text-muted hover:bg-surface-2 hover:text-text",
                 )}
               >
-                <HazardGlyph hazard={h} width={13} height={13} />
+                <HazardGlyph hazard={h} width={20} height={20} />
                 <span>{th(`${h}.name`)}</span>
               </button>
             ))}
@@ -154,7 +154,7 @@ export function DisasterHistorySection() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={tl("searchDisasters")}
-              className="w-full rounded-chip border border-border bg-surface py-1.5 pl-8 pr-8 text-xs text-text placeholder:text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+              className="w-full rounded-chip border border-border bg-surface py-1.5 pl-8 pr-8 text-sm text-text placeholder:text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
             />
             {searchQuery ? (
               <button
@@ -189,15 +189,15 @@ export function DisasterHistorySection() {
                     {/* Top Row: Year badge & Hazard badge */}
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="tabular rounded bg-brand/10 border border-brand/30 px-2 py-0.5 text-xs font-bold text-brand">
+                        <span className="tabular rounded bg-brand/10 border border-brand/30 px-2 py-0.5 text-sm font-bold text-brand">
                           {item.year} ({item.bsYear})
                         </span>
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-muted">
+                        <span className="inline-flex items-center gap-1 text-sm font-medium text-muted">
                           <HazardGlyph hazard={item.hazard} width={13} height={13} />
                           <span>{th(`${item.hazard}.name`)}</span>
                         </span>
                       </div>
-                      <span className="rounded-chip border border-border bg-surface-2 px-2.5 py-0.5 text-[11px] font-semibold tabular text-text">
+                      <span className="rounded-chip border border-border bg-surface-2 px-2.5 py-0.5 text-sm font-semibold tabular text-text">
                         {metric}
                       </span>
                     </div>
@@ -207,13 +207,13 @@ export function DisasterHistorySection() {
                       <h3 className="text-base sm:text-lg font-bold leading-snug text-text">
                         {title}
                       </h3>
-                      <p className="mt-1 text-xs font-medium text-muted">
+                      <p className="mt-1 text-sm font-medium text-muted">
                         📍 {locationStr}
                       </p>
                     </div>
 
                     {/* Casualties / Impact headline */}
-                    <div className="rounded-lg border border-danger/25 bg-danger-soft/20 px-3 py-2 text-xs">
+                    <div className="rounded-lg border border-danger/25 bg-danger-soft/20 px-3 py-2 text-sm">
                       <span className="font-bold text-danger mr-1.5">
                         {tl("fatalitiesLabel")}:
                       </span>
@@ -223,15 +223,15 @@ export function DisasterHistorySection() {
                     </div>
 
                     {/* Impact description */}
-                    <p className="text-xs sm:text-sm leading-relaxed text-muted">
+                    <p className="text-sm sm:text-base leading-relaxed text-muted">
                       {impact}
                     </p>
 
                     {/* Expandable Scientific Details */}
                     {isExpanded ? (
-                      <div className="mt-3.5 space-y-3 border-t border-border pt-3.5 text-xs">
+                      <div className="mt-3.5 space-y-3 border-t border-border pt-3.5 text-sm">
                         <div className="space-y-1">
-                          <span className="font-bold text-brand uppercase tracking-wider text-[10px]">
+                          <span className="font-bold text-brand text-sm">
                             {tl("scientificCauseLabel")}
                           </span>
                           <p className="leading-relaxed text-muted bg-surface-2/60 p-2.5 rounded border border-border/60">
@@ -240,7 +240,7 @@ export function DisasterHistorySection() {
                         </div>
 
                         <div className="space-y-1">
-                          <span className="font-bold text-warning uppercase tracking-wider text-[10px]">
+                          <span className="font-bold text-warning text-sm">
                             {tl("lessonsLabel")}
                           </span>
                           <p className="leading-relaxed text-muted bg-warning-soft/20 p-2.5 rounded border border-warning/30">
@@ -252,7 +252,7 @@ export function DisasterHistorySection() {
                   </div>
 
                   {/* Toggle Accordion footer button */}
-                  <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
+                  <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-sm">
                     <button
                       type="button"
                       onClick={() => setExpandedId(isExpanded ? null : item.id)}
@@ -260,7 +260,7 @@ export function DisasterHistorySection() {
                     >
                       {isExpanded ? `▲ ${tl("hideCauseLessons")}` : `▼ ${tl("readCauseLessons")}`}
                     </button>
-                    <span className="text-[11px] text-faint">
+                    <span className="text-base text-muted">
                       {tl("verifiedRecord")}
                     </span>
                   </div>
@@ -269,7 +269,7 @@ export function DisasterHistorySection() {
             })}
           </div>
         ) : (
-          <div className="card border-dashed p-8 text-center text-sm text-muted">
+          <div className="card border-dashed p-8 text-center text-base text-muted">
             {tl("noDisastersFound", { query: searchQuery })}
           </div>
         )}

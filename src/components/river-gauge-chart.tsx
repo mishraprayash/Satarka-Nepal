@@ -70,7 +70,7 @@ export function RiverGaugeChart({ stationId }: { stationId: string }) {
 
   return (
     <div className="mt-4 space-y-2 rounded-xl border border-border/80 bg-surface-2/60 p-4">
-      <div className="flex items-center justify-between text-xs mb-4">
+      <div className="flex items-center justify-between text-sm mb-4">
         <span className="font-bold uppercase tracking-wider text-muted">24-Hour Hydrological Trend</span>
       </div>
       <div className="h-48 w-full">

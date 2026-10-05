@@ -102,7 +102,7 @@ function GaugeMarker({ gauge, colors, locale }: { gauge: RiverGauge; colors: The
     >
       <Popup>
         <div className="min-w-[180px] text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+          <p className="text-sm font-semibold uppercase tracking-wide text-muted">
             {gauge.station}
             {gauge.basin ? ` · ${gauge.basin}` : ""}
           </p>
@@ -111,7 +111,7 @@ function GaugeMarker({ gauge, colors, locale }: { gauge: RiverGauge; colors: The
               {formatNumber(gauge.waterLevel, locale)} m
             </p>
           ) : null}
-          <dl className="mt-1 space-y-0.5 text-xs text-muted">
+          <dl className="mt-1 space-y-0.5 text-sm text-muted">
             {gauge.warningLevel !== undefined ? (
               <div className="flex justify-between gap-4">
                 <dt>{tsev("warning.label")}</dt>
@@ -125,10 +125,10 @@ function GaugeMarker({ gauge, colors, locale }: { gauge: RiverGauge; colors: The
               </div>
             ) : null}
           </dl>
-          {gauge.status ? <p className="mt-1 text-xs">{gauge.status}</p> : null}
-          {gauge.trend ? <p className="text-xs text-muted">Trend: {gauge.trend.toLowerCase()}</p> : null}
+          {gauge.status ? <p className="mt-1 text-sm">{gauge.status}</p> : null}
+          {gauge.trend ? <p className="text-sm text-muted">Trend: {gauge.trend.toLowerCase()}</p> : null}
           {gauge.issuedAt ? (
-            <p className="mt-1 text-xs text-faint">{tc("checkedAgo", { time: timeAgo(gauge.issuedAt, locale) })}</p>
+            <p className="mt-1 text-sm text-faint">{tc("checkedAgo", { time: timeAgo(gauge.issuedAt, locale) })}</p>
           ) : null}
         </div>
       </Popup>
@@ -153,15 +153,15 @@ function QuakeMarker({ quake, colors, locale }: { quake: Quake; colors: ThemeCol
     >
       <Popup>
         <div className="min-w-[190px] text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{quake.place}</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-muted">{quake.place}</p>
           <p className="tabular mt-1 text-base font-semibold">
             {quake.mag !== undefined ? `M ${quake.mag.toFixed(1)}` : "Earthquake"}
             {quake.depthKm !== undefined ? (
-              <span className="ml-2 text-xs font-normal text-muted">{Math.round(quake.depthKm)} km deep</span>
+              <span className="ml-2 text-sm font-normal text-muted">{Math.round(quake.depthKm)} km deep</span>
             ) : null}
           </p>
           {quake.issuedAt ? (
-            <p className="mt-1 text-xs text-faint">
+            <p className="mt-1 text-sm text-faint">
               {tc("checkedAgo", { time: timeAgo(quake.issuedAt, locale) })} · {formatDateTime(quake.issuedAt, locale)}
             </p>
           ) : null}
@@ -170,7 +170,7 @@ function QuakeMarker({ quake, colors, locale }: { quake: Quake; colors: ThemeCol
               href={quake.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-brand-strong"
+              className="mt-1.5 inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong"
             >
               USGS <ExternalIcon width={11} height={11} />
             </a>
@@ -200,21 +200,21 @@ function HighwayMarker({ highway, colors, locale }: { highway: HighwayBlockage; 
       <Popup>
         <div className="min-w-[200px] text-sm">
           <div className="flex items-center justify-between gap-2">
-            <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10px] font-bold">
+            <span className="rounded bg-surface-2 px-1.5 py-0.5 text-sm font-bold">
               {highway.roadRefno}
             </span>
-            <span className="text-xs font-bold" style={{ color }}>
+            <span className="text-sm font-bold" style={{ color }}>
               {highway.status === "BLOCKED" ? "BLOCKED" : highway.status === "PARTIAL_OPEN" ? "PARTIAL OPEN" : "OPEN"}
             </span>
           </div>
           <p className="mt-1 font-semibold text-text">{highway.title}</p>
-          <p className="text-xs text-muted">{highway.location}</p>
-          <p className="mt-1 text-xs font-medium" style={{ color: colors.warning }}>
+          <p className="text-sm text-muted">{highway.location}</p>
+          <p className="mt-1 text-sm font-medium" style={{ color: colors.warning }}>
             Cause: {highway.closureReason}
           </p>
-          {highway.repairEta ? <p className="text-xs text-muted">ETA: {highway.repairEta}</p> : null}
-          {highway.effortsBeingMade ? <p className="mt-1 text-xs text-faint">{highway.effortsBeingMade}</p> : null}
-          {highway.contactPerson ? <p className="mt-0.5 text-[11px] text-muted">{highway.contactPerson}</p> : null}
+          {highway.repairEta ? <p className="text-sm text-muted">ETA: {highway.repairEta}</p> : null}
+          {highway.effortsBeingMade ? <p className="mt-1 text-sm text-faint">{highway.effortsBeingMade}</p> : null}
+          {highway.contactPerson ? <p className="mt-0.5 text-sm text-muted">{highway.contactPerson}</p> : null}
         </div>
       </Popup>
     </CircleMarker>
@@ -431,13 +431,13 @@ export function LeafletMap({
               >
                 <Popup>
                   <div className="min-w-[170px] text-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-muted">
                       {locale === "ne" ? b.nameNe : b.name}
                     </p>
-                    <p className="mt-1 text-xs text-muted">
+                    <p className="mt-1 text-sm text-muted">
                       {t(b.risk === "high" ? "riskHigh" : b.risk === "moderate" ? "riskModerate" : "riskLow")}
                     </p>
-                    <p className="mt-1 text-xs text-faint">{t("referenceNote")}</p>
+                    <p className="mt-1 text-sm text-faint">{t("referenceNote")}</p>
                   </div>
                 </Popup>
               </Polygon>
@@ -454,10 +454,10 @@ export function LeafletMap({
                 >
                   <Popup>
                     <div className="min-w-[200px] text-sm">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-muted">
                         {locale === "ne" ? f.nameNe ?? f.name : f.name}
                       </p>
-                      <p className="mt-1 text-xs text-muted">{localizeText(f.note, locale)}</p>
+                      <p className="mt-1 text-sm text-muted">{localizeText(f.note, locale)}</p>
                     </div>
                   </Popup>
                 </Polyline>
@@ -469,10 +469,10 @@ export function LeafletMap({
                 >
                   <Popup>
                     <div className="min-w-[200px] text-sm">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-muted">
                         {locale === "ne" ? f.nameNe ?? f.name : f.name}
                       </p>
-                      <p className="mt-1 text-xs text-muted">{localizeText(f.note, locale)}</p>
+                      <p className="mt-1 text-sm text-muted">{localizeText(f.note, locale)}</p>
                     </div>
                   </Popup>
                 </Polygon>
@@ -495,14 +495,14 @@ export function LeafletMap({
               >
                 <Popup>
                   <div className="min-w-[190px] text-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-muted">
                       {l.name} · {l.district}
                     </p>
                     <p className="mt-1 font-medium">
                       {t(l.risk === "high" ? "riskHigh" : "riskModerate")}
                     </p>
-                    {l.note ? <p className="mt-1 text-xs text-muted">{localizeText(l.note, locale)}</p> : null}
-                    <p className="mt-1 text-xs text-faint">{t("referenceNote")}</p>
+                    {l.note ? <p className="mt-1 text-sm text-muted">{localizeText(l.note, locale)}</p> : null}
+                    <p className="mt-1 text-sm text-faint">{t("referenceNote")}</p>
                   </div>
                 </Popup>
               </CircleMarker>
@@ -526,13 +526,13 @@ export function LeafletMap({
           >
             <Popup autoClose={false}>
               <div className="min-w-[180px] text-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-danger">
+                <p className="text-sm font-bold uppercase tracking-wider text-danger">
                   {t("targetAlert") ?? "Focused Incident"}
                 </p>
                 <p className="mt-1 font-bold text-text">
                   {validFocusTarget.title || `${validFocusTarget.lat.toFixed(4)}°N, ${validFocusTarget.lng.toFixed(4)}°E`}
                 </p>
-                <p className="mt-1 text-xs tabular text-faint">
+                <p className="mt-1 text-sm tabular text-faint">
                   {validFocusTarget.lat.toFixed(4)}°N, {validFocusTarget.lng.toFixed(4)}°E
                 </p>
               </div>
@@ -542,7 +542,7 @@ export function LeafletMap({
       </MapContainer>
 
       {/* Legend — severity is never colour-only; labels carry the meaning. */}
-      <div className="absolute bottom-3 left-3 z-[1000] space-y-1 rounded-card border border-border bg-surface/90 px-3 py-2 text-xs shadow-card backdrop-blur">
+      <div className="absolute bottom-3 left-3 z-[1000] space-y-1 rounded-card border border-border bg-surface/90 px-3 py-2 text-sm shadow-card backdrop-blur">
         <p className="eyebrow">{t("layers")}</p>
         <div className="flex items-center gap-2">
           <span className="size-2.5 rounded-full" style={{ background: colors.danger }} aria-hidden />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { SeverityGlyph, CloseIcon, PhoneIcon, CheckIcon } from "@/components/icons";
+import { SeverityGlyph, CheckIcon } from "@/components/icons";
 
 const STORAGE_KEY = "satarka_disclaimer_ack_v1";
 
@@ -118,6 +118,13 @@ export function DisclaimerModal() {
 
   if (!isOpen) return null;
 
+  const hotlines = [
+    { n: "100", label: t("police") },
+    { n: "102", label: t("ambulance") },
+    { n: "101", label: t("fire") },
+    { n: "1149", label: t("ndrrma") },
+  ];
+
   return (
     <div
       role="dialog"
@@ -125,150 +132,58 @@ export function DisclaimerModal() {
       aria-labelledby="disclaimer-modal-title"
       aria-describedby="disclaimer-modal-desc"
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 sm:py-8 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-5"
     >
-      {/* Modal Container */}
       <div
         ref={dialogRef}
-        className="relative flex flex-col w-full max-w-2xl max-h-[90vh] max-h-[90dvh] rounded-panel border border-border bg-surface text-text shadow-2xl overflow-hidden focus:outline-none"
+        className="relative flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-border bg-surface text-text shadow-2xl focus:outline-none sm:rounded-3xl"
         tabIndex={-1}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-border bg-surface/90 px-5 py-4 sm:px-6">
+        <div className="flex-1 min-h-0 space-y-5 overflow-y-auto p-6 sm:p-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-warning-soft text-warning border border-warning/30">
-              <SeverityGlyph severity="warning" className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-semibold text-warning">
-                  {t("badge")}
-                </span>
-              </div>
-              <h2
-                id="disclaimer-modal-title"
-                className="text-lg font-bold tracking-tight text-text sm:text-xl"
-              >
-                {t("title")}
-              </h2>
-            </div>
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-warning-soft text-warning">
+              <SeverityGlyph severity="warning" width={26} height={26} />
+            </span>
+            <h2 id="disclaimer-modal-title" className="text-2xl font-bold">
+              {t("title")}
+            </h2>
           </div>
-          <button
-            type="button"
-            onClick={handleAcknowledge}
-            aria-label="Close disclaimer"
-            className="rounded-card p-1.5 text-muted hover:bg-canvas hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors cursor-pointer"
-          >
-            <CloseIcon className="h-5 w-5" />
-          </button>
-        </div>
 
-        {/* Scrollable Content Body */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
-          <p
-            id="disclaimer-modal-desc"
-            className="text-sm sm:text-base leading-relaxed text-muted"
-          >
+          <p id="disclaimer-modal-desc" className="text-lg leading-relaxed">
             {t("lead")}
           </p>
 
-          {/* Key Guidelines */}
-          <div className="space-y-3">
-            {/* Directive 1: Local Authorities First */}
-            <div className="rounded-card border border-warning/30 bg-warning-soft/40 p-3.5 sm:p-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 text-warning shrink-0">
-                  <SeverityGlyph severity="warning" className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-semibold text-text">
-                    {t("primaryDirectiveTitle")}
-                  </h3>
-                  <p className="mt-1 text-xs sm:text-sm leading-relaxed text-muted">
-                    {t("primaryDirectiveBody")}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <ul className="space-y-3">
+            <li className="rounded-card border-2 border-warning/40 bg-warning-soft p-4">
+              <h3 className="text-lg font-bold">{t("primaryDirectiveTitle")}</h3>
+              <p className="mt-1 text-base leading-relaxed">{t("primaryDirectiveBody")}</p>
+            </li>
+            <li className="rounded-card border-2 border-border p-4">
+              <h3 className="text-lg font-bold">{t("sensorGapsTitle")}</h3>
+              <p className="mt-1 text-base leading-relaxed">{t("sensorGapsBody")}</p>
+            </li>
+          </ul>
 
-            {/* Directive 2: Aggregated Data */}
-            <div className="rounded-card border border-border bg-canvas/70 p-3.5 sm:p-4">
-              <h3 className="text-sm sm:text-base font-semibold text-text">
-                {t("aggregationTitle")}
-              </h3>
-              <p className="mt-1 text-xs sm:text-sm leading-relaxed text-muted">
-                {t("aggregationBody")}
-              </p>
-            </div>
-
-            {/* Directive 3: Sensor Gaps & Precaution */}
-            <div className="rounded-card border border-border bg-canvas/70 p-3.5 sm:p-4">
-              <h3 className="text-sm sm:text-base font-semibold text-text">
-                {t("sensorGapsTitle")}
-              </h3>
-              <p className="mt-1 text-xs sm:text-sm leading-relaxed text-muted">
-                {t("sensorGapsBody")}
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Emergency Numbers Bar */}
-          <div className="rounded-card border border-border bg-surface-alt p-3.5 sm:p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted">
-              {t("hotlinesTitle")}
-            </h4>
-            <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-              <a
-                href="tel:100"
-                className="flex items-center justify-center gap-1.5 rounded-card border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text hover:border-brand/50 hover:text-brand transition-colors"
-              >
-                <PhoneIcon className="h-3.5 w-3.5 text-brand" />
-                <span>{t("police")}</span>
-              </a>
-              <a
-                href="tel:101"
-                className="flex items-center justify-center gap-1.5 rounded-card border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text hover:border-brand/50 hover:text-brand transition-colors"
-              >
-                <PhoneIcon className="h-3.5 w-3.5 text-brand" />
-                <span>{t("fire")}</span>
-              </a>
-              <a
-                href="tel:102"
-                className="flex items-center justify-center gap-1.5 rounded-card border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text hover:border-brand/50 hover:text-brand transition-colors"
-              >
-                <PhoneIcon className="h-3.5 w-3.5 text-brand" />
-                <span>{t("ambulance")}</span>
-              </a>
-              <a
-                href="tel:1155"
-                className="flex items-center justify-center gap-1.5 rounded-card border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text hover:border-brand/50 hover:text-brand transition-colors"
-              >
-                <PhoneIcon className="h-3.5 w-3.5 text-brand" />
-                <span>{t("floodHotline")}</span>
-              </a>
-              <a
-                href="tel:1149"
-                className="flex items-center justify-center gap-1.5 rounded-card border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text hover:border-brand/50 hover:text-brand transition-colors"
-              >
-                <PhoneIcon className="h-3.5 w-3.5 text-brand" />
-                <span>{t("ndrrma")}</span>
-              </a>
+          <div>
+            <h3 className="mb-2 text-base font-semibold text-muted">{t("hotlinesTitle")}</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {hotlines.map((h) => (
+                <a
+                  key={h.n}
+                  href={`tel:${h.n}`}
+                  className="flex min-h-12 items-center justify-between gap-2 rounded-chip border-2 border-border px-3.5 py-2 text-base font-medium hover:bg-surface-2"
+                >
+                  <span>{h.label}</span>
+                  <span className="tabular text-lg font-bold text-danger">{h.n}</span>
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Footer Actions (Sticky at bottom) */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-border bg-surface/90 px-5 py-3.5 sm:px-6">
-          <p className="text-xs text-muted text-center sm:text-left">
-            {t("doNotShowAgain")}
-          </p>
-          <button
-            ref={acknowledgeButtonRef}
-            type="button"
-            onClick={handleAcknowledge}
-            className="inline-flex items-center justify-center gap-2 rounded-card bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg shadow-sm hover:brightness-110 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
-          >
-            <CheckIcon className="h-4 w-4" />
+        <div className="border-t border-border bg-surface p-4 sm:p-5" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+          <button ref={acknowledgeButtonRef} type="button" onClick={handleAcknowledge} className="btn btn-primary w-full">
+            <CheckIcon width={20} height={20} />
             <span>{t("acknowledge")}</span>
           </button>
         </div>

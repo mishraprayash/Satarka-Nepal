@@ -16,7 +16,7 @@ const AlertMiniMapInner = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="relative flex h-48 sm:h-56 w-full items-center justify-center rounded-card border border-border bg-surface-2/40 text-xs text-muted">
+      <div className="relative flex h-48 sm:h-56 w-full items-center justify-center rounded-card border border-border bg-surface-2/40 text-sm text-muted">
         <span className="tabular">Loading map…</span>
       </div>
     ),
@@ -36,7 +36,7 @@ export function AlertMiniMap(props: AlertMiniMapProps) {
 
   if (!isValid) {
     return (
-      <div className="relative flex h-48 sm:h-56 w-full items-center justify-center rounded-card border border-border bg-surface-2/40 text-xs text-muted">
+      <div className="relative flex h-48 sm:h-56 w-full items-center justify-center rounded-card border border-border bg-surface-2/40 text-sm text-muted">
         <span>Coordinates unavailable</span>
       </div>
     );

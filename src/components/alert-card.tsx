@@ -88,14 +88,14 @@ export const AlertCard = memo(function AlertCard({
           {/* Top telemetry header: Severity Badge + Hazard Type + Timeframe */}
           <div className="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-2">
             <div className="flex min-w-0 items-center gap-2">
-              <StatusBadge status={alert.source.status} className="shrink-0 text-[11px] py-0.5 px-2" />
+              <StatusBadge status={alert.source.status} className="shrink-0 text-sm py-0.5 px-2" />
               <span className="h-3 w-px bg-border shrink-0" aria-hidden />
-              <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted">
                 <HazardGlyph hazard={alert.hazard} width={14} height={14} className="shrink-0 text-brand" />
                 <span className="truncate">{th(`${alert.hazard}.name`)}</span>
               </span>
             </div>
-            <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-medium text-muted shrink-0 tabular">
+            <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-sm font-medium text-muted shrink-0">
               {tf(alert.timeframe)}
             </span>
           </div>
@@ -108,7 +108,7 @@ export const AlertCard = memo(function AlertCard({
               </span>
               <h3
                 className={cn(
-                  "font-bold text-[15px] sm:text-base leading-snug break-words transition-colors group-hover:text-brand",
+                  "font-bold text-base sm:text-base leading-snug break-words transition-colors group-hover:text-brand",
                   locale === "ne" ? "tracking-normal" : "tracking-tight text-text"
                 )}
               >
@@ -116,7 +116,7 @@ export const AlertCard = memo(function AlertCard({
               </h3>
             </div>
             {place ? (
-              <p className="text-xs sm:text-sm font-medium text-muted break-words pl-5.5 flex items-center gap-1">
+              <p className="text-sm sm:text-sm font-medium text-muted break-words pl-5.5 flex items-center gap-1">
                 <span>📍</span>
                 <span>{place}</span>
               </p>
@@ -127,14 +127,14 @@ export const AlertCard = memo(function AlertCard({
           {(highlight || (typeof alert.meta?.trend === "string" && alert.meta.trend.trim().length > 0)) ? (
             <div className="flex flex-wrap items-center gap-2 pt-1 pl-5.5">
               {highlight ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 px-2.5 py-0.5 text-xs font-semibold tabular text-text">
-                  <span className="text-[10px] uppercase tracking-wider text-muted">{highlight.label}:</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 px-2.5 py-0.5 text-sm font-semibold tabular text-text">
+                  <span className="text-sm uppercase tracking-wider text-muted">{highlight.label}:</span>
                   <span>{highlight.value}</span>
                 </span>
               ) : null}
               {typeof alert.meta?.trend === "string" && alert.meta.trend.trim().length > 0 ? (
                 <span className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tabular",
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-bold uppercase tabular",
                   alert.meta.trend.trim().toUpperCase() === "RISING"
                     ? "bg-danger-soft text-danger border border-danger/20"
                     : alert.meta.trend.trim().toUpperCase() === "FALLING"
@@ -150,11 +150,11 @@ export const AlertCard = memo(function AlertCard({
         </div>
 
         {/* Footer: Source provenance + Relative time + "View details" prompt */}
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 pt-3 text-xs pl-1">
-          <span className="tabular text-muted text-[11px] truncate" suppressHydrationWarning>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 pt-3 text-sm pl-1">
+          <span className="text-muted text-sm" suppressHydrationWarning>
             {tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}
           </span>
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand transition-colors group-hover:text-brand-strong">
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand transition-colors group-hover:text-brand-strong">
             <span>{ta("viewDetails")}</span>
             <ArrowIcon width={12} height={12} className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>

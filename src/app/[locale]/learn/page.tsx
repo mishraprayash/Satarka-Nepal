@@ -38,7 +38,7 @@ export default async function LearnPage({
   return (
     <div className="shell space-y-12 py-10 sm:py-14">
       {/* Breadcrumb navigation */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-base text-muted">
         <Link href="/" className="hover:text-text transition-colors">
           {locale === "ne" ? "गृह" : "Home"}
         </Link>
@@ -75,9 +75,9 @@ export default async function LearnPage({
                       <span className="text-brand" aria-hidden>
                         <HazardGlyph hazard={h} width={20} height={20} />
                       </span>
-                      <h2 className="text-lg font-semibold">{th(`${h}.name`)}</h2>
+                      <h2 className="text-xl font-bold">{th(`${h}.name`)}</h2>
                     </div>
-                    <p className="text-sm leading-relaxed text-muted">{th(`${h}.short`)}</p>
+                    <p className="text-base leading-relaxed text-muted">{th(`${h}.short`)}</p>
                     <span className="mt-auto inline-flex items-center gap-1 pt-2 text-sm font-medium text-brand">
                       {t("readGuide")}
                       <ArrowIcon
@@ -102,7 +102,7 @@ export default async function LearnPage({
               <PhoneIcon width={16} height={16} className="text-warning shrink-0" />
               <span>{t("emergencyHotlinesTitle")}</span>
             </h3>
-            <p className="text-xs text-muted mt-0.5">
+            <p className="text-base text-muted mt-0.5">
               {t("emergencyHotlinesSub")}
             </p>
           </div>
@@ -111,9 +111,9 @@ export default async function LearnPage({
               <a
                 key={item.number}
                 href={`tel:${item.number}`}
-                className="inline-flex items-center gap-1.5 rounded-chip border border-warning/30 bg-surface/90 px-3 py-1.5 text-xs font-semibold text-text hover:border-warning hover:bg-surface hover:text-warning transition-colors shadow-2xs"
+                className="inline-flex min-h-12 items-center gap-2 rounded-chip border-2 border-warning/40 bg-surface px-4 py-2 text-base font-semibold text-text hover:border-warning hover:bg-surface hover:text-warning transition-colors shadow-2xs"
               >
-                <PhoneIcon width={11} height={11} className="text-warning" />
+                <PhoneIcon width={16} height={16} className="text-warning" />
                 <span>{locale === "ne" ? item.labelNe : item.labelEn}</span>
                 <span className="tabular font-bold text-warning">({item.number})</span>
               </a>

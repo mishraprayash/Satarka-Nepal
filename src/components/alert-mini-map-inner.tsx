@@ -86,7 +86,7 @@ export function AlertMiniMapInner({ lat, lng, severity, title, place }: AlertMin
 
   if (!isValid) {
     return (
-      <div className="relative flex h-48 sm:h-56 w-full items-center justify-center rounded-card border border-border bg-surface-2/40 text-xs text-muted">
+      <div className="relative flex h-48 sm:h-56 w-full items-center justify-center rounded-card border border-border bg-surface-2/40 text-sm text-muted">
         <span>Coordinates unavailable</span>
       </div>
     );
@@ -131,7 +131,7 @@ export function AlertMiniMapInner({ lat, lng, severity, title, place }: AlertMin
           }}
         >
           <Popup>
-            <div className="min-w-[150px] text-xs">
+            <div className="min-w-[150px] text-sm">
               <p className="font-semibold text-text">{title}</p>
               {place ? <p className="text-muted mt-0.5">{place}</p> : null}
               <p className="tabular text-faint mt-1">

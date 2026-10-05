@@ -133,12 +133,12 @@ function StepList({ items, locale }: { items: LocalizedItem[]; locale: Locale })
       {items.map((item, i) => (
         <li key={i} className="flex gap-3">
           <span
-            className="tabular mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-semibold text-brand"
+            className="tabular inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-base font-bold text-brand"
             aria-hidden
           >
             {formatNumber(i + 1, locale)}
           </span>
-          <div className="text-sm leading-relaxed text-text">
+          <div className="text-lg leading-relaxed text-text">
             {renderWithEmergencyLinks(localizeText(item, locale), locale)}
           </div>
         </li>
@@ -152,8 +152,8 @@ function PlainList({ items, locale }: { items: LocalizedItem[]; locale: Locale }
     <ul className="space-y-2.5">
       {items.map((item, i) => (
         <li key={i} className="flex gap-2.5">
-          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
-          <div className="text-sm leading-relaxed text-text">
+          <span className="mt-2.5 size-2.5 shrink-0 rounded-full bg-brand" aria-hidden />
+          <div className="text-lg leading-relaxed text-text">
             {renderWithEmergencyLinks(localizeText(item, locale), locale)}
           </div>
         </li>
@@ -164,7 +164,7 @@ function PlainList({ items, locale }: { items: LocalizedItem[]; locale: Locale }
 
 function Credit({ image }: { image: GuideImage }) {
   return (
-    <p className="mt-2 text-xs text-faint">
+    <p className="mt-2 text-base text-muted">
       {image.credit} ·{" "}
       <a
         href={image.link}
@@ -238,7 +238,7 @@ export async function LearnGuide({
                 ? `${th(`${hazard}.name`)} सम्बन्धी प्रत्यक्ष अनुगमन तथा चेतावनीहरू`
                 : `Active Telemetry & Verified Warnings: ${th(`${hazard}.name`)}`}
             </h2>
-            <p className="text-xs text-muted">
+            <p className="text-base text-muted">
               {locale === "ne"
                 ? "यस प्रकोपका लागि हाल सक्रिय चेतावनीहरू र प्रत्यक्ष नक्सा हेर्नुहोस्।"
                 : "Inspect active alerts, telemetry gauges, and geographical risk overlays."}
@@ -249,14 +249,14 @@ export async function LearnGuide({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/alerts"
-            className="inline-flex items-center gap-1.5 rounded-chip border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text hover:border-brand hover:text-brand transition-colors"
+            className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border bg-surface px-4 py-2 text-base font-semibold text-text hover:border-brand hover:text-brand transition-colors"
           >
             <SignalIcon width={13} height={13} className="text-brand" />
             <span>{t("viewLiveAlerts", { hazard: th(`${hazard}.name`) })}</span>
           </Link>
           <Link
             href="/map"
-            className="inline-flex items-center gap-1.5 rounded-chip border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text hover:border-brand hover:text-brand transition-colors"
+            className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border bg-surface px-4 py-2 text-base font-semibold text-text hover:border-brand hover:text-brand transition-colors"
           >
             <MapPinIcon width={13} height={13} className="text-brand" />
             <span>{t("viewHazardMap")}</span>
@@ -272,11 +272,11 @@ export async function LearnGuide({
               <PhoneIcon width={18} height={18} className="text-warning shrink-0" />
               <span>{t("emergencyHotlinesTitle")}</span>
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-muted">
+            <p className="mt-1 text-sm sm:text-base text-muted">
               {t("emergencyHotlinesSub")}
             </p>
           </div>
-          <span className="rounded-chip border border-warning/40 bg-warning/15 px-2.5 py-0.5 text-[11px] font-bold text-warning uppercase tracking-wider">
+          <span className="rounded-chip border border-warning/40 bg-warning/15 px-2.5 py-0.5 text-sm font-bold text-warning">
             24/7 Verified
           </span>
         </div>
@@ -286,32 +286,32 @@ export async function LearnGuide({
             <a
               key={c.number}
               href={`tel:${c.number}`}
-              className="group flex flex-col justify-between rounded-xl border border-warning/30 bg-surface/90 p-3 transition-all hover:border-warning hover:bg-surface hover:shadow-xs active:scale-[0.98]"
+              className="group flex flex-col justify-between rounded-card border-2 border-warning/40 bg-surface p-3.5 transition-all hover:border-warning hover:bg-surface hover:shadow-xs active:scale-[0.98]"
             >
               <div>
                 <div className="flex items-center justify-between gap-1.5">
-                  <span className="inline-flex size-6 items-center justify-center rounded-full bg-warning/15 text-warning group-hover:bg-warning group-hover:text-white transition-colors">
-                    <PhoneIcon width={12} height={12} />
+                  <span className="inline-flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning group-hover:bg-warning group-hover:text-white transition-colors">
+                    <PhoneIcon width={16} height={16} />
                   </span>
                   {c.tollFree ? (
-                    <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                    <span className="rounded bg-brand/10 px-1.5 py-0.5 text-sm font-bold text-brand">
                       {t("tollFree")}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-2 text-xs font-bold text-text group-hover:text-warning transition-colors">
+                <p className="mt-2 text-base font-bold leading-snug text-text group-hover:text-warning transition-colors">
                   {locale === "ne" ? c.nameNe : c.nameEn}
                 </p>
-                <p className="text-[11px] text-muted line-clamp-1">
+                <p className="text-base leading-snug text-muted">
                   {locale === "ne" ? c.roleNe : c.roleEn}
                 </p>
               </div>
 
-              <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2">
-                <span className="text-xs font-bold tabular text-warning">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border/60 pt-2">
+                <span className="text-xl font-bold tabular text-warning">
                   {c.number}
                 </span>
-                <span className="text-[11px] font-semibold text-muted group-hover:text-warning group-hover:underline">
+                <span className="text-base font-semibold text-muted group-hover:text-warning group-hover:underline">
                   {locale === "ne" ? "कल गर्नुहोस्" : "Call"}
                 </span>
               </div>
@@ -342,7 +342,7 @@ export async function LearnGuide({
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text">
             {t("emergencyChecklist")}
           </h2>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-base text-muted">
             {t("emergencyChecklistSub")}
           </p>
         </div>
@@ -359,7 +359,7 @@ export async function LearnGuide({
             >
               <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-3">
                 <h3 className="text-base font-bold">{phase.title}</h3>
-                <span className="text-xs font-semibold text-muted">
+                <span className="text-sm font-semibold text-muted">
                   {phase.items.length} {locale === "ne" ? "चरणहरू" : "actions"}
                 </span>
               </div>
@@ -379,7 +379,7 @@ export async function LearnGuide({
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
                 {locale === "ne" ? "नेपालका प्रमुख ऐतिहासिक विपद्हरू" : "Documented Historical Disasters in Nepal"}
               </h2>
-              <p className="mt-1 text-sm text-muted">
+              <p className="mt-1 text-base text-muted">
                 {locale === "ne"
                   ? "यस प्रकोपबाट नेपालमा विगतमा भएका विनाशकारी विपद्हरू, तिनका वैज्ञानिक कारण र सिकिएका पाठहरू।"
                   : "Major recorded occurrences of this hazard in Nepal, the scientific causes, and hard lessons learned."}
@@ -390,10 +390,10 @@ export async function LearnGuide({
               {hazardDisasters.map((item) => (
                 <div key={item.id} className="card p-5 sm:p-6 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="tabular rounded bg-brand/10 border border-brand/30 px-2 py-0.5 text-xs font-bold text-brand">
+                    <span className="tabular rounded bg-brand/10 border border-brand/30 px-2 py-0.5 text-sm font-bold text-brand">
                       {item.year} ({item.bsYear})
                     </span>
-                    <span className="rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-text">
+                    <span className="rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-sm font-semibold text-text">
                       {locale === "ne" ? item.metricHighlight.ne : item.metricHighlight.en}
                     </span>
                   </div>
@@ -402,24 +402,24 @@ export async function LearnGuide({
                     {locale === "ne" ? item.title.ne : item.title.en}
                   </h3>
 
-                  <p className="text-xs text-muted">
+                  <p className="text-base text-muted">
                     📍 {locale === "ne" ? item.location.ne : item.location.en}
                   </p>
 
-                  <div className="rounded border border-danger/25 bg-danger-soft/20 px-2.5 py-1.5 text-xs">
+                  <div className="rounded border border-danger/25 bg-danger-soft/20 px-2.5 py-1.5 text-sm">
                     <span className="font-bold text-danger mr-1">
                       {t("fatalitiesLabel")}:
                     </span>
                     <span className="font-semibold text-text tabular">{item.fatalities}</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-muted leading-relaxed">
+                  <p className="text-sm sm:text-base text-muted leading-relaxed">
                     {locale === "ne" ? item.impact.ne : item.impact.en}
                   </p>
 
-                  <div className="space-y-2 border-t border-border pt-3 text-xs">
+                  <div className="space-y-2 border-t border-border pt-3 text-sm">
                     <div className="space-y-0.5">
-                      <span className="font-bold text-brand uppercase tracking-wider text-[10px]">
+                      <span className="font-bold text-brand text-sm">
                         {t("scientificCauseLabel")}
                       </span>
                       <p className="text-muted leading-relaxed bg-surface-2/60 p-2 rounded">
@@ -427,7 +427,7 @@ export async function LearnGuide({
                       </p>
                     </div>
                     <div className="space-y-0.5">
-                      <span className="font-bold text-warning uppercase tracking-wider text-[10px]">
+                      <span className="font-bold text-warning text-sm">
                         {t("lessonsLabel")}
                       </span>
                       <p className="text-muted leading-relaxed bg-warning-soft/20 p-2 rounded border border-warning/20">
@@ -463,7 +463,7 @@ export async function LearnGuide({
                   />
                 </div>
                 <figcaption className="p-4">
-                  <p className="text-sm leading-relaxed text-muted">
+                  <p className="text-base leading-relaxed text-muted">
                     {localizeText(img.caption, locale)}
                   </p>
                   <Credit image={img} />
@@ -484,7 +484,7 @@ export async function LearnGuide({
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-chip border border-border-strong px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
+                className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border-strong px-4 py-2 text-base font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
               >
                 {s.name}
                 <ExternalIcon width={13} height={13} />

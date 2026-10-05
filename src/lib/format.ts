@@ -5,6 +5,31 @@ function intlLocale(locale: Locale): string {
   return locale === "ne" ? "ne-NP" : "en";
 }
 
+const DEVANAGARI_DIGITS = "०१२३४५६७८९";
+
+function toDevanagari(n: number): string {
+  return String(n).replace(/\d/g, (d) => DEVANAGARI_DIGITS[Number(d)]);
+}
+
+/**
+ * Hand-rolled Nepali relative time. Browsers differ in whether they ship Nepali
+ * Intl.RelativeTimeFormat data (some silently fall back to English), and this
+ * string is safety-relevant ("how fresh is this alert?"), so we don't rely on it.
+ */
+function nepaliRelative(diffSec: number): string {
+  const abs = Math.abs(diffSec);
+  const [n, unit] =
+    abs < 60
+      ? [abs, "सेकेन्ड"]
+      : abs < 3600
+        ? [Math.round(abs / 60), "मिनेट"]
+        : abs < 86400
+          ? [Math.round(abs / 3600), "घण्टा"]
+          : [Math.round(abs / 86400), "दिन"];
+  if (abs < 10) return "अहिले";
+  return `${toDevanagari(n)} ${unit} ${diffSec < 0 ? "पहिले" : "पछि"}`;
+}
+
 /**
  * "5 min ago" / "५ मिनेट पहिले". Falls back gracefully if the timestamp is
  * missing or unparseable rather than throwing in a render path.
@@ -15,6 +40,7 @@ export function timeAgo(iso: string | null | undefined, locale: Locale, now = Da
   if (Number.isNaN(then)) return locale === "ne" ? "थाहा छैन" : "unknown";
 
   const diffSec = Math.round((then - now) / 1000);
+  if (locale === "ne") return nepaliRelative(diffSec);
   const rtf = new Intl.RelativeTimeFormat(intlLocale(locale), { numeric: "auto" });
   const abs = Math.abs(diffSec);
 

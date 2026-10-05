@@ -64,7 +64,7 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
         status.containerClass,
       )}
     >
-      <div className="shell flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs sm:text-sm">
+      <div className="shell flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-sm sm:text-sm">
         <div className="flex items-start sm:items-center gap-2.5 min-w-0">
           <span className="shrink-0 mt-0.5 sm:mt-0" aria-hidden="true">
             <SeverityGlyph
@@ -81,7 +81,7 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
           </span>
           <span
             className={cn(
-              "rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider shrink-0 mt-0.5 sm:mt-0",
+              "rounded-full px-2.5 py-0.5 text-sm uppercase tracking-wider shrink-0 mt-0.5 sm:mt-0",
               status.badgeClass,
             )}
           >
@@ -91,7 +91,7 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
             <p className="font-semibold text-text">
               {status.title}
             </p>
-            <p className="hidden md:inline text-xs text-muted">
+            <p className="hidden md:inline text-sm text-muted">
               {status.sub}
             </p>
           </div>
@@ -99,7 +99,7 @@ export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse 
 
         <Link
           href="/alerts"
-          className="inline-flex items-center gap-1 font-semibold text-brand hover:underline shrink-0 text-xs sm:text-sm self-end sm:self-auto cursor-pointer transition-colors"
+          className="inline-flex items-center gap-1 font-semibold text-brand hover:underline shrink-0 text-sm sm:text-sm self-end sm:self-auto cursor-pointer transition-colors"
         >
           <span>{ta("title")}</span>
           <ArrowIcon width={12} height={12} />

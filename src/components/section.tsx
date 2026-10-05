@@ -19,7 +19,7 @@ export function SectionHeader({
       <div className="max-w-2xl">
         {eyebrow ? <p className="eyebrow mb-2">{eyebrow}</p> : null}
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
-        {sub ? <p className="mt-2 text-muted">{sub}</p> : null}
+        {sub ? <p className="mt-2 text-lg text-muted">{sub}</p> : null}
       </div>
       {action}
     </div>

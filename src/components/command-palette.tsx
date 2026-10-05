@@ -556,7 +556,7 @@ export function CommandPalette({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 md:pt-20 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[70] flex items-start justify-center bg-black/60 backdrop-blur-sm sm:p-6 md:pt-20"
       onMouseDown={(e) => {
         isBackdropMouseDown.current = e.target === e.currentTarget;
       }}
@@ -572,11 +572,11 @@ export function CommandPalette({
         role="dialog"
         aria-modal="true"
         aria-label={locale === "ne" ? "सतर्क द्रुत खोजी तथा कमान्ड" : "Satarka Quick Command and Search"}
-        className="flex flex-col w-full max-w-xl max-h-[85vh] rounded-2xl border border-border bg-surface text-text shadow-2xl overflow-hidden focus:outline-none"
+        className="flex h-dvh w-full max-w-xl flex-col border border-border sm:h-auto sm:max-h-[85vh] sm:rounded-3xl bg-surface text-text shadow-2xl overflow-hidden focus:outline-none"
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3.5 sm:px-5">
-          <SearchIcon width={18} height={18} className="text-brand shrink-0" />
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3 sm:px-5">
+          <SearchIcon width={22} height={22} className="text-brand shrink-0" />
           <input
             ref={inputRef}
             type="search"
@@ -588,10 +588,10 @@ export function CommandPalette({
             onKeyDown={handleKeyDown}
             placeholder={
               locale === "ne"
-                ? "जिल्ला, आपतकालीन नम्बर, गाइड वा नक्सा खोज्नुहोस्…"
-                : "Search districts, emergency numbers, guides, or map…"
+                ? "जिल्ला, जानकारी वा नम्बर खोज्नुहोस्…"
+                : "Search a district, guide or number…"
             }
-            className="w-full bg-transparent text-sm sm:text-base text-text placeholder:text-muted focus:outline-none"
+            className="h-12 w-full bg-transparent text-lg text-text placeholder:text-muted focus:outline-none"
           />
           {query ? (
             <button
@@ -601,13 +601,13 @@ export function CommandPalette({
                 setSelectedIndex(0);
                 inputRef.current?.focus();
               }}
-              className="rounded-chip p-1 text-muted hover:text-text cursor-pointer"
+              className="grid size-12 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text cursor-pointer"
               aria-label={locale === "ne" ? "खोजी खाली गर्नुहोस्" : "Clear query"}
             >
-              <CloseIcon width={16} height={16} />
+              <CloseIcon width={22} height={22} />
             </button>
           ) : (
-            <kbd className="hidden sm:inline-block rounded border border-border bg-surface-2 px-1.5 py-0.5 text-[10px] font-mono text-faint">
+            <kbd className="hidden sm:inline-block rounded border border-border bg-surface-2 px-1.5 py-0.5 text-sm font-mono text-muted">
               ESC
             </kbd>
           )}
@@ -630,14 +630,14 @@ export function CommandPalette({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   onClick={() => handleSelect(item)}
                   className={cn(
-                    "flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-left cursor-pointer transition-colors",
+                    "flex min-h-16 items-center justify-between gap-3 rounded-chip px-3.5 py-3 text-left cursor-pointer transition-colors",
                     isSelected ? "bg-brand text-brand-fg" : "hover:bg-surface-2",
                   )}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span
                       className={cn(
-                        "flex size-8 shrink-0 items-center justify-center rounded-lg border",
+                        "flex size-11 shrink-0 items-center justify-center rounded-chip border",
                         item.category === "emergency"
                           ? "border-warning/40 bg-warning/10 text-warning"
                           : item.category === "action"
@@ -648,30 +648,30 @@ export function CommandPalette({
                       )}
                     >
                       {item.category === "emergency" ? (
-                        <PhoneIcon width={15} height={15} />
+                        <PhoneIcon width={22} height={22} />
                       ) : item.category === "action" ? (
                         item.id === "action-theme" ? (
-                          <MoonIcon width={15} height={15} />
+                          <MoonIcon width={22} height={22} />
                         ) : item.id === "action-language" ? (
-                          <GlobeIcon width={15} height={15} />
+                          <GlobeIcon width={22} height={22} />
                         ) : (
-                          <SeverityGlyph severity="warning" width={15} height={15} />
+                          <SeverityGlyph severity="warning" width={22} height={22} />
                         )
                       ) : item.category === "district" ? (
-                        <MapPinIcon width={15} height={15} />
+                        <MapPinIcon width={22} height={22} />
                       ) : item.category === "highway" ? (
-                        <HazardGlyph hazard="landslide" width={15} height={15} />
+                        <HazardGlyph hazard="landslide" width={22} height={22} />
                       ) : item.hazard ? (
-                        <HazardGlyph hazard={item.hazard} width={15} height={15} />
+                        <HazardGlyph hazard={item.hazard} width={22} height={22} />
                       ) : (
-                        <ArrowIcon width={14} height={14} />
+                        <ArrowIcon width={20} height={20} />
                       )}
                     </span>
 
                     <div className="min-w-0">
                       <p
                         className={cn(
-                          "text-sm font-semibold truncate",
+                          "text-lg font-semibold leading-snug",
                           isSelected ? "text-brand-fg" : "text-text",
                         )}
                       >
@@ -680,7 +680,7 @@ export function CommandPalette({
                       {item.subtitle ? (
                         <p
                           className={cn(
-                            "text-xs truncate",
+                            "text-base",
                             isSelected ? "text-brand-fg/80" : "text-muted",
                           )}
                         >
@@ -694,12 +694,12 @@ export function CommandPalette({
                   {item.badge ? (
                     <span
                       className={cn(
-                        "shrink-0 rounded-chip border px-2 py-0.5 text-[11px] font-mono font-semibold tabular",
+                        "shrink-0 rounded-chip border px-2.5 py-1 text-base font-semibold tabular",
                         item.category === "emergency"
                           ? "border-warning/40 bg-warning/15 text-warning"
                           : isSelected
                             ? "border-brand-fg/30 bg-brand-fg/10 text-brand-fg"
-                            : "border-border bg-surface-2 text-faint",
+                            : "border-border bg-surface-2 text-muted",
                       )}
                     >
                       {item.badge}
@@ -709,7 +709,7 @@ export function CommandPalette({
               );
             })
           ) : (
-            <li className="p-8 text-center text-sm text-muted">
+            <li className="p-8 text-center text-lg text-muted">
               {locale === "ne"
                 ? `"${query}" को लागि कुनै नतिजा भेटिएन। जिल्ला वा विपद्को नाम खोज्नुहोस्।`
                 : `No results found for "${query}". Try searching districts, emergency numbers, or guides.`}
@@ -718,7 +718,7 @@ export function CommandPalette({
         </ul>
 
         {/* Footer shortcuts */}
-        <div className="flex items-center justify-between border-t border-border bg-surface-2/50 px-4 py-2 text-[11px] text-faint">
+        <div className="flex items-center justify-between border-t border-border bg-surface-2/50 px-4 py-2 text-sm text-muted">
           <div className="hidden sm:flex items-center gap-3">
             <span>
               <kbd className="rounded bg-surface px-1 py-0.5 border border-border">↑</kbd>{" "}

@@ -9,6 +9,7 @@ import { useHighways } from "@/lib/use-highways";
 import { usePagination, PaginationControl } from "@/components/pagination";
 import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/format";
+import { localizeClosureReason, localizeRepairEta } from "@/lib/highway-text";
 import {
   HazardGlyph,
   SearchIcon,
@@ -85,146 +86,92 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
         </p>
       ) : null}
 
-      {/* Live Stat KPI Banners */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="card flex flex-col justify-between p-4 sm:p-5">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-            {locale === "ne" ? "कुल खण्डहरू" : "Monitored Sections"}
-          </span>
-          <span className="text-2xl sm:text-3xl font-bold tabular text-text mt-2">{highways.length}</span>
-          <span className="text-[11px] text-faint mt-1">
-            {locale === "ne" ? "सडक विभाग राष्ट्रिय नेटवर्क" : "DOR National Network"}
-          </span>
+      {/* Plain-language answer first */}
+      <div
+        role="status"
+        className={cn(
+          "flex items-start gap-4 rounded-card border-2 p-5 sm:p-6",
+          blocked.length > 0 ? "border-danger bg-danger-soft" : "border-advisory bg-advisory-soft",
+        )}
+      >
+        <span aria-hidden className="text-3xl leading-none">{blocked.length > 0 ? "🚧" : "✅"}</span>
+        <div>
+          <p className="text-xl font-bold">
+            {blocked.length > 0
+              ? locale === "ne"
+                ? `${blocked.length} सडक अहिले अवरुद्ध छन्`
+                : `${blocked.length} ${blocked.length === 1 ? "road is" : "roads are"} blocked right now`
+              : locale === "ne"
+                ? "कुनै सडक अवरुद्ध भएको रिपोर्ट छैन"
+                : "No blocked roads reported"}
+          </p>
+          <p className="mt-1 text-lg text-text">
+            {locale === "ne"
+              ? `${partial.length} एकतर्फी, ${open.length} सुचारु। यात्रा गर्नुअघि सडक विभागसँग पुष्टि गर्नुहोस्।`
+              : `${partial.length} one-way, ${open.length} fully open. Confirm with the Department of Roads before you travel.`}
+          </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setStatusFilter((prev) => (prev === "BLOCKED" ? "all" : "BLOCKED"))}
-          className={cn(
-            "card flex flex-col justify-between p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer active:scale-98 hover:-translate-y-0.5",
-            statusFilter === "BLOCKED"
-              ? "ring-2 ring-danger bg-danger-soft/30 shadow-xs"
-              : "hover:border-border-strong",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-danger">
-              {locale === "ne" ? "पूर्ण अवरुद्ध" : "Blocked / Closed"}
-            </span>
-            <span className="size-2 rounded-full bg-danger animate-pulse" aria-hidden />
-          </div>
-          <span className="text-2xl sm:text-3xl font-bold tabular text-danger mt-2">{blocked.length}</span>
-          <span className="text-[11px] text-muted mt-1">
-            {locale === "ne" ? "पहिरो / लेदो अवरोध" : "Landslide / Washout"}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setStatusFilter((prev) => (prev === "PARTIAL_OPEN" ? "all" : "PARTIAL_OPEN"))}
-          className={cn(
-            "card flex flex-col justify-between p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer active:scale-98 hover:-translate-y-0.5",
-            statusFilter === "PARTIAL_OPEN"
-              ? "ring-2 ring-warning bg-warning-soft/30 shadow-xs"
-              : "hover:border-border-strong",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-warning">
-              {locale === "ne" ? "एकतर्फी सुचारु" : "Partial / One-Way"}
-            </span>
-            <span className="size-2 rounded-full bg-warning" aria-hidden />
-          </div>
-          <span className="text-2xl sm:text-3xl font-bold tabular text-warning mt-2">{partial.length}</span>
-          <span className="text-[11px] text-muted mt-1">
-            {locale === "ne" ? "सतर्कताका साथ सञ्चालन" : "Pass with caution"}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setStatusFilter((prev) => (prev === "OPEN" ? "all" : "OPEN"))}
-          className={cn(
-            "card flex flex-col justify-between p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer active:scale-98 hover:-translate-y-0.5",
-            statusFilter === "OPEN"
-              ? "ring-2 ring-brand bg-brand-soft/30 shadow-xs"
-              : "hover:border-border-strong",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-brand">
-              {locale === "ne" ? "सुचारु / खुल्ला" : "Fully Open"}
-            </span>
-            <span className="size-2 rounded-full bg-advisory" aria-hidden />
-          </div>
-          <span className="text-2xl sm:text-3xl font-bold tabular text-brand mt-2">{open.length}</span>
-          <span className="text-[11px] text-muted mt-1">
-            {locale === "ne" ? "द्वितर्फी आवागमन" : "Two-way traffic"}
-          </span>
-        </button>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={
-              locale === "ne"
-                ? "राजमार्ग कोड वा स्थान खोज्नुहोस् (जस्तै NH44, मुग्लिङ, चितवन)…"
-                : "Search road (e.g., NH44, Mugling, Prithvi Highway)…"
-            }
-            className="w-full rounded-full border border-border/80 bg-surface py-2 pl-9 pr-8 text-sm placeholder:text-muted focus:border-brand focus:outline-none shadow-2xs"
-          />
-          <span className="pointer-events-none absolute left-3 top-2.5 text-muted">
-            <SearchIcon width={15} height={15} />
-          </span>
-          {search ? (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              className="absolute right-2.5 top-2.5 text-muted hover:text-text cursor-pointer"
-            >
-              <CloseIcon width={14} height={14} />
-            </button>
-          ) : null}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {(["all", "BLOCKED", "PARTIAL_OPEN", "OPEN"] as const).map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => setStatusFilter(st)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium transition-all cursor-pointer active:scale-95",
-                statusFilter === st
-                  ? "bg-text text-bg font-semibold shadow-2xs"
-                  : "border border-border/80 text-muted hover:bg-surface-2 hover:text-text",
-              )}
-            >
-              {st === "all"
-                ? locale === "ne" ? "सबै" : "All"
-                : st === "BLOCKED"
-                  ? locale === "ne" ? "अवरुद्ध" : "Blocked"
-                  : st === "PARTIAL_OPEN"
-                    ? locale === "ne" ? "एकतर्फी" : "Partial"
-                    : locale === "ne" ? "खुल्ला" : "Open"}
-            </button>
-          ))}
-
+      {/* Search */}
+      <div className="relative max-w-xl">
+        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-muted">
+          <SearchIcon width={20} height={20} />
+        </span>
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label={locale === "ne" ? "सडक खोज्नुहोस्" : "Search roads"}
+          placeholder={locale === "ne" ? "सडक वा ठाउँ खोज्नुहोस्…" : "Search road or place…"}
+          className="h-14 w-full rounded-chip border-2 border-border-strong bg-surface pl-12 pr-12 text-lg placeholder:text-muted focus:border-brand focus:outline-none"
+        />
+        {search ? (
           <button
             type="button"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="rounded-full border border-border/80 p-2 text-muted hover:bg-surface-2 hover:text-text transition-colors cursor-pointer"
-            title={ta("refresh")}
+            onClick={() => setSearch("")}
+            aria-label={locale === "ne" ? "खोजी हटाउनुहोस्" : "Clear search"}
+            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted hover:text-text cursor-pointer"
           >
-            <span className={cn("block", isFetching && "animate-spin")}>↻</span>
+            <CloseIcon width={20} height={20} />
           </button>
-        </div>
+        ) : null}
+      </div>
+
+      {/* Status filters with counts */}
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label={locale === "ne" ? "सडकको अवस्था" : "Road status"}>
+        {(
+          [
+            { st: "all", n: highways.length, en: "All", ne: "सबै" },
+            { st: "BLOCKED", n: blocked.length, en: "Blocked", ne: "अवरुद्ध" },
+            { st: "PARTIAL_OPEN", n: partial.length, en: "One-way", ne: "एकतर्फी" },
+            { st: "OPEN", n: open.length, en: "Open", ne: "खुल्ला" },
+          ] as const
+        ).map((f) => (
+          <button
+            key={f.st}
+            type="button"
+            aria-pressed={statusFilter === f.st}
+            onClick={() => setStatusFilter(f.st)}
+            className={cn(
+              "min-h-11 rounded-chip border-2 px-4 py-2 text-base font-medium transition-all cursor-pointer active:scale-95",
+              statusFilter === f.st
+                ? "border-brand bg-brand text-brand-fg font-semibold"
+                : "border-border text-text hover:bg-surface-2",
+            )}
+          >
+            {locale === "ne" ? f.ne : f.en} <span className="tabular opacity-80">({f.n})</span>
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="btn btn-secondary !min-h-11"
+        >
+          <span aria-hidden className={cn(isFetching && "animate-spin")}>↻</span>
+          {ta("refresh")}
+        </button>
       </div>
 
       {/* Highway Cards Grid */}
@@ -233,7 +180,7 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
           <p className="font-semibold text-text">
             {locale === "ne" ? "कुनै सडक भेटिएन" : "No matching road sections found"}
           </p>
-          <p className="mt-1 text-xs text-muted max-w-sm">
+          <p className="mt-1 text-sm text-muted max-w-sm">
             {locale === "ne"
               ? "खोज शब्द परिवर्तन गर्नुहोस् वा फिल्टर हटाउनुहोस्।"
               : "Try adjusting your search keywords or resetting status filters."}
@@ -245,7 +192,7 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
                 setSearch("");
                 setStatusFilter("all");
               }}
-              className="mt-4 rounded-chip border border-border-strong px-4 py-1.5 text-xs font-medium hover:bg-surface-2 cursor-pointer"
+              className="btn btn-secondary mt-4"
             >
               {locale === "ne" ? "फिल्टर हटाउनुहोस्" : "Reset filters"}
             </button>
@@ -295,55 +242,55 @@ function HighwayCard({ item, locale }: { item: HighwayBlockage; locale: Locale }
       <div>
         {/* Top Header: Code & Status */}
         <div className="flex items-start justify-between gap-2">
-          <span className="rounded bg-surface-2 px-2 py-0.5 text-xs font-bold tracking-wider text-text border border-border">
+          <span className="rounded bg-surface-2 px-2 py-0.5 text-sm font-bold tracking-wider text-text border border-border">
             {item.roadRefno}
           </span>
-          <span className={cn("rounded-full border px-2.5 py-0.5 text-[11px]", statusBadgeClass)}>
+          <span className={cn("rounded-full border px-2.5 py-0.5 text-sm", statusBadgeClass)}>
             {statusText}
           </span>
         </div>
 
         {/* Highway Title & Section */}
-        <h3 className="mt-3 text-base font-semibold text-text leading-snug line-clamp-2">
+        <h3 className="mt-3 text-lg font-bold text-text leading-snug">
           {item.title}
         </h3>
 
         {/* Exact Location */}
         {item.location && (
-          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
+          <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted">
             <span className="shrink-0 text-brand">
-              <MapPinIcon width={13} height={13} />
+              <MapPinIcon width={16} height={16} />
             </span>
-            <span className="truncate">{item.location}</span>
+            <span>{item.location}</span>
             {item.chainage && (
-              <span className="text-[11px] text-faint">({item.chainage})</span>
+              <span className="text-sm text-muted">({item.chainage})</span>
             )}
           </p>
         )}
 
         {/* Disruptive Details Block */}
-        <div className="mt-3 rounded-lg border border-border/80 bg-surface-2/60 p-3 text-xs space-y-1.5">
+        <div className="mt-3 rounded-lg border border-border/80 bg-surface-2/60 p-3 text-sm space-y-1.5">
           <div className="flex justify-between gap-2">
             <span className="text-muted">{locale === "ne" ? "कारण" : "Cause"}:</span>
-            <span className="font-semibold text-text">{item.closureReason}</span>
+            <span className="font-semibold text-text">{localizeClosureReason(item.closureReason, locale)}</span>
           </div>
 
           {item.repairEta && (
             <div className="flex justify-between gap-2">
               <span className="text-muted">{locale === "ne" ? "खुल्ने अनुमान" : "Repair ETA"}:</span>
-              <span className="font-medium text-warning">{item.repairEta}</span>
+              <span className="font-medium text-warning">{localizeRepairEta(item.repairEta, locale)}</span>
             </div>
           )}
 
           {item.effortsBeingMade && (
-            <p className="pt-1 text-[11.5px] leading-relaxed text-muted border-t border-border/60">
+            <p className="pt-1 text-sm leading-relaxed text-muted border-t border-border/60">
               <strong className="text-text">{locale === "ne" ? "प्रयास" : "Effort"}:</strong>{" "}
               {item.effortsBeingMade}
             </p>
           )}
 
           {item.remarks && (
-            <p className="text-[11.5px] leading-relaxed text-faint italic">
+            <p className="text-sm leading-relaxed text-muted italic">
               &ldquo;{item.remarks}&rdquo;
             </p>
           )}
@@ -351,15 +298,15 @@ function HighwayCard({ item, locale }: { item: HighwayBlockage; locale: Locale }
 
         {/* Contact info if available */}
         {item.contactPerson && (
-          <div className="mt-3 flex items-center gap-1.5 text-[11.5px] text-muted">
+          <div className="mt-3 flex items-center gap-1.5 text-sm text-muted">
             <PhoneIcon width={12} height={12} className="shrink-0 text-brand" />
-            <span className="truncate">{item.contactPerson}</span>
+            <span>{item.contactPerson}</span>
           </div>
         )}
 
         {/* Demographic headcounts if available */}
         {item.affectedDemography?.householdCount ? (
-          <p className="mt-2 text-[11px] text-faint">
+          <p className="mt-2 text-sm text-muted">
             {locale === "ne" ? "प्रभावित जनसंख्या" : "Affected area"}: ~
             {item.affectedDemography.householdCount.toLocaleString()} {locale === "ne" ? "घरधुरी" : "households"}
           </p>
@@ -367,18 +314,18 @@ function HighwayCard({ item, locale }: { item: HighwayBlockage; locale: Locale }
       </div>
 
       {/* Footer action buttons */}
-      <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
-        <span className="text-faint text-[11px]" suppressHydrationWarning>
+      <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-sm">
+        <span className="text-muted text-sm" suppressHydrationWarning>
           {item.startedAt ? timeAgo(item.startedAt, locale) : ""}
         </span>
 
         {item.lat != null && item.lng != null ? (
           <Link
             href={`/map?lat=${item.lat}&lng=${item.lng}&zoom=14&title=${encodeURIComponent(item.roadRefno + ": " + (item.location || item.title))}`}
-            className="inline-flex items-center gap-1 font-semibold text-brand hover:text-brand-strong transition-colors"
+            className="inline-flex min-h-11 items-center gap-1.5 text-base font-semibold text-brand hover:text-brand-strong transition-colors"
           >
             <span>{locale === "ne" ? "नक्सामा हेर्नुहोस्" : "View on Map"}</span>
-            <ArrowIcon width={13} height={13} />
+            <ArrowIcon width={16} height={16} />
           </Link>
         ) : null}
       </div>

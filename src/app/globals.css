@@ -39,8 +39,8 @@
   --font-mono: var(--font-mono-stack);
   --font-deva: var(--font-deva-stack);
 
-  --radius-card: 1rem;
-  --radius-chip: 0.625rem;
+  --radius-card: 1.25rem;
+  --radius-chip: 0.875rem;
 }
 
 :root {
@@ -59,8 +59,8 @@
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
   --text: #0f172a;
-  --muted: #475569;
-  --faint: #94a3b8;
+  --muted: #3f4b5e;
+  --faint: #64748b;
 
   --brand: #0284c7;
   --brand-strong: #0369a1;
@@ -92,8 +92,8 @@
   --border: #1e2330;
   --border-strong: #2b3244;
   --text: #f8fafc;
-  --muted: #94a3b8;
-  --faint: #64748b;
+  --muted: #b3bfd0;
+  --faint: #8494ab;
 
   --brand: #38bdf8;
   --brand-strong: #7dd3fc;
@@ -124,7 +124,16 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* Comfortable default (17px) for readers of every age; user can scale it up. */
+    font-size: 106.25%;
   }
+  html[data-textsize="large"] { font-size: 120%; }
+  html[data-textsize="xlarge"] { font-size: 137.5%; }
+  /* Every tappable control gets a finger-sized target */
+  button, [role="button"], select, summary {
+    min-height: 2.75rem;
+  }
+  body { line-height: 1.6; }
   body {
     background-color: var(--bg);
     color: var(--text);
@@ -174,13 +183,35 @@
     letter-spacing: -0.02em;
   }
   .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--muted);
   }
+  /* Buttons: big, clear, one obvious primary per screen */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-chip);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--brand); color: var(--brand-fg); }
+  .btn-primary:hover { background: var(--brand-strong); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1.5px solid var(--border-strong);
+  }
+  .btn-secondary:hover { background: var(--surface-2); }
+  .btn-emergency { background: var(--sev-danger-solid); color: #fff; }
+  .btn-emergency:hover { filter: brightness(0.92); }
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -211,7 +242,7 @@
 
 /* Safe area support for modern edge-to-edge mobile devices */
 .pb-mobile-nav {
-  padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* Custom compact scrollbar for drawers and lists */
