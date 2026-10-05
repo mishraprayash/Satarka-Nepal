@@ -24,6 +24,8 @@ export default function LocaleError({
   let errorMessage = "Something went wrong";
   let retryText = "Try again";
   let homeText = "Return to Home";
+  let bodyText = "We could not load this page. Please try again.";
+  let emergencyText = "In an emergency, call:";
 
   try {
     const tc = useTranslations("common");
@@ -32,6 +34,8 @@ export default function LocaleError({
     errorMessage = tc("error");
     retryText = ta("retry");
     homeText = tn("home");
+    bodyText = tc("errorBody");
+    emergencyText = tc("errorEmergency");
   } catch {
     // If translation provider is impaired, keep safe fallback text
   }
@@ -48,38 +52,30 @@ export default function LocaleError({
   }
 
   return (
-    <div className="shell py-16 sm:py-24">
-      <div className="card mx-auto flex max-w-md flex-col items-center text-center gap-4 p-6 sm:p-8 border-border">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-warning-soft text-warning border border-warning/30">
-          <SeverityGlyph severity="warning" className="h-6 w-6" />
+    <div className="shell py-12 sm:py-20">
+      <div className="card mx-auto flex max-w-lg flex-col items-center gap-5 p-6 text-center sm:p-8">
+        <div className="grid size-16 place-items-center rounded-full bg-warning-soft text-warning">
+          <SeverityGlyph severity="warning" width={32} height={32} />
         </div>
-        <div className="space-y-1">
-          <h2 className="text-base sm:text-lg font-bold text-text">{errorMessage}</h2>
-          <p className="text-xs sm:text-sm text-muted">
-            {error.message && error.message !== "An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest was provided instead."
-              ? error.message
-              : "An unexpected error occurred while loading this view."}
-          </p>
-          {error.digest ? (
-            <p className="font-mono text-[10px] text-faint">ID: {error.digest}</p>
-          ) : null}
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">{errorMessage}</h1>
+          <p className="text-lg text-muted">{bodyText}</p>
         </div>
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleReset}
-            disabled={isPending}
-            className="rounded-chip bg-brand px-4 py-2 text-sm font-semibold text-brand-fg hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
-          >
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+          <button type="button" onClick={handleReset} disabled={isPending} className="btn btn-primary disabled:opacity-50">
             {isPending ? "…" : retryText}
           </button>
-          <Link
-            href="/"
-            className="rounded-chip border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-2 transition-colors"
-          >
+          <Link href="/" className="btn btn-secondary">
             {homeText}
           </Link>
         </div>
+        <p className="w-full rounded-chip border-2 border-danger/30 bg-danger-soft p-3.5 text-base">
+          {emergencyText}{" "}
+          <a href="tel:100" className="font-bold text-danger underline">100</a> ·{" "}
+          <a href="tel:102" className="font-bold text-danger underline">102</a> ·{" "}
+          <a href="tel:1149" className="font-bold text-danger underline">1149</a>
+        </p>
+        {error.digest ? <p className="text-sm text-muted">ID: {error.digest}</p> : null}
       </div>
     </div>
   );

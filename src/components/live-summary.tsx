@@ -50,11 +50,11 @@ function HazardTally({ alerts }: { alerts: Alert[] }) {
                 <HazardGlyph hazard={h} width={18} height={18} />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-muted group-hover:text-text transition-colors">
+                <p className="text-base font-medium leading-tight text-text">
                   {th(`${h}.name`)}
                 </p>
                 <div className="mt-1 flex items-baseline justify-between">
-                  <span className="tabular text-xl font-bold leading-none text-text">{items.length}</span>
+                  <span className="tabular text-2xl font-bold leading-none text-text">{items.length}</span>
                   {worst ? (
                     <span
                       className={cn("size-2 rounded-full ring-2 ring-surface", SEVERITY_BAR[worst])}
@@ -136,7 +136,7 @@ export function LiveSummary({ initialData }: { initialData?: AlertsResponse }) {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-faint">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-faint">
         <span className="tabular" suppressHydrationWarning>
           {tc("updatedAgo", { time: timeAgo(response.generatedAt, locale) })} ·{" "}
           {th("reachable", { ok: okCount, total })}

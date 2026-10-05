@@ -118,7 +118,7 @@ export default async function AlertDetailPage({
   return (
     <div className="shell max-w-3xl py-10 sm:py-14 space-y-8">
       {/* Breadcrumb navigation */}
-      <nav className="flex items-center gap-2 text-xs text-muted">
+      <nav className="flex items-center gap-2 text-sm text-muted">
         <Link href="/" className="hover:text-text">
           {locale === "ne" ? "गृह" : "Home"}
         </Link>
@@ -138,7 +138,7 @@ export default async function AlertDetailPage({
             <HazardChip hazard={alert.hazard} />
             <SeverityBadge severity={alert.severity} />
           </div>
-          <span className="text-xs text-faint tabular" suppressHydrationWarning>
+          <span className="text-sm text-faint tabular" suppressHydrationWarning>
             {timeAgo(alert.issuedAt, locale as Locale)}
           </span>
         </div>
@@ -150,7 +150,7 @@ export default async function AlertDetailPage({
 
         {/* Location banner */}
         {place && (
-          <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-surface-2/50 px-3.5 py-2.5 text-xs text-muted">
+          <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-surface-2/50 px-3.5 py-2.5 text-sm text-muted">
             <MapPinIcon width={16} height={16} className="text-brand shrink-0" />
             <span className="font-medium text-text">{place}</span>
             {alert.location?.district && alert.location.district !== place && (
@@ -170,7 +170,7 @@ export default async function AlertDetailPage({
         {/* Map Preview if coordinates present */}
         {hasCoords && (
           <div className="space-y-2">
-            <h2 className="eyebrow !text-xs text-muted">
+            <h2 className="eyebrow !text-sm text-muted">
               {locale === "ne" ? "घटना स्थान नक्सा" : "Event Location Coordinates"}
             </h2>
             <div className="overflow-hidden rounded-card border border-border">
@@ -181,7 +181,7 @@ export default async function AlertDetailPage({
                 title={title}
               />
             </div>
-            <div className="flex justify-between items-center text-xs text-muted pt-1">
+            <div className="flex justify-between items-center text-sm text-muted pt-1">
               <span className="font-mono tabular">
                 {alert.location!.lat!.toFixed(4)}°N, {alert.location!.lng!.toFixed(4)}°E
               </span>
@@ -199,10 +199,10 @@ export default async function AlertDetailPage({
         {/* Meta / Readouts block */}
         {alert.meta && Object.keys(alert.meta).length > 0 && (
           <div className="rounded-xl border border-border/80 bg-surface-2/40 p-4 space-y-2">
-            <h2 className="eyebrow !text-xs text-muted">
+            <h2 className="eyebrow !text-sm text-muted">
               {locale === "ne" ? "मापन विवरण तथा प्राविधिक डेटा" : "Telemetry Readouts & Meta"}
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm pt-1">
               {typeof alert.meta.waterLevel === "number" && (
                 <div>
                   <span className="text-muted block">{locale === "ne" ? "जलस्तर" : "Water Level"}</span>
@@ -263,7 +263,7 @@ export default async function AlertDetailPage({
                 ? `${th(`${alert.hazard}.name`)} सुरक्षा मार्गदर्शन पढ्नुहोस्`
                 : `Preparedness Guide: ${th(`${alert.hazard}.name`)}`}
             </h3>
-            <p className="text-xs text-muted mt-0.5">
+            <p className="text-sm text-muted mt-0.5">
               {locale === "ne"
                 ? "जोखिमको समयमा तत्काल के गर्ने र के नगर्ने"
                 : "Actionable steps to take before, during, and after this hazard."}
@@ -271,7 +271,7 @@ export default async function AlertDetailPage({
           </div>
           <Link
             href={`/learn/${alert.hazard}`}
-            className="inline-flex items-center gap-1.5 rounded-chip bg-brand px-3.5 py-2 text-xs font-semibold text-brand-fg hover:bg-brand-strong transition-all shrink-0"
+            className="inline-flex items-center gap-1.5 rounded-chip bg-brand px-3.5 py-2 text-sm font-semibold text-brand-fg hover:bg-brand-strong transition-all shrink-0"
           >
             <span>{locale === "ne" ? "मार्गदर्शन" : "Read Guide"}</span>
             <ArrowIcon width={13} height={13} />
@@ -279,7 +279,7 @@ export default async function AlertDetailPage({
         </div>
 
         {/* Provenance and Official Source footer */}
-        <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
+        <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-text">{alert.source.name}</span>
             <span>·</span>

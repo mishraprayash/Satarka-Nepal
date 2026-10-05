@@ -12,7 +12,7 @@ export function SeverityBadge({ severity, className }: { severity: Severity; cla
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip px-2 py-0.5 text-xs font-semibold",
+        "inline-flex items-center gap-1.5 rounded-chip px-2 py-0.5 text-sm font-semibold",
         SEVERITY_CHIP[severity],
         className,
       )}
@@ -28,7 +28,7 @@ export function HazardChip({ hazard, className }: { hazard: HazardType; classNam
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-xs font-medium text-muted",
+        "inline-flex items-center gap-1.5 rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-sm font-medium text-muted",
         className,
       )}
     >
@@ -44,7 +44,7 @@ export function StatusBadge({ status, className }: { status: SourceStatus; class
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip border border-border px-2 py-0.5 text-xs font-medium text-muted",
+        "inline-flex items-center gap-1.5 rounded-chip border border-border px-2 py-0.5 text-sm font-medium text-muted",
         className,
       )}
       title={t(`${STATUS_KEY[status]}.desc`)}

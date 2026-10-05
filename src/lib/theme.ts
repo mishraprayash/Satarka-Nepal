@@ -16,6 +16,11 @@ export type Theme = "light" | "dark";
 
 export const THEME_KEY = "satarka-theme";
 export const LOWBW_KEY = "satarka-lowbw";
+export type TextSize = "normal" | "large" | "xlarge";
+export const TEXTSIZE_KEY = "satarka-textsize";
+export const TEXTSIZE_EVENT = "satarka-textsize-change";
+export const TEXT_SIZES: TextSize[] = ["normal", "large", "xlarge"];
+
 export const THEME_EVENT = "satarka-theme-change";
 export const LOWBW_EVENT = "satarka-lowbw-change";
 
@@ -25,6 +30,8 @@ var t=localStorage.getItem('${THEME_KEY}');
 if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
 var d=document.documentElement;d.dataset.theme=t;
 d.dataset.lowbw=localStorage.getItem('${LOWBW_KEY}')==='true'?'true':'false';
+var s=localStorage.getItem('${TEXTSIZE_KEY}');
+d.dataset.textsize=(s==='large'||s==='xlarge')?s:'normal';
 }catch(e){}})();`;
 
 export function readTheme(): Theme {
@@ -85,6 +92,39 @@ export function setLowBandwidth(enabled: boolean): void {
   }
 }
 
+export function readTextSize(): TextSize {
+  try {
+    const v = localStorage.getItem(TEXTSIZE_KEY);
+    if (v === "large" || v === "xlarge") return v;
+  } catch {
+    /* ignore */
+  }
+  return "normal";
+}
+
+export function setTextSize(size: TextSize): void {
+  document.documentElement.dataset.textsize = size;
+  try {
+    localStorage.setItem(TEXTSIZE_KEY, size);
+  } catch {
+    /* ignore */
+  }
+  try {
+    window.dispatchEvent(new Event(TEXTSIZE_EVENT));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function subscribeTextSize(onChange: () => void): () => void {
+  window.addEventListener(TEXTSIZE_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(TEXTSIZE_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
 /** Re-assert stored preferences on the <html> element (navigation-safe). */
 export function applyStoredAppearance(): void {
   applyTheme(readTheme());
@@ -94,6 +134,7 @@ export function applyStoredAppearance(): void {
   } catch {
     /* ignore */
   }
+  d.dataset.textsize = readTextSize();
 }
 
 /** Subscribe to theme changes (local dispatch + other-tab writes + OS color scheme changes). */

@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SectionHeader } from "@/components/section";
 import { LiveSummary } from "@/components/live-summary";
-import { NearYou } from "@/components/near-you";
+import { AreaCheck } from "@/components/area-check";
 import { ReportsList } from "@/components/reports-list";
 import { HazardGlyph, SeverityGlyph, ArrowIcon } from "@/components/icons";
 import { HAZARD_ORDER } from "@/lib/ui";
@@ -35,140 +35,77 @@ export default async function HomePage({
     ok: true,
   };
 
+  const quick = [
+    { href: "/alerts", title: t("quick.alerts"), hint: t("quick.alertsHint"), icon: "🔔" },
+    { href: "/map", title: t("quick.map"), hint: t("quick.mapHint"), icon: "🗺️" },
+    { href: "/learn", title: t("quick.learn"), hint: t("quick.learnHint"), icon: "📘" },
+    { href: "/report", title: t("quick.report"), hint: t("quick.reportHint"), icon: "📣" },
+  ];
+
   return (
     <>
-      {/* Situational Emergency Ribbon */}
       <EmergencyBanner initialData={initialAlerts} />
 
-
-
-      {/* Hero — Simple. Calm. Precise. Premium. Intentional. */}
-      <section className="relative border-b border-border/60 bg-gradient-to-b from-surface/60 via-bg to-bg py-12 sm:py-16 lg:py-20">
-        <div className="shell">
-          <div className="max-w-3xl">
-            {/* Live Operational Status Tag */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-surface px-3 py-1 text-xs shadow-2xs">
-              <span className="size-2 rounded-full bg-advisory animate-pulse" aria-hidden />
-              <span className="font-semibold text-text">{t("eyebrow")}</span>
-            </div>
-
-            <h1 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-text leading-[1.12]">
-              {t("title")}
-            </h1>
-
-            <p className="mt-5 max-w-2xl text-base sm:text-lg leading-relaxed text-muted">
-              {t("body")}
-            </p>
-
-            {/* CTAs */}
-            <div className="mt-8 flex flex-wrap items-center gap-3.5">
-              <Link
-                href="/alerts"
-                className="inline-flex items-center gap-2 rounded-chip bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg transition-all hover:bg-brand-strong active:scale-98 shadow-sm"
-              >
-                <span>{t("ctaAlerts")}</span>
-                <ArrowIcon width={16} height={16} />
-              </Link>
-              <Link
-                href="/map"
-                className="inline-flex items-center gap-2 rounded-chip border border-border/80 bg-surface px-5 py-2.5 text-sm font-semibold text-text transition-all hover:bg-surface-2 hover:border-border-strong active:scale-98 shadow-2xs"
-              >
-                <span>{ta("openMap")}</span>
-              </Link>
-            </div>
-
-            {/* Quiet official disclaimer */}
-            <div className="mt-7 flex items-center gap-2 text-xs text-faint">
-              <SeverityGlyph severity="info" width={14} height={14} className="shrink-0 text-muted" />
-              <span>{t("disclaimer")}</span>
-            </div>
+      {/* Step 1 — one question, one answer: is it safe where I live? */}
+      <section className="border-b border-border bg-gradient-to-b from-surface to-bg py-10 sm:py-14">
+        <div className="shell grid items-start gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
+          <div className="max-w-xl lg:pt-4">
+            <h1 className="text-3xl font-extrabold sm:text-4xl lg:text-5xl">{t("title")}</h1>
+            <p className="mt-4 text-lg leading-relaxed text-muted sm:text-xl">{t("body")}</p>
           </div>
-
-          {/* Operational Pulse Bar — Live Telemetry at a glance */}
-          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 pt-8 border-t border-border/60">
-            <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.activeThreats")}</span>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-2xl font-bold tabular text-text">
-                  {initialAlerts.alerts.filter((a) => a.severity === "danger" || a.severity === "warning").length}
-                </span>
-                <span className="text-xs text-muted">{t("stats.dangerWarning")}</span>
-              </div>
-            </div>
-
-            <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.telemetryGauges")}</span>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-2xl font-bold tabular text-text">
-                  {initialAlerts.alerts.filter((a) => a.hazard === "flood" || a.hazard === "glof").length}
-                </span>
-                <span className="text-xs text-muted">{t("stats.riverStations")}</span>
-              </div>
-            </div>
-
-            <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.seismicStorm")}</span>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-2xl font-bold tabular text-text">
-                  {initialAlerts.alerts.filter((a) => a.hazard === "earthquake" || a.hazard === "landslide").length}
-                </span>
-                <span className="text-xs text-muted">{t("stats.trackedEvents")}</span>
-              </div>
-            </div>
-
-            <div className="card p-4 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{t("stats.dataSources")}</span>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-2xl font-bold tabular text-brand">
-                  {initialAlerts.sources.filter((s) => s.ok).length} / {initialAlerts.sources.length}
-                </span>
-                <span className="text-xs text-muted">{t("stats.operational")}</span>
-              </div>
-            </div>
-          </div>
+          <AreaCheck initialData={initialAlerts} />
         </div>
       </section>
 
-      <div className="shell space-y-16 py-12 sm:py-16">
-        {/* Near-you alerts — most prominent contextual module */}
-        <NearYou initialData={initialAlerts} />
+      <div className="shell space-y-14 py-10 sm:space-y-20 sm:py-14">
+        {/* Step 2 — four big, obvious things to do */}
+        <section aria-label={t("statusTitle")}>
+          <ul className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {quick.map((q) => (
+              <li key={q.href}>
+                <Link
+                  href={q.href}
+                  className="card flex h-full flex-col gap-2 p-5 transition-all hover:-translate-y-0.5 hover:border-brand sm:p-6"
+                >
+                  <span className="text-4xl" aria-hidden>
+                    {q.icon}
+                  </span>
+                  <span className="text-lg font-bold sm:text-xl">{q.title}</span>
+                  <span className="text-base text-muted">{q.hint}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-        {/* Live dashboard summary */}
+        {/* Step 3 — latest alerts across Nepal */}
         <section>
-          <SectionHeader
-            title={t("summaryTitle")}
-            sub={t("summarySub")}
-            className="mb-6"
-          />
+          <SectionHeader title={t("statusTitle")} sub={t("summarySub")} className="mb-6" />
           <LiveSummary initialData={initialAlerts} />
         </section>
 
-        {/* By hazard type → education deep-links */}
+        {/* Step 4 — preparedness, in plain language */}
         <section>
-          <SectionHeader title={t("byHazardTitle")} className="mb-6" />
+          <SectionHeader title={t("prepareTitle")} sub={t("prepareSub")} className="mb-6" />
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {HAZARD_ORDER.map((h) => (
               <li key={h}>
                 <Link
                   href={`/learn/${h}`}
-                  className="card group flex h-full flex-col justify-between gap-4 p-5 transition-all duration-200 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5 active:scale-98"
+                  className="card group flex h-full flex-col justify-between gap-4 p-6 transition-all hover:-translate-y-0.5 hover:border-brand"
                 >
                   <div className="space-y-3">
-                    <span className="inline-flex size-10 items-center justify-center rounded-chip bg-surface-2 text-brand group-hover:bg-brand group-hover:text-brand-fg transition-colors" aria-hidden>
-                      <HazardGlyph hazard={h} width={22} height={22} />
+                    <span className="inline-flex size-12 items-center justify-center rounded-chip bg-brand-soft text-brand" aria-hidden>
+                      <HazardGlyph hazard={h} width={26} height={26} />
                     </span>
                     <div>
-                      <h3 className="text-base font-bold text-text group-hover:text-brand transition-colors">{th(`${h}.name`)}</h3>
-                      <p className="mt-1 text-xs sm:text-sm leading-relaxed text-muted">{th(`${h}.short`)}</p>
+                      <h3 className="text-xl font-bold">{th(`${h}.name`)}</h3>
+                      <p className="mt-1 text-base leading-relaxed text-muted">{th(`${h}.short`)}</p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
+                  <span className="inline-flex items-center gap-1.5 text-base font-semibold text-brand">
                     {ta("learnMore")}
-                    <ArrowIcon
-                      width={12}
-                      height={12}
-                      className="transition-transform duration-200 group-hover:translate-x-0.5"
-                    />
+                    <ArrowIcon width={16} height={16} className="transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </Link>
               </li>
@@ -176,64 +113,17 @@ export default async function HomePage({
           </ul>
         </section>
 
-        {/* Latest situation reports — background, not active warnings */}
+        {/* Background reading — clearly secondary */}
         <section>
-          <SectionHeader
-            title={t("reportsTitle")}
-            sub={t("reportsSub")}
-            className="mb-6"
-          />
+          <SectionHeader title={t("moreTitle")} sub={t("reportsSub")} className="mb-6" />
           <ReportsList initialData={initialReports} />
         </section>
 
-        {/* Map + Learn teasers */}
-        <section className="grid gap-4 md:grid-cols-2">
-          <TeaserCard
-            href="/map"
-            title={t("mapTeaserTitle")}
-            body={t("mapTeaserBody")}
-            cta={ta("openMap")}
-          />
-          <TeaserCard
-            href="/learn"
-            title={t("learnTeaserTitle")}
-            body={t("learnTeaserBody")}
-            cta={ta("learnMore")}
-          />
-        </section>
+        <p className="flex items-start gap-2.5 text-base text-muted">
+          <SeverityGlyph severity="info" width={20} height={20} className="mt-0.5 shrink-0" />
+          <span>{t("disclaimer")}</span>
+        </p>
       </div>
     </>
-  );
-}
-
-function TeaserCard({
-  href,
-  title,
-  body,
-  cta,
-}: {
-  href: string;
-  title: string;
-  body: string;
-  cta: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="card group relative flex flex-col justify-between gap-3 overflow-hidden p-6 sm:p-7 transition-all duration-200 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5 active:scale-98"
-    >
-      <div>
-        <h3 className="text-lg font-bold text-text group-hover:text-brand transition-colors">{title}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
-      </div>
-      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand">
-        <span>{cta}</span>
-        <ArrowIcon
-          width={14}
-          height={14}
-          className="transition-transform duration-200 group-hover:translate-x-0.5"
-        />
-      </span>
-    </Link>
   );
 }

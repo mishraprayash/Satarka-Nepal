@@ -17,7 +17,15 @@
     "about": "About",
     "report": "Report",
     "skip": "Skip to main content",
-    "menu": "Menu"
+    "menu": "Menu",
+    "more": "More",
+    "close": "Close",
+    "search": "Search",
+    "searchPlaceholder": "Search districts, guides, phone numbers…",
+    "mobileNav": "Main navigation",
+    "reportHint": "Tell others about a hazard near you",
+    "highwaysHint": "Road closures and travel conditions",
+    "aboutHint": "Who we are and where data comes from"
   },
   "actions": {
     "viewSource": "View source",
@@ -47,7 +55,10 @@
     "community": "Community",
     "recordsChecked": "{count} checked",
     "itemsSurfaced": "{count} shown",
-    "unavailableShort": "Unavailable"
+    "unavailableShort": "Unavailable",
+    "clear": "Clear",
+    "errorBody": "We could not load this page. Please try again.",
+    "errorEmergency": "In an emergency, call:"
   },
   "status": {
     "live": { "label": "Live", "desc": "Verified feed, refreshed continuously." },
@@ -81,8 +92,8 @@
   },
   "home": {
     "eyebrow": "Nepal · Multi-hazard early awareness",
-    "title": "Know the risk before the water rises.",
-    "body": "Satarka gathers Nepal's official hazard feeds into one place, in Nepali and English, and turns them into plain language you can act on. It supplements official warnings — it does not replace them.",
+    "title": "Stay safe from floods, landslides and earthquakes",
+    "body": "Live official alerts for Nepal in simple words. In an emergency, always follow local authorities.",
     "ctaAlerts": "See live alerts",
     "disclaimer": "In an emergency, follow the instructions of local authorities and official warnings.",
     "summaryTitle": "Active alerts right now",
@@ -104,7 +115,21 @@
       "trackedEvents": "Tracked Events",
       "dataSources": "Data Sources",
       "operational": "Operational"
-    }
+    },
+    "quick": {
+      "alerts": "All alerts",
+      "alertsHint": "See what is happening now",
+      "map": "Map",
+      "mapHint": "Rivers, lakes and quakes",
+      "learn": "Get prepared",
+      "learnHint": "What to do before and during",
+      "report": "Report a hazard",
+      "reportHint": "Tell your community"
+    },
+    "prepareTitle": "Learn what to do",
+    "prepareSub": "Simple guides for each hazard: warning signs, what to do, and who to call.",
+    "moreTitle": "Latest reports from relief agencies",
+    "statusTitle": "Latest alerts across Nepal"
   },
   "highways": {
     "title": "National Highway Passability",
@@ -127,7 +152,7 @@
     "sortSeverity": "Severity",
     "sortDate": "Date",
     "sortDistance": "Distance",
-    "searchPlaceholder": "Search events, districts, rivers, basins…",
+    "searchPlaceholder": "Search place or river…",
     "noMatches": "No matching alerts found",
     "noMatchesNote": "Try adjusting your search terms or clearing active filters.",
     "resetFilters": "Reset search & filters",
@@ -139,7 +164,8 @@
     "situationTitle": "Situation Details",
     "openFullMap": "Open in Full Map",
     "whatToDoNow": "What to do now",
-    "whatToDoNowNote": "Immediate steps for this hazard. See the full guide for before and after."
+    "whatToDoNowNote": "Immediate steps for this hazard. See the full guide for before and after.",
+    "moreFilters": "More filters"
   },
   "verdict": {
     "danger": {
@@ -158,10 +184,7 @@
       "title": "Stay aware",
       "body": "A minor hazard is noted. No action needed yet, but stay informed."
     },
-    "info": {
-      "title": "For your information",
-      "body": "Background information only. No action needed."
-    },
+    "info": { "title": "For your information", "body": "Background information only. No action needed." },
     "none": {
       "title": "No action needed right now",
       "body": "No hazards above warning level from live feeds. Conditions change fast — stay prepared."
@@ -210,7 +233,10 @@
     "riskUnknown": "Not monitored",
     "tileNote": "Base map © OpenStreetMap contributors",
     "referenceNote": "Glacial-lake points are a static reference subset (ICIMOD inventory), not live monitoring.",
-    "loading": "Loading map…"
+    "loading": "Loading map…",
+    "searchLabel": "Search river or road…",
+    "flyTo": "Go",
+    "layersPrompt": "What to show on the map"
   },
   "learn": {
     "title": "Understand the hazards",
@@ -276,23 +302,25 @@
     "call": "Call {number}",
     "callAction": "Call",
     "tollFree": "Toll-Free",
-    "emergencyNote": "In an emergency, dial 1149 for the 24/7 NDRRMA Disaster Helpline or 1155 for DHM Flood Inquiries (toll-free). Police (100), Fire (101), and Ambulance (102) operate nationwide."
+    "emergencyNote": "In an emergency, dial 1149 for the 24/7 NDRRMA Disaster Helpline or 1155 for DHM Flood Inquiries (toll-free). Police (100), Fire (101), and Ambulance (102) operate nationwide.",
+    "subtitle": "Call for help",
+    "title": "Emergency"
   },
   "emergencyBanner": {
     "danger": {
-      "title": "Critical Warning: {count, plural, one {# life-threatening danger alert} other {# life-threatening danger alerts}} active in Nepal",
-      "sub": "Follow evacuation directives and warnings from local authorities immediately.",
-      "badge": "CRITICAL"
+      "title": "Danger: {count, plural, one {# life-threatening alert is} other {# life-threatening alerts are}} active in Nepal",
+      "sub": "Follow instructions from local authorities right away.",
+      "badge": "DANGER"
     },
     "warning": {
-      "title": "Active Advisory: {count, plural, one {# hazard warning} other {# hazard warnings}} active across monitored basins",
-      "sub": "Residents in floodplains and steep slopes should exercise heightened vigilance.",
+      "title": "Warning: {count, plural, one {# hazard warning is} other {# hazard warnings are}} active in Nepal",
+      "sub": "Be careful near rivers and steep slopes.",
       "badge": "WARNING"
     },
     "normal": {
-      "title": "All monitored hydrological stations & feeds operating within safe thresholds",
-      "sub": "Real-time feeds from DHM, NDRRMA, and USGS are continuously monitored.",
-      "badge": "NORMAL"
+      "title": "No serious warnings right now",
+      "sub": "We check official sources all day.",
+      "badge": "ALL CLEAR"
     }
   },
   "footer": {
@@ -307,22 +335,58 @@
   },
   "disclaimerModal": {
     "badge": "Official Advisory & Protocol Notice",
-    "title": "Important Public Safety Disclaimer",
-    "lead": "Satarka is an independent civic information platform that aggregates open data from government departments and scientific agencies. It does not replace official emergency channels.",
-    "primaryDirectiveTitle": "1. Always Follow Official & Local Authorities",
-    "primaryDirectiveBody": "Satarka is not an official warning service. In the event of a flood, landslide, earthquake, or extreme weather, always follow instructions, sirens, evacuations, and SMS alerts from the Nepal Police, Armed Police Force, local municipal disaster committees (LDMC), and the Ministry of Home Affairs (NDRRMA).",
+    "title": "Before you start",
+    "lead": "Satarka shows official hazard alerts in simple words. It is not an emergency service.",
+    "primaryDirectiveTitle": "Follow local authorities",
+    "primaryDirectiveBody": "In an emergency, follow sirens, SMS alerts and instructions from the police and your local disaster committee.",
     "aggregationTitle": "2. Multi-Department Data Ingestion",
     "aggregationBody": "Information is aggregated from the Department of Hydrology and Meteorology (DHM), NDRRMA BIPAD, USGS, GDACS, ICIMOD, and ReliefWeb. Feeds refresh automatically, but upstream latency or communication delays may occur.",
-    "sensorGapsTitle": "3. Absence of an Alert Does Not Mean Zero Risk",
-    "sensorGapsBody": "Torrential rain, cloudbursts, and upstream landslides can dam tributaries or knock out telemetry sensors and mobile towers within minutes. If you observe rising water, sudden river silence, slope cracking, or unusual rumbling, evacuate immediately to high ground.",
-    "hotlinesTitle": "Key Emergency Hotlines (Nepal)",
-    "police": "Police (100)",
-    "ambulance": "Ambulance (102)",
-    "fire": "Fire (101)",
+    "sensorGapsTitle": "No alert does not mean no risk",
+    "sensorGapsBody": "If you see rising water, cracks in a slope, or hear rumbling, move to high ground now.",
+    "hotlinesTitle": "Emergency numbers",
+    "police": "Police",
+    "ambulance": "Ambulance",
+    "fire": "Fire",
     "floodHotline": "DHM Flood Info (1155)",
-    "ndrrma": "NDRRMA Helpline (1149)",
-    "acknowledge": "I Understand & Proceed",
+    "ndrrma": "Disaster helpline",
+    "acknowledge": "I understand",
     "doNotShowAgain": "Understood. Continue to Satarka."
+  },
+  "settings": {
+    "title": "Display",
+    "textSize": "Text size",
+    "normal": "Normal",
+    "large": "Large",
+    "xlarge": "Extra large",
+    "theme": "Colour theme",
+    "light": "Light",
+    "dark": "Dark",
+    "lowData": "Low-data mode",
+    "lowDataHint": "Fewer animations, lighter pages"
+  },
+  "area": {
+    "title": "Is it safe where you live?",
+    "subtitle": "Choose your district to see current hazard alerts near you.",
+    "chooseLabel": "Your district",
+    "choosePlaceholder": "Choose your district…",
+    "or": "or",
+    "useLocation": "Use my current location",
+    "privacy": "Your place stays on this phone. It is never sent to us.",
+    "locating": "Finding your location…",
+    "denied": "Location is blocked. Please choose your district instead.",
+    "unsupported": "This device can't share location. Please choose your district.",
+    "error": "We couldn't find your location. Please choose your district.",
+    "yourLocation": "Your location",
+    "change": "Change place",
+    "prepare": "How to prepare",
+    "seeAll": "See all {count} alerts nearby",
+    "headline": {
+      "danger": "Danger near you. Act now.",
+      "warning": "Warning near you. Be ready.",
+      "watch": "Stay alert. Something is being watched.",
+      "clear": "No active alerts near you."
+    },
+    "clearNote": "Nothing reported within {km} km. Conditions can change, so check back often.",
+    "nearbyCount": "{count, plural, one {# alert} other {# alerts}} within {km} km. Follow instructions from local authorities."
   }
 }
-

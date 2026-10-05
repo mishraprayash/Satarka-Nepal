@@ -48,10 +48,10 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 text-xs font-medium transition-all cursor-pointer active:scale-95",
+        "inline-flex items-center gap-1.5 min-h-11 rounded-chip border-2 px-4 py-2 text-base font-medium transition-all cursor-pointer active:scale-95",
         active
           ? "border-brand bg-brand text-brand-fg font-semibold shadow-xs"
-          : "border-border text-muted hover:bg-surface-2 hover:text-text",
+          : "border-border text-text hover:bg-surface-2",
       )}
     >
       {children}
@@ -241,6 +241,18 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* Plain-language "should I act?" answer comes first */}
+      <div
+        role={verdictKey === "danger" ? "alert" : "status"}
+        className={cn("flex items-start gap-4 rounded-card border-2 p-5 sm:p-6", SEVERITY_CHIP[verdictTone], verdictKey === "none" ? "border-border" : "border-current")}
+      >
+        <SeverityGlyph severity={verdictTone} width={32} height={32} className={cn("mt-0.5 shrink-0", SEVERITY_TEXT[verdictTone])} />
+        <div>
+          <p className={cn("text-xl font-bold", SEVERITY_TEXT[verdictTone])}>{tv(`${verdictKey}.title`)}</p>
+          <p className="mt-1 text-lg leading-relaxed text-text">{tv(`${verdictKey}.body`)}</p>
+        </div>
+      </div>
+
       {/* Honest state banners */}
       {fromCache ? (
         <p
@@ -263,31 +275,31 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Search input with icons */}
         <div className="relative flex-1 max-w-lg">
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted" aria-hidden>
-            <SearchIcon width={16} height={16} />
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-muted" aria-hidden>
+            <SearchIcon width={20} height={20} />
           </span>
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={ta("searchPlaceholder")}
-            className="w-full rounded-chip border border-border-strong bg-surface py-2.5 pl-10 pr-10 text-sm text-text placeholder:text-muted transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full h-14 rounded-chip border-2 border-border-strong bg-surface pl-12 pr-12 text-lg text-text placeholder:text-muted transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           {searchQuery ? (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
               aria-label={ta("clearSearch")}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-text transition-colors"
+              className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted hover:text-text transition-colors"
             >
-              <CloseIcon width={14} height={14} />
+              <CloseIcon width={20} height={20} />
             </button>
           ) : null}
         </div>
 
         {/* Freshness & Refresh button group */}
         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-          <div className="text-left sm:text-right text-xs text-faint">
+          <div className="text-left sm:text-right text-sm text-faint">
             <p className="tabular" suppressHydrationWarning>{tc("updatedAgo", { time: timeAgo(response.generatedAt, locale) })}</p>
             <p>{thome("reachable", { ok: okCount, total })}</p>
           </div>
@@ -296,7 +308,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
             onClick={() => refetch()}
             disabled={showFetching}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-chip border border-border-strong bg-surface px-3.5 py-2.5 text-xs font-semibold text-text shadow-xs transition-all hover:bg-surface-2 hover:border-text active:scale-95",
+              "btn btn-secondary",
               showFetching && "opacity-60 cursor-not-allowed",
             )}
           >
@@ -318,84 +330,60 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
         </div>
       </div>
 
-      {/* Filter and Sort Panel */}
-      <div className="flex flex-col gap-4 rounded-card border border-border bg-surface p-4 sm:p-5 shadow-xs">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          {/* Left: Hazard & Severity Filters */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
-            <fieldset className="flex flex-wrap items-center gap-1.5">
-              <legend className="eyebrow mb-1 w-full">{ta("filterHazard")}</legend>
-              <FilterChip active={hazard === "all"} onClick={() => setHazard("all")}>
-                {ta("filterAll")}
-              </FilterChip>
-              {HAZARD_ORDER.map((h) => (
-                <FilterChip key={h} active={hazard === h} onClick={() => setHazard(h)}>
-                  <HazardGlyph hazard={h} width={13} height={13} />
-                  {th(`${h}.name`)}
-                </FilterChip>
-              ))}
-            </fieldset>
+      {/* Filters: hazard type is always visible; the rest lives under "More filters" */}
+      <div className="space-y-4">
+        <fieldset className="flex flex-wrap items-center gap-2">
+          <legend className="mb-2 w-full text-base font-semibold">{ta("filterHazard")}</legend>
+          <FilterChip active={hazard === "all"} onClick={() => setHazard("all")}>
+            {ta("filterAll")}
+          </FilterChip>
+          {HAZARD_ORDER.map((h) => (
+            <FilterChip key={h} active={hazard === h} onClick={() => setHazard(h)}>
+              <HazardGlyph hazard={h} width={18} height={18} />
+              {th(`${h}.name`)}
+            </FilterChip>
+          ))}
+        </fieldset>
 
-            <fieldset className="flex flex-wrap items-center gap-1.5">
-              <legend className="eyebrow mb-1 w-full">{ta("filterSeverity")}</legend>
+        <details className="group rounded-card border border-border bg-surface" open={severity !== "all" || sortMode !== "severity"}>
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-base font-semibold [&::-webkit-details-marker]:hidden">
+            {ta("moreFilters")}
+            <span aria-hidden className="transition-transform group-open:rotate-180">▾</span>
+          </summary>
+          <div className="space-y-5 border-t border-border p-4">
+            <fieldset className="flex flex-wrap items-center gap-2">
+              <legend className="mb-2 w-full text-base font-semibold">{ta("filterSeverity")}</legend>
               <FilterChip active={severity === "all"} onClick={() => setSeverity("all")}>
                 {ta("filterAll")}
               </FilterChip>
               {SEVERITY_ORDER.map((s) => (
                 <FilterChip key={s} active={severity === s} onClick={() => setSeverity(s)}>
-                  <SeverityGlyph severity={s} width={13} height={13} />
+                  <SeverityGlyph severity={s} width={18} height={18} />
                   {tsev(`${s}.label`)}
                 </FilterChip>
               ))}
             </fieldset>
+            <fieldset className="flex flex-wrap items-center gap-2">
+              <legend className="mb-2 w-full text-base font-semibold">{ta("sortBy")}</legend>
+              <FilterChip active={sortMode === "severity"} onClick={() => setSortMode("severity")}>
+                {ta("sortSeverity")}
+              </FilterChip>
+              <FilterChip active={sortMode === "date"} onClick={() => setSortMode("date")}>
+                {ta("sortDate")}
+              </FilterChip>
+              <FilterChip
+                active={sortMode === "distance"}
+                onClick={() => (userPos ? setSortMode("distance") : requestLocation())}
+              >
+                {locating ? tc("loading") : ta("sortDistance")}
+              </FilterChip>
+            </fieldset>
           </div>
-
-          {/* Right: Sort controls */}
-          <fieldset className="flex flex-wrap items-center gap-1.5 border-t border-border pt-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-5 shrink-0">
-            <legend className="eyebrow mb-1 w-full">{ta("sortBy")}</legend>
-            <FilterChip
-              active={sortMode === "severity"}
-              onClick={() => setSortMode("severity")}
-            >
-              {ta("sortSeverity")}
-            </FilterChip>
-            <FilterChip
-              active={sortMode === "date"}
-              onClick={() => setSortMode("date")}
-            >
-              {ta("sortDate")}
-            </FilterChip>
-            <FilterChip
-              active={sortMode === "distance"}
-              onClick={() => {
-                if (userPos) {
-                  setSortMode("distance");
-                } else {
-                  requestLocation();
-                }
-              }}
-            >
-              {locating ? tc("loading") : ta("sortDistance")}
-            </FilterChip>
-          </fieldset>
-        </div>
-      </div>
-
-      {/* Plain-language "should I act?" verdict for the current feed */}
-      <div
-        role="status"
-        className={cn("rounded-card px-4 py-3", SEVERITY_CHIP[verdictTone])}
-      >
-        <p className={cn("text-sm font-bold", SEVERITY_TEXT[verdictTone])}>
-          {tv(`${verdictKey}.title`)}
-        </p>
-        <p className="mt-0.5 text-xs leading-relaxed text-text/80">
-          {tv(`${verdictKey}.body`)}
-        </p>
+        </details>
       </div>
 
       {/* Result metrics bar */}
-      <div className="flex items-center justify-between text-xs text-faint">
+      <div className="flex items-center justify-between text-sm text-faint">
         <span>
           {searchQuery.trim() ? (
             <span>
@@ -413,7 +401,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
               setHazard("all");
               setSeverity("all");
             }}
-            className="text-xs text-brand hover:underline cursor-pointer"
+            className="text-sm text-brand hover:underline cursor-pointer"
           >
             {ta("resetFilters")}
           </button>
@@ -444,7 +432,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
       ) : hasActiveFilters ? (
         <div className="card border-dashed p-8 text-center">
           <p className="text-sm font-semibold text-text">{ta("noMatches")}</p>
-          <p className="mx-auto mt-1 max-w-md text-xs text-muted">{ta("noMatchesNote")}</p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted">{ta("noMatchesNote")}</p>
           <button
             type="button"
             onClick={() => {
@@ -452,7 +440,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
               setHazard("all");
               setSeverity("all");
             }}
-            className="mt-3 inline-flex items-center rounded-chip border border-border-strong px-3.5 py-1.5 text-xs font-medium text-text hover:bg-surface-2 transition-colors cursor-pointer"
+            className="mt-3 inline-flex items-center rounded-chip border border-border-strong px-3.5 py-1.5 text-sm font-medium text-text hover:bg-surface-2 transition-colors cursor-pointer"
           >
             {ta("resetFilters")}
           </button>

@@ -52,9 +52,9 @@ export function SourceHealthList({ sources }: { sources: SourceHealth[] }) {
               )}
             </p>
 
-            {note ? <p className="mt-1 text-xs text-faint">{note}</p> : null}
+            {note ? <p className="mt-1 text-sm text-faint">{note}</p> : null}
 
-            <p className="mt-2 text-xs text-faint" suppressHydrationWarning>
+            <p className="mt-2 text-sm text-faint" suppressHydrationWarning>
               {tc("checkedAgo", { time: timeAgo(s.fetchedAt, locale) })}
             </p>
           </li>

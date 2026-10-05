@@ -28,6 +28,15 @@ describe("format utilities", () => {
       expect(typeof neFormatted).toBe("string");
     });
 
+    it("uses built-in Nepali wording with Devanagari digits (no Intl dependency)", () => {
+      const iso = (ms: number) => new Date(fixedNow - ms).toISOString();
+      expect(timeAgo(iso(5 * 60_000), "ne", fixedNow)).toBe("५ मिनेट पहिले");
+      expect(timeAgo(iso(3 * 3600_000), "ne", fixedNow)).toBe("३ घण्टा पहिले");
+      expect(timeAgo(iso(12 * 86400_000), "ne", fixedNow)).toBe("१२ दिन पहिले");
+      expect(timeAgo(iso(2_000), "ne", fixedNow)).toBe("अहिले");
+      expect(timeAgo(new Date(fixedNow + 2 * 3600_000).toISOString(), "ne", fixedNow)).toBe("२ घण्टा पछि");
+    });
+
     it("handles null, undefined, or invalid ISO strings without throwing", () => {
       expect(timeAgo(null, "en")).toBe("unknown");
       expect(timeAgo(undefined, "ne")).toBe("थाहा छैन");

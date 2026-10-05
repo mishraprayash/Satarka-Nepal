@@ -44,7 +44,7 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
   return (
     <div className="space-y-4">
       {fromCache ? (
-        <p className="rounded-card border border-watch/40 bg-watch-soft/40 px-3.5 py-2 text-xs text-watch font-medium">
+        <p className="rounded-card border border-watch/40 bg-watch-soft/40 px-3.5 py-2 text-sm text-watch font-medium">
           {to("cachedNote")}
         </p>
       ) : null}
@@ -59,17 +59,17 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-muted">
+                    <span className="rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-sm font-semibold text-muted">
                       {r.sourceName}
                     </span>
                     {r.date ? (
-                      <span className="text-[11px] tabular text-faint" suppressHydrationWarning>
+                      <span className="text-sm text-muted" suppressHydrationWarning>
                         {formatDateTime(r.date, locale)}
                       </span>
                     ) : null}
                   </div>
 
-                  <h3 className="text-sm font-semibold leading-snug text-text group-hover:text-brand transition-colors">
+                  <h3 className="text-base font-semibold leading-snug text-text group-hover:text-brand transition-colors">
                     <a
                       href={r.url}
                       target="_blank"
@@ -86,8 +86,8 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
                   </h3>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
-                  <span className="text-faint text-[11px]">
+                <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-sm">
+                  <span className="text-muted text-sm">
                     {locale === "ne" ? "आधिकारिक प्रतिवेदन" : "Official Briefing"}
                   </span>
                   <a
@@ -119,7 +119,7 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
                   ? "मानवीय तथा विपद् स्थिति प्रतिवेदन पोर्टलहरू"
                   : "Humanitarian & Disaster Situation Portals"}
               </h3>
-              <p className="mt-1 text-xs sm:text-sm text-muted max-w-xl">
+              <p className="mt-1 text-sm sm:text-sm text-muted max-w-xl">
                 {locale === "ne"
                   ? "प्रत्यक्ष स्वचालित फिड लोड हुन नसकेको अवस्थामा आधिकारिक निकायहरूका स्थिति प्रतिवेदनहरू तलका पोर्टलहरूबाट हेर्न सकिन्छ।"
                   : "Automated situation reports feed is currently in fallback mode. Official agency bulletins and ground updates are available via the portals below."}
@@ -128,7 +128,7 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
             <button
               type="button"
               onClick={() => refetch()}
-              className="inline-flex items-center gap-1.5 rounded-chip border border-border bg-surface px-3.5 py-1.5 text-xs font-semibold text-text hover:bg-surface-2 transition-colors shrink-0 cursor-pointer"
+              className="btn btn-secondary shrink-0"
             >
               {tact("retry")}
             </button>
@@ -143,14 +143,14 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
             >
               <div>
                 <span className="eyebrow !text-brand font-bold">UN OCHA</span>
-                <p className="mt-1 text-xs font-semibold text-text group-hover:text-brand">
+                <p className="mt-1 text-base font-semibold text-text group-hover:text-brand">
                   ReliefWeb Nepal Hub
                 </p>
-                <p className="mt-1 text-[11px] text-muted">
+                <p className="mt-1 text-base text-muted">
                   {locale === "ne" ? "नेपालका सम्पूर्ण मानवीय प्रतिवेदनहरू" : "Consolidated humanitarian situation updates"}
                 </p>
               </div>
-              <span className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-semibold text-brand">
+              <span className="mt-2.5 inline-flex items-center gap-1 text-sm font-semibold text-brand">
                 <span>reliefweb.int</span>
                 <ExternalIcon width={10} height={10} />
               </span>
@@ -164,14 +164,14 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
             >
               <div>
                 <span className="eyebrow !text-warning font-bold">Government</span>
-                <p className="mt-1 text-xs font-semibold text-text group-hover:text-brand">
+                <p className="mt-1 text-base font-semibold text-text group-hover:text-brand">
                   NDRRMA BIPAD Portal
                 </p>
-                <p className="mt-1 text-[11px] text-muted">
+                <p className="mt-1 text-base text-muted">
                   {locale === "ne" ? "राष्ट्रिय विपद् क्षति तथा घटना विवरण" : "Daily incident & national loss assessments"}
                 </p>
               </div>
-              <span className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-semibold text-brand">
+              <span className="mt-2.5 inline-flex items-center gap-1 text-sm font-semibold text-brand">
                 <span>bipadportal.gov.np</span>
                 <ExternalIcon width={10} height={10} />
               </span>
@@ -185,14 +185,14 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
             >
               <div>
                 <span className="eyebrow !text-danger font-bold">Red Cross</span>
-                <p className="mt-1 text-xs font-semibold text-text group-hover:text-brand">
+                <p className="mt-1 text-base font-semibold text-text group-hover:text-brand">
                   Nepal Red Cross Bulletins
                 </p>
-                <p className="mt-1 text-[11px] text-muted">
+                <p className="mt-1 text-base text-muted">
                   {locale === "ne" ? "राहत वितरण तथा उद्धार बुलेटिन" : "Emergency shelter & relief distribution logs"}
                 </p>
               </div>
-              <span className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-semibold text-brand">
+              <span className="mt-2.5 inline-flex items-center gap-1 text-sm font-semibold text-brand">
                 <span>nrcs.org</span>
                 <ExternalIcon width={10} height={10} />
               </span>
@@ -202,7 +202,7 @@ export function ReportsList({ initialData }: { initialData?: ReportsResponse }) 
       )}
 
       {/* Direct Portal Link Footer Strip */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-faint px-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted px-1">
         <span>
           {locale === "ne"
             ? "प्रतिवेदनहरू पृष्ठभूमि जानकारी हुन् — तत्काल निकासीका लागि सक्रिय चेतावनी हेर्नुहोस्।"

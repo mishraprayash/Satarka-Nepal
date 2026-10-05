@@ -45,7 +45,7 @@ export default async function HazardGuidePage({
   return (
     <div className="shell space-y-6 py-10 sm:py-14">
       {/* Accessible semantic breadcrumb navigation */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-base text-muted">
         <Link href="/" className="hover:text-text transition-colors">
           {locale === "ne" ? "गृह" : "Home"}
         </Link>
@@ -64,7 +64,7 @@ export default async function HazardGuidePage({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/learn"
-            className="inline-flex items-center gap-1.5 rounded-chip border border-border px-3 py-1.5 text-xs font-semibold text-muted hover:border-brand hover:text-text transition-colors"
+            className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border px-4 py-2 text-base font-semibold text-muted hover:border-brand hover:text-text transition-colors"
           >
             <ArrowIcon width={12} height={12} className="rotate-180" />
             <span>{t("allHazards")}</span>
@@ -77,14 +77,14 @@ export default async function HazardGuidePage({
                 key={h}
                 href={`/learn/${h}`}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 text-xs font-semibold transition-all",
+                  "inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 px-4 py-2 text-base font-semibold transition-all",
                   isActive
                     ? "border-brand bg-brand text-brand-fg shadow-xs"
                     : "border-border text-muted hover:bg-surface-2 hover:text-text",
                 )}
                 aria-current={isActive ? "page" : undefined}
               >
-                <HazardGlyph hazard={h} width={13} height={13} />
+                <HazardGlyph hazard={h} width={20} height={20} />
                 <span>{th(`${h}.name`)}</span>
               </Link>
             );

@@ -356,7 +356,7 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
         <button
           type="button"
           onClick={() => refetch()}
-          className="rounded-chip border border-border-strong px-3 py-1.5 text-sm font-medium hover:bg-surface-2 cursor-pointer"
+          className="btn btn-secondary"
         >
           {ta("retry")}
         </button>
@@ -366,130 +366,122 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
 
   return (
     <div className="space-y-4">
-      {/* Layer Controls Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border bg-surface p-3 sm:p-4 shadow-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="eyebrow mr-1 hidden sm:inline">{t("layers")}:</span>
-          {toggles.map(({ key, label, count, icon }) => {
-            const active = layers[key];
-            return (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={active}
-                onClick={() => toggle(key)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-chip border px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95",
-                  active
-                    ? "border-brand bg-brand text-brand-fg shadow-xs"
-                    : "border-border text-muted hover:bg-surface-2 hover:text-text",
-                )}
-              >
-                {icon ? <span>{icon}</span> : <span aria-hidden>{active ? "✓" : "○"}</span>}
-                <span>{label}</span>
-                {typeof count === "number" ? (
-                  <span
-                    className={cn(
-                      "rounded-full px-1.5 py-0.2 text-[10px] tabular font-mono font-bold",
-                      active ? "bg-white/20 text-white" : "bg-surface-2 text-faint",
-                    )}
-                  >
-                    {count}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
+      {/* Search first: the most common task is "find my river / road" */}
+      <div className="relative w-full max-w-2xl">
+        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-muted" aria-hidden="true">
+          <SearchIcon width={20} height={20} />
+        </span>
+        <input
+          type="search"
+          value={stationQuery}
+          onChange={(e) => setStationQuery(e.target.value)}
+          aria-label={t("searchLabel")}
+          placeholder={t("searchLabel")}
+          className="h-14 w-full rounded-chip border-2 border-border-strong bg-surface pl-12 pr-12 text-lg text-text placeholder:text-muted focus:border-brand focus:outline-none"
+        />
+        {stationQuery ? (
+          <button
+            type="button"
+            onClick={() => {
+              setStationQuery("");
+              setCustomFocus(undefined);
+            }}
+            aria-label={tc("clear")}
+            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted hover:text-text cursor-pointer"
+          >
+            <CloseIcon width={20} height={20} />
+          </button>
+        ) : null}
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Warning stations filter shortcut */}
-          {layers.rivers ? (
-            <button
-              type="button"
-              aria-pressed={riversOnlyWarning}
-              onClick={() => setRiversOnlyWarning((v) => !v)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0",
-                riversOnlyWarning
-                  ? "border-warning bg-warning text-white shadow-xs"
-                  : "border-border text-muted hover:bg-surface-2 hover:text-text",
-              )}
-            >
-              <span aria-hidden>{riversOnlyWarning ? "⚠" : "○"}</span>
-              <span>{t("riversOnlyWarning")}</span>
-            </button>
-          ) : null}
-
-          {/* Blocked highways filter shortcut */}
-          {layers.highways ? (
-            <button
-              type="button"
-              aria-pressed={highwaysBlockedOnly}
-              onClick={() => setHighwaysBlockedOnly((v) => !v)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0",
-                highwaysBlockedOnly
-                  ? "border-danger bg-danger text-white shadow-xs"
-                  : "border-border text-muted hover:bg-surface-2 hover:text-text",
-              )}
-            >
-              <span aria-hidden>{highwaysBlockedOnly ? "⛔" : "○"}</span>
-              <span>{t("highwaysBlockedOnly")}</span>
-            </button>
-          ) : null}
-        </div>
-
-        {/* Station Search Input with fly-to */}
-        <div className="relative w-full sm:w-64">
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-muted" aria-hidden="true">
-            <SearchIcon width={13} height={13} />
-          </span>
-          <input
-            type="search"
-            value={stationQuery}
-            onChange={(e) => setStationQuery(e.target.value)}
-            placeholder="Search river station, road, or quake…"
-            className="w-full rounded-chip border border-border bg-surface py-1.5 pl-8 pr-7 text-xs text-text placeholder:text-muted focus:border-brand focus:outline-none"
-          />
-          {stationQuery ? (
-            <button
-              type="button"
-              onClick={() => {
-                setStationQuery("");
-                setCustomFocus(undefined);
-              }}
-              className="absolute inset-y-0 right-0 flex items-center pr-2 text-muted hover:text-text cursor-pointer"
-            >
-              <CloseIcon width={12} height={12} />
-            </button>
-          ) : null}
-
-          {/* Autocomplete dropdown */}
-          {matchingStations.length > 0 ? (
-            <ul className="absolute left-0 right-0 top-full mt-1 z-30 overflow-hidden rounded-xl border border-border bg-surface shadow-xl divide-y divide-border/50">
-              {matchingStations.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomFocus({ lat: item.lat, lng: item.lng, zoom: 13, title: item.name });
-                      setStationQuery(item.name);
-                    }}
-                    className="flex w-full items-center justify-between p-2.5 text-left text-xs hover:bg-surface-2 transition-colors cursor-pointer"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-semibold text-text truncate">{item.name}</p>
-                      <p className="text-[11px] text-muted truncate">{item.sub}</p>
-                    </div>
-                    <span className="text-[10px] text-brand font-semibold shrink-0">Fly to →</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
+        {matchingStations.length > 0 ? (
+          <ul className="absolute left-0 right-0 top-full z-[1100] mt-2 overflow-hidden rounded-card border border-border bg-surface shadow-xl divide-y divide-border">
+            {matchingStations.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomFocus({ lat: item.lat, lng: item.lng, zoom: 13, title: item.name });
+                    setStationQuery(item.name);
+                  }}
+                  className="flex min-h-14 w-full items-center justify-between gap-3 p-3.5 text-left hover:bg-surface-2 cursor-pointer"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-semibold text-text">{item.name}</p>
+                    <p className="truncate text-sm text-muted">{item.sub}</p>
+                  </div>
+                  <span className="shrink-0 text-base font-semibold text-brand">{t("flyTo")} →</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
+
+      {/* Layers live behind one friendly disclosure */}
+      <details className="group rounded-card border border-border bg-surface">
+        <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-base font-semibold [&::-webkit-details-marker]:hidden">
+          {t("layersPrompt")}
+          <span aria-hidden className="transition-transform group-open:rotate-180">▾</span>
+        </summary>
+        <div className="space-y-4 border-t border-border p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {toggles.map(({ key, label, count, icon }) => {
+              const active = layers[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => toggle(key)}
+                  className={cn(
+                    "inline-flex min-h-11 items-center gap-2 rounded-chip border-2 px-3.5 py-2 text-base font-medium transition-all cursor-pointer active:scale-95",
+                    active
+                      ? "border-brand bg-brand text-brand-fg font-semibold"
+                      : "border-border text-text hover:bg-surface-2",
+                  )}
+                >
+                  {icon ? <span>{icon}</span> : <span aria-hidden>{active ? "✓" : "○"}</span>}
+                  <span>{label}</span>
+                  {typeof count === "number" ? <span className="tabular opacity-80">({count})</span> : null}
+                </button>
+              );
+            })}
+          </div>
+
+          {layers.rivers || layers.highways ? (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
+              {layers.rivers ? (
+                <button
+                  type="button"
+                  aria-pressed={riversOnlyWarning}
+                  onClick={() => setRiversOnlyWarning((v) => !v)}
+                  className={cn(
+                    "inline-flex min-h-11 items-center gap-2 rounded-chip border-2 px-3.5 py-2 text-base font-semibold transition-all cursor-pointer active:scale-95",
+                    riversOnlyWarning ? "border-warning bg-warning text-white" : "border-border text-text hover:bg-surface-2",
+                  )}
+                >
+                  <span aria-hidden>{riversOnlyWarning ? "⚠" : "○"}</span>
+                  <span>{t("riversOnlyWarning")}</span>
+                </button>
+              ) : null}
+              {layers.highways ? (
+                <button
+                  type="button"
+                  aria-pressed={highwaysBlockedOnly}
+                  onClick={() => setHighwaysBlockedOnly((v) => !v)}
+                  className={cn(
+                    "inline-flex min-h-11 items-center gap-2 rounded-chip border-2 px-3.5 py-2 text-base font-semibold transition-all cursor-pointer active:scale-95",
+                    highwaysBlockedOnly ? "border-danger bg-danger text-white" : "border-border text-text hover:bg-surface-2",
+                  )}
+                >
+                  <span aria-hidden>{highwaysBlockedOnly ? "⛔" : "○"}</span>
+                  <span>{t("highwaysBlockedOnly")}</span>
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </details>
 
       <div className="relative overflow-hidden rounded-card border border-border shadow-card">
         <LeafletMap
@@ -501,7 +493,7 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
         />
       </div>
 
-      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
         <span>{t("tileNote")}</span>
         {!data.riverOk || !data.quakeOk ? (
           <span className="text-warning">

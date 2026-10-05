@@ -15,7 +15,7 @@ export async function SiteFooter() {
   const [t, nav] = await Promise.all([getTranslations("footer"), getTranslations("nav")]);
 
   return (
-    <footer className="mt-20 border-t border-border bg-surface pb-mobile-nav md:pb-0">
+    <footer className="mt-20 border-t border-border bg-surface pb-mobile-nav lg:pb-0">
       <div className="shell grid gap-10 py-12 md:grid-cols-[1.4fr_1fr]">
         <div className="max-w-md">
           <div className="flex items-baseline gap-2">
@@ -32,9 +32,9 @@ export async function SiteFooter() {
         </div>
 
 
-        <nav aria-label="Footer" className="flex flex-col gap-2 text-sm md:items-end">
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 text-base md:grid-cols-1 md:justify-items-end">
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="text-muted hover:text-text">
+            <Link key={item.href} href={item.href} className="py-2.5 font-medium text-muted hover:text-text">
               {nav(item.key)}
             </Link>
           ))}
@@ -42,7 +42,7 @@ export async function SiteFooter() {
       </div>
 
       <div className="border-t border-border">
-        <div className="shell flex flex-col gap-2 py-5 text-xs text-faint md:flex-row md:items-center md:justify-between">
+        <div className="shell flex flex-col gap-2 py-5 text-sm text-faint md:flex-row md:items-center md:justify-between">
           <p>{t("dataCredit")}</p>
           <p>© {new Date().getFullYear()} Satarka · सतर्क</p>
         </div>
