@@ -77,23 +77,75 @@ async function fetchJsonOnce<T>(url: string, opts: FetchOpts): Promise<T> {
   }
 }
 
+/** Thrown instead of fetching while a host is in its cooldown window. */
+export class UpstreamUnavailableError extends Error {
+  constructor(host: string) {
+    super(`${host} was unreachable moments ago; skipping until it cools down`);
+    this.name = "UpstreamUnavailableError";
+  }
+}
+
+/**
+ * When a host times out or refuses the connection, every page that needs it
+ * would otherwise wait out the full timeout again (twice, with the retry).
+ * Skip that host for a short window instead, so pages fail fast and show
+ * their "unavailable" state.
+ */
+const UNREACHABLE_COOLDOWN_MS = 60_000;
+const unreachableUntil = new Map<string, number>();
+
+/** Timeout (our AbortController) or a network-level failure, not an HTTP status. */
+export function isUnreachableError(err: unknown): boolean {
+  if (err instanceof UpstreamUnavailableError) return true;
+  if (!(err instanceof Error)) return false;
+  return err.name === "AbortError" || err.name === "TimeoutError" || (err.name === "TypeError" && /fetch failed/i.test(err.message));
+}
+
+/** For tests: forget hosts marked unreachable. */
+export function resetUnreachableHosts(): void {
+  unreachableUntil.clear();
+}
+
 /**
  * fetch() with a hard timeout, identifying User-Agent, and a single retry.
  * Server-side only — this is what lets us proxy feeds the browser can't reach
  * and normalise them. A one-shot retry (short backoff) means a single upstream
- * blip doesn't take a source dark for the whole revalidate window; 4xx client
- * errors are not retried since they won't succeed on a second try.
+ * blip doesn't take a source dark for the whole revalidate window. Not retried:
+ * 4xx client errors (deterministic) and timeouts/unreachable hosts, which put
+ * the host in a short cooldown instead.
  */
 export async function fetchJson<T = unknown>(url: string, opts: FetchOpts = {}): Promise<T> {
-  try {
-    return await fetchJsonOnce<T>(url, opts);
-  } catch (err) {
-    // Don't retry client errors (4xx) — they're deterministic.
-    const msg = err instanceof Error ? err.message : String(err);
-    if (/HTTP 4\d\d/.test(msg)) throw err;
-    await new Promise((r) => setTimeout(r, 400));
-    return fetchJsonOnce<T>(url, opts);
+  const host = new URL(url).host;
+  const until = unreachableUntil.get(host);
+  if (until !== undefined) {
+    if (Date.now() < until) throw new UpstreamUnavailableError(host);
+    unreachableUntil.delete(host);
   }
+
+  const attempt = async () => {
+    try {
+      return await fetchJsonOnce<T>(url, opts);
+    } catch (err) {
+      if (isUnreachableError(err)) unreachableUntil.set(host, Date.now() + UNREACHABLE_COOLDOWN_MS);
+      throw err;
+    }
+  };
+
+  try {
+    return await attempt();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/HTTP 4\d\d/.test(msg) || isUnreachableError(err)) throw err;
+    await new Promise((r) => setTimeout(r, 400));
+    return attempt();
+  }
+}
+
+/** One readable line for logs; an aborted fetch is reported as a timeout. */
+export function describeFetchError(err: unknown): string {
+  if (err instanceof UpstreamUnavailableError) return err.message;
+  if (err instanceof Error && (err.name === "AbortError" || err.name === "TimeoutError")) return "timed out";
+  return err instanceof Error ? err.message : String(err);
 }
 
 /** Nepal / central-Himalaya bounding box, reused by several sources. */
