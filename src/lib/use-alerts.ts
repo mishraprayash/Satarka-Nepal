@@ -11,6 +11,34 @@ let activeAlertsChannel: RealtimeChannel | null = null;
 let subscribersCount = 0;
 const alertChangeListeners = new Set<() => void>();
 
+/**
+ * An ingest run upserts every alert row, which arrives as one realtime event
+ * per row. Coalesce a burst into a single refetch per quiet window, and cap the
+ * wait so a steady trickle still refreshes.
+ */
+const REALTIME_DEBOUNCE_MS = 2_000;
+const REALTIME_MAX_WAIT_MS = 10_000;
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let burstStartedAt: number | null = null;
+
+function notifyListeners() {
+  debounceTimer = null;
+  burstStartedAt = null;
+  alertChangeListeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {}
+  });
+}
+
+function scheduleNotify() {
+  const now = Date.now();
+  burstStartedAt ??= now;
+  if (debounceTimer) clearTimeout(debounceTimer);
+  const remaining = REALTIME_MAX_WAIT_MS - (now - burstStartedAt);
+  debounceTimer = setTimeout(notifyListeners, Math.max(0, Math.min(REALTIME_DEBOUNCE_MS, remaining)));
+}
+
 function subscribeToAlertsRealtime(onChange: () => void): () => void {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return () => {};
@@ -28,13 +56,7 @@ function subscribeToAlertsRealtime(onChange: () => void): () => void {
           schema: "public",
           table: "alerts",
         },
-        () => {
-          alertChangeListeners.forEach((listener) => {
-            try {
-              listener();
-            } catch {}
-          });
-        },
+        scheduleNotify,
       )
       .subscribe();
   }
@@ -47,6 +69,9 @@ function subscribeToAlertsRealtime(onChange: () => void): () => void {
       const ch = activeAlertsChannel;
       activeAlertsChannel = null;
       subscribersCount = 0;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = null;
+      burstStartedAt = null;
       void supabase.removeChannel(ch);
     }
   };
