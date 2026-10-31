@@ -12,7 +12,7 @@ interface CacheEnvelope {
 }
 
 async function fetchReports(): Promise<ReportsResponse> {
-  const res = await fetch("/api/reports", { headers: { accept: "application/json" } });
+  const res = await fetch("/api/situation-reports", { headers: { accept: "application/json" } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = (await res.json()) as ReportsResponse;
   try {

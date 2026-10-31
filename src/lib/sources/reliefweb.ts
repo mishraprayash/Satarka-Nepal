@@ -11,7 +11,7 @@ import { fetchJson, str } from "./util";
  *  - v2 refuses unregistered callers: every request must carry an APPROVED
  *    `appname`, which must be requested from ReliefWeb (apidoc.reliefweb.int).
  *    Until `APP` below is replaced with an approved name the feed returns 403
- *    and the /api/reports route honestly reports `ok:false`. We deliberately
+ *    and the /api/situation-reports route honestly reports `ok:false`. We deliberately
  *    do not squat on someone else's appname.
  */
 
