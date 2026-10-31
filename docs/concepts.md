@@ -73,15 +73,22 @@ Exact duplicate ids are removed first. Alerts without coordinates are never merg
 
 After deduplication, `sortAlerts()` orders the list by **severity first, then newest first**.
 
-## The headline status
+## The national level
 
-The banner at the top of the home page sums up the whole alert list:
+The home page answers one question first: how serious is it in Nepal right now? `nationalLevel()` in `src/lib/national-level.ts` reduces the whole alert list to one step of a four-step ladder. The most severe active alert decides it:
 
-| Banner | When |
+```mermaid
+flowchart LR
+    C["Clear<br/>nothing above advisory"] --> W["Watch<br/>at least one watch"] --> Wa["Warning<br/>at least one warning"] --> D["Danger<br/>at least one danger"]
+```
+
+The same level drives three things:
+
+| Where | What it shows |
 |---|---|
-| Danger | At least one `danger` alert is active |
-| Warning | At least one `warning`, no `danger` |
-| No serious warnings | Nothing at `warning` or above |
+| Home page | The verdict as the headline ("1 alert to keep an eye on"), the ladder with the current step filled, and when the data was checked |
+| Every other page | A solid orange or red band under the header, but only at Warning or Danger |
+| Phone navigation | A count badge on the Alerts tab, coloured by level |
 
 ## Freshness
 
@@ -101,6 +108,7 @@ In the browser, if the network is down, the last response saved in `localStorage
 |---|---|
 | One source fails | Its row in "Source health" says it's unreachable; other sources still show |
 | A map layer can't load | The map says that layer is showing last-known data |
+| The roads feed is down | "Road status is unavailable right now", never "no blocked roads" |
 | The browser is offline | Last-known alerts with their time |
 | An upstream host times out | Skipped for 60 seconds, so pages answer quickly instead of waiting again |
 
@@ -139,7 +147,8 @@ sequenceDiagram
 Every page exists in English (`/en/...`) and Nepali (`/ne/...`). The locale is always in the URL, so a shared link opens in the language it was shared in.
 
 - English is the complete catalogue. Nepali overrides it key by key; anything not yet translated falls back to English rather than to machine translation, because safety text must be reviewed by a native speaker.
-- Numbers on Nepali pages use Devanagari digits (०–९).
+- Numbers on Nepali pages use Devanagari digits (०–९). Counts are converted by `localizeDigits()` rather than ICU's `#`, because Node and browsers disagree on Nepali digits and the page would otherwise change on load.
+- Both scripts are set in one typeface, Mukta, which was designed for Devanagari and Latin together.
 - Relative times ("5 minutes ago", "५ मिनेट पहिले") are written by hand rather than with the browser's `Intl` API, because some browsers don't ship Nepali data and silently fall back to English.
 
 ## Built for difficult conditions
@@ -148,6 +157,6 @@ Every page exists in English (`/en/...`) and Nepali (`/ne/...`). The locale is a
 |---|---|
 | Slow or metered mobile data | A low-data mode slows polling to every 10 minutes and turns off live updates and animations |
 | Older readers or small screens | Text size setting (normal, large, extra large); every button at least 44 px tall |
-| Night or power cuts | Dark theme, chosen automatically or by the person |
+| Night or power cuts | Dark theme with a night-blue background, chosen automatically or by the person |
 | No signal | Service worker opens the app and recently visited pages; alerts come from the last-known snapshot |
-| Emergency | The Emergency button in the header lists the national numbers, each one tap to call, on every page |
+| Emergency | Phone numbers are one tap away on every page: the Emergency button in the header and the strip at the top of the footer |

@@ -6,7 +6,7 @@ import type { HazardType } from "@/lib/types";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 import { HAZARD_ORDER } from "@/lib/ui";
-import { HazardGlyph, SearchIcon, CloseIcon } from "@/components/icons";
+import { MapPinIcon, HazardGlyph, SearchIcon, CloseIcon } from "@/components/icons";
 import {
   HISTORIC_DISASTERS,
   HARD_SCIENTIFIC_FACTS,
@@ -65,19 +65,14 @@ export function DisasterHistorySection() {
           {HARD_SCIENTIFIC_FACTS.map((fact) => (
             <div
               key={fact.id}
-              className="card relative overflow-hidden flex flex-col justify-between p-5 sm:p-6 border-border hover:border-border-strong transition-colors"
+              className="card flex flex-col justify-between p-5 sm:p-6"
             >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="eyebrow !text-brand font-bold">
-                    {locale === "ne" ? fact.topic.ne : fact.topic.en}
-                  </span>
-                  <span className="text-sm rounded bg-surface-2 px-2 py-0.5 text-muted font-semibold">
-                    {tl("geologicalInsight")}
-                  </span>
-                </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-muted">
+                  {locale === "ne" ? fact.topic.ne : fact.topic.en}
+                </p>
 
-                <h3 className="text-base sm:text-lg font-bold leading-snug text-text">
+                <h3 className="text-lg font-bold leading-snug text-text">
                   {locale === "ne" ? fact.headline.ne : fact.headline.en}
                 </h3>
 
@@ -86,8 +81,8 @@ export function DisasterHistorySection() {
                 </p>
               </div>
 
-              <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-3 text-sm">
-                <span className="font-bold text-brand block mb-0.5">
+              <div className="mt-4 rounded-chip border-l-4 border-brand bg-surface-2 p-3 text-base">
+                <span className="mb-0.5 block font-bold">
                   {locale === "ne" ? "जीवन रक्षा नियम:" : "Life-Safety Rule:"}
                 </span>
                 <span className="text-text leading-relaxed">
@@ -183,86 +178,64 @@ export function DisasterHistorySection() {
               return (
                 <article
                   key={item.id}
-                  className="card flex flex-col justify-between p-5 sm:p-6 transition-all hover:border-border-strong shadow-xs"
+                  className="card flex flex-col justify-between p-5 sm:p-6"
                 >
-                  <div className="space-y-3.5">
-                    {/* Top Row: Year badge & Hazard badge */}
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="tabular rounded bg-brand/10 border border-brand/30 px-2 py-0.5 text-sm font-bold text-brand">
-                          {item.year} ({item.bsYear})
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-sm font-medium text-muted">
-                          <HazardGlyph hazard={item.hazard} width={13} height={13} />
-                          <span>{th(`${item.hazard}.name`)}</span>
-                        </span>
-                      </div>
-                      <span className="rounded-chip border border-border bg-surface-2 px-2.5 py-0.5 text-sm font-semibold tabular text-text">
-                        {metric}
+                  <div className="space-y-3">
+                    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+                      <span className="tabular font-bold text-text">
+                        {item.year} ({item.bsYear})
                       </span>
-                    </div>
+                      <span className="inline-flex items-center gap-1.5">
+                        <HazardGlyph hazard={item.hazard} width={14} height={14} />
+                        {th(`${item.hazard}.name`)}
+                      </span>
+                    </p>
 
-                    {/* Title & Location */}
                     <div>
-                      <h3 className="text-base sm:text-lg font-bold leading-snug text-text">
-                        {title}
-                      </h3>
-                      <p className="mt-1 text-sm font-medium text-muted">
-                        📍 {locationStr}
+                      <h3 className="text-lg font-bold leading-snug text-text">{title}</h3>
+                      <p className="mt-1 flex items-start gap-1.5 text-base text-muted">
+                        <MapPinIcon width={16} height={16} className="mt-1 shrink-0 text-faint" />
+                        {locationStr}
                       </p>
                     </div>
 
-                    {/* Casualties / Impact headline */}
-                    <div className="rounded-lg border border-danger/25 bg-danger-soft/20 px-3 py-2 text-sm">
-                      <span className="font-bold text-danger mr-1.5">
-                        {tl("fatalitiesLabel")}:
-                      </span>
-                      <span className="font-semibold text-text tabular">
-                        {item.fatalities}
-                      </span>
+                    <div className="flex flex-wrap gap-x-6 gap-y-1 text-base">
+                      <p>
+                        <span className="text-muted">{tl("fatalitiesLabel")}: </span>
+                        <span className="tabular font-bold text-danger">{item.fatalities}</span>
+                      </p>
+                      <p className="tabular font-semibold">{metric}</p>
                     </div>
 
-                    {/* Impact description */}
-                    <p className="text-sm sm:text-base leading-relaxed text-muted">
-                      {impact}
-                    </p>
+                    <p className="text-base leading-relaxed text-muted">{impact}</p>
 
                     {/* Expandable Scientific Details */}
                     {isExpanded ? (
-                      <div className="mt-3.5 space-y-3 border-t border-border pt-3.5 text-sm">
-                        <div className="space-y-1">
-                          <span className="font-bold text-brand text-sm">
-                            {tl("scientificCauseLabel")}
-                          </span>
-                          <p className="leading-relaxed text-muted bg-surface-2/60 p-2.5 rounded border border-border/60">
-                            {cause}
-                          </p>
+                      <div className="space-y-4 border-t border-border pt-4 text-base">
+                        <div>
+                          <h4 className="font-bold">{tl("scientificCauseLabel")}</h4>
+                          <p className="mt-1 leading-relaxed text-muted">{cause}</p>
                         </div>
-
-                        <div className="space-y-1">
-                          <span className="font-bold text-warning text-sm">
-                            {tl("lessonsLabel")}
-                          </span>
-                          <p className="leading-relaxed text-muted bg-warning-soft/20 p-2.5 rounded border border-warning/30">
-                            {lesson}
-                          </p>
+                        <div className="rounded-chip border-l-4 border-brand bg-surface-2 p-3">
+                          <h4 className="font-bold">{tl("lessonsLabel")}</h4>
+                          <p className="mt-1 leading-relaxed">{lesson}</p>
                         </div>
                       </div>
                     ) : null}
                   </div>
 
                   {/* Toggle Accordion footer button */}
-                  <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-sm">
+                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-2 text-sm">
                     <button
                       type="button"
                       onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                      className="inline-flex items-center gap-1 rounded-chip border border-border bg-surface-2/60 px-3 py-1.5 font-semibold text-brand hover:border-brand hover:bg-brand-soft/40 transition-colors cursor-pointer"
+                      aria-expanded={isExpanded}
+                      className="inline-flex items-center gap-1.5 font-semibold text-brand hover:underline underline-offset-4 cursor-pointer"
                     >
-                      {isExpanded ? `▲ ${tl("hideCauseLessons")}` : `▼ ${tl("readCauseLessons")}`}
+                      <span aria-hidden className={cn("inline-block transition-transform", isExpanded && "rotate-180")}>▾</span>
+                      {isExpanded ? tl("hideCauseLessons") : tl("readCauseLessons")}
                     </button>
-                    <span className="text-base text-muted">
-                      {tl("verifiedRecord")}
-                    </span>
+                    <span className="text-faint">{tl("verifiedRecord")}</span>
                   </div>
                 </article>
               );

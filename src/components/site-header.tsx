@@ -7,13 +7,15 @@ import { cn } from "@/lib/cn";
 import { SearchIcon } from "@/components/icons";
 import { EmergencyMenu, LanguageToggle, SettingsMenu } from "@/components/settings-controls";
 
-/** Primary destinations. Home is the logo; About lives in the footer / More menu. */
+/**
+ * Places to look, in the order people need them. Home is the logo, About lives
+ * in the footer. Reporting is an action, so it sits apart as a button.
+ */
 export const PRIMARY_NAV = [
   { href: "/alerts", key: "alerts" },
   { href: "/map", key: "map" },
-  { href: "/learn", key: "learn" },
-  { href: "/report", key: "report" },
   { href: "/highways", key: "highways" },
+  { href: "/learn", key: "learn" },
 ] as const;
 
 export function isActive(pathname: string, href: string) {
@@ -31,21 +33,21 @@ export function SiteHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur-xl">
-      <div className="shell flex h-16 items-center justify-between gap-3 sm:h-[4.5rem]">
-        <div className="flex min-w-0 items-center gap-6 xl:gap-8">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-xl">
+      <div className="shell flex h-16 items-stretch justify-between gap-3">
+        <div className="flex min-w-0 items-stretch gap-8">
           <Link
             href="/"
-            className="flex shrink-0 items-baseline gap-2 rounded-chip"
+            className="flex shrink-0 items-center gap-2 self-center rounded-chip"
             aria-label="Satarka — home"
           >
-            <span lang="ne" className="text-2xl font-bold leading-none text-brand" style={{ fontFamily: "var(--font-deva)" }}>
+            <span lang="ne" className="text-[1.75rem] font-extrabold leading-none text-brand">
               सतर्क
             </span>
-            <span className="hidden text-xl font-bold tracking-tight min-[400px]:inline">Satarka</span>
+            <span className="hidden text-lg font-bold leading-none min-[400px]:inline">Satarka</span>
           </Link>
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+          <nav className="hidden items-stretch gap-1 lg:flex" aria-label="Primary">
             {PRIMARY_NAV.map((item) => {
               const active = isActive(pathname, item.href);
               return (
@@ -54,8 +56,12 @@ export function SiteHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "rounded-chip px-3.5 py-2.5 text-base font-medium whitespace-nowrap transition-colors",
-                    active ? "bg-brand-soft font-semibold text-brand" : "text-muted hover:bg-surface-2 hover:text-text",
+                    "relative flex items-center px-3 text-base whitespace-nowrap transition-colors",
+                    // The current page is marked by a bar on the header's bottom edge.
+                    "after:absolute after:inset-x-3 after:-bottom-px after:h-[3px] after:rounded-t-full",
+                    active
+                      ? "font-bold text-text after:bg-brand"
+                      : "font-medium text-muted hover:text-text after:bg-transparent",
                   )}
                 >
                   {t(item.key)}
@@ -65,16 +71,16 @@ export function SiteHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
           </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
             onClick={onOpenSearch}
-            className="hidden h-11 items-center gap-2 rounded-chip border border-border px-3 text-base font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text cursor-pointer lg:inline-flex"
+            className="hidden h-11 items-center gap-2 rounded-chip px-3 text-base font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text cursor-pointer lg:inline-flex"
             aria-label={t("search")}
           >
             <SearchIcon width={18} height={18} />
             <span className="hidden xl:inline">{t("search")}</span>
-            <kbd suppressHydrationWarning className="hidden rounded border border-border px-1.5 py-0.5 font-mono text-sm text-faint 2xl:inline">
+            <kbd suppressHydrationWarning className="hidden rounded-md border border-border px-1.5 text-sm text-faint 2xl:inline">
               {shortcutKey}
             </kbd>
           </button>
@@ -82,6 +88,13 @@ export function SiteHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
             <SettingsMenu />
           </div>
           <LanguageToggle />
+          <Link
+            href="/report"
+            aria-current={isActive(pathname, "/report") ? "page" : undefined}
+            className="btn btn-secondary hidden !min-h-11 !px-4 lg:inline-flex"
+          >
+            {t("report")}
+          </Link>
           <EmergencyMenu />
         </div>
       </div>

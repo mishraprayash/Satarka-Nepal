@@ -5,7 +5,8 @@ import { HAZARD_TYPES, type HazardType } from "@/lib/types";
 import { HAZARD_ORDER } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { LearnGuide } from "@/components/learn-guide";
-import { ArrowIcon, HazardGlyph } from "@/components/icons";
+import { HazardGlyph } from "@/components/icons";
+import { TabScroller } from "@/components/tab-scroller";
 
 export function generateStaticParams() {
   return HAZARD_TYPES.map((hazard) => ({ hazard }));
@@ -45,12 +46,12 @@ export default async function HazardGuidePage({
   return (
     <div className="shell space-y-6 py-10 sm:py-14">
       {/* Accessible semantic breadcrumb navigation */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-base text-muted">
+      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-base text-muted">
         <Link href="/" className="hover:text-text transition-colors">
           {locale === "ne" ? "गृह" : "Home"}
         </Link>
         <span>/</span>
-        <Link href="/learn" className="hover:text-text transition-colors">
+        <Link href="/learn" className="truncate hover:text-text transition-colors">
           {t("title")}
         </Link>
         <span>/</span>
@@ -59,38 +60,33 @@ export default async function HazardGuidePage({
         </span>
       </nav>
 
-      {/* Hazard Quick-Switcher Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/learn"
-            className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border px-4 py-2 text-base font-semibold text-muted hover:border-brand hover:text-text transition-colors"
-          >
-            <ArrowIcon width={12} height={12} className="rotate-180" />
-            <span>{t("allHazards")}</span>
-          </Link>
-          <div className="h-4 w-px bg-border hidden sm:block" aria-hidden />
+      {/* Switch hazard like tabs; the breadcrumb already leads back to all guides.
+          On phones the row scrolls sideways instead of wrapping onto several lines. */}
+      <TabScroller label={t("title")} className="no-scrollbar -mx-5 overflow-x-auto border-b border-border px-5 sm:mx-0 sm:px-0">
+        <ul className="flex min-w-max gap-1">
           {HAZARD_ORDER.map((h) => {
             const isActive = h === normalizedHazard;
             return (
-              <Link
-                key={h}
-                href={`/learn/${h}`}
-                className={cn(
-                  "inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 px-4 py-2 text-base font-semibold transition-all",
-                  isActive
-                    ? "border-brand bg-brand text-brand-fg shadow-xs"
-                    : "border-border text-muted hover:bg-surface-2 hover:text-text",
-                )}
-                aria-current={isActive ? "page" : undefined}
-              >
-                <HazardGlyph hazard={h} width={20} height={20} />
-                <span>{th(`${h}.name`)}</span>
-              </Link>
+              <li key={h}>
+                <Link
+                  href={`/learn/${h}`}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "relative flex min-h-12 items-center gap-2 px-3 text-base whitespace-nowrap transition-colors",
+                    "after:absolute after:inset-x-3 after:-bottom-px after:h-[3px] after:rounded-t-full",
+                    isActive
+                      ? "font-bold text-text after:bg-brand"
+                      : "font-medium text-muted hover:text-text after:bg-transparent",
+                  )}
+                >
+                  <HazardGlyph hazard={h} width={20} height={20} />
+                  {th(`${h}.name`)}
+                </Link>
+              </li>
             );
           })}
-        </div>
-      </div>
+        </ul>
+      </TabScroller>
 
       <LearnGuide hazard={normalizedHazard} locale={locale} />
     </div>

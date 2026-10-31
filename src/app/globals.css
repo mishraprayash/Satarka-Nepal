@@ -2,10 +2,21 @@
 @import "leaflet/dist/leaflet.css";
 
 /*
-  Satarka Design System Tokens.
-  Principles: Simple. Calm. Precise. Premium. Intentional. Human.
-  Identity: Himalayan Glacial Cyan on architectural Slate/Charcoal neutrals.
-  Zero webfont weight: High-performance native system typography with optical kerning.
+  Satarka design tokens.
+
+  The job of every screen: answer "is it safe where I am, and what do I do?"
+  in a few seconds, for anyone in Nepal, on any phone, in sun or at night.
+
+  Colour has two jobs and they never overlap:
+  - Brand is Daura blue, taken from the border of Nepal's flag. It marks
+    navigation and interaction only, so it never competes with a warning.
+  - Severity is a fixed four-step public-warning ladder (green, yellow,
+    orange, red), always paired with an icon and a word. Danger red sits close
+    to the flag's crimson. Each step has a soft tint, a readable text tone,
+    and a solid fill with its own on-colour.
+
+  Type is Mukta (Ek Type): one family designed for Devanagari and Latin
+  together, so English and Nepali pages share one voice.
 */
 
 @theme inline {
@@ -27,93 +38,113 @@
   --color-info-soft: var(--sev-info-bg);
   --color-advisory: var(--sev-advisory-fg);
   --color-advisory-soft: var(--sev-advisory-bg);
+  --color-advisory-solid: var(--sev-advisory-solid);
+  --color-advisory-on: var(--sev-advisory-on);
   --color-watch: var(--sev-watch-fg);
   --color-watch-soft: var(--sev-watch-bg);
+  --color-watch-solid: var(--sev-watch-solid);
+  --color-watch-on: var(--sev-watch-on);
   --color-warning: var(--sev-warning-fg);
   --color-warning-soft: var(--sev-warning-bg);
+  --color-warning-solid: var(--sev-warning-solid);
+  --color-warning-on: var(--sev-warning-on);
   --color-danger: var(--sev-danger-fg);
   --color-danger-soft: var(--sev-danger-bg);
   --color-danger-solid: var(--sev-danger-solid);
+  --color-danger-on: var(--sev-danger-on);
 
   --font-sans: var(--font-sans-stack);
   --font-mono: var(--font-mono-stack);
   --font-deva: var(--font-deva-stack);
 
-  --radius-card: 1.25rem;
-  --radius-chip: 0.875rem;
+  /* Radius follows hierarchy: panels > cards > controls. */
+  --radius-panel: 1.25rem;
+  --radius-card: 0.875rem;
+  --radius-chip: 0.625rem;
 }
 
 :root {
-  /* Type stacks — Apple native SF Pro, Inter, Segoe UI, system */
-  --font-sans-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter",
-    system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono-stack: "SF Mono", "SFMono-Regular", ui-monospace, "Cascadia Code",
-    "Roboto Mono", Menlo, Consolas, monospace;
-  --font-deva-stack: "Noto Sans Devanagari", "Mukta", "Kohinoor Devanagari",
-    "Nirmala UI", "Mangal", var(--font-sans-stack);
+  --font-sans-stack: var(--font-mukta), "Mukta", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Noto Sans Devanagari", "Nirmala UI", sans-serif;
+  --font-mono-stack: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-deva-stack: var(--font-sans-stack);
 
-  /* Light theme — Calm porcelain canvas, crisp contrast, refined slate */
-  --bg: #f8fafc;
+  /* Light — cool mist ground, Himal ink text */
+  --bg: #f3f5f8;
   --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --text: #0f172a;
-  --muted: #3f4b5e;
-  --faint: #64748b;
+  --surface-2: #ebeff4;
+  --border: #dce2ea;
+  --border-strong: #c3ccd8;
+  --text: #0e1a2e;
+  --muted: #445269;
+  --faint: #5f6c80;
 
-  --brand: #0284c7;
-  --brand-strong: #0369a1;
-  --brand-soft: #e0f2fe;
+  --brand: #1b4d9c;
+  --brand-strong: #123b7a;
+  --brand-soft: #e3ecfa;
   --brand-fg: #ffffff;
 
-  --sev-info-fg: #475569;
-  --sev-info-bg: #f1f5f9;
-  --sev-advisory-fg: #15803d;
-  --sev-advisory-bg: #f0fdf4;
-  --sev-watch-fg: #b45309;
-  --sev-watch-bg: #fef8ee;
-  --sev-warning-fg: #c2410c;
-  --sev-warning-bg: #fff1eb;
-  --sev-danger-fg: #dc2626;
-  --sev-danger-bg: #fef2f2;
-  --sev-danger-solid: #dc2626;
+  --sev-info-fg: #4a5568;
+  --sev-info-bg: #eef1f5;
+  --sev-advisory-fg: #17663b;
+  --sev-advisory-bg: #e6f4ec;
+  --sev-advisory-solid: #1f8a4c;
+  --sev-advisory-on: #ffffff;
+  --sev-watch-fg: #7a5600;
+  --sev-watch-bg: #fff6d6;
+  --sev-watch-solid: #f5c518;
+  --sev-watch-on: #0e1a2e;
+  --sev-warning-fg: #a33e00;
+  --sev-warning-bg: #ffeddf;
+  --sev-warning-solid: #f08a24;
+  --sev-warning-on: #0e1a2e;
+  --sev-danger-fg: #b3122b;
+  --sev-danger-bg: #fde8eb;
+  --sev-danger-solid: #c8102e;
+  --sev-danger-on: #ffffff;
 
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 6px 18px -2px rgb(0 0 0 / 0.03);
-  --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 20px 36px -4px rgb(0 0 0 / 0.06);
+  --shadow-card: 0 1px 2px rgb(14 26 46 / 0.06);
+  --shadow-elevated: 0 2px 6px rgb(14 26 46 / 0.06), 0 16px 40px -8px rgb(14 26 46 / 0.18);
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  /* Dark theme — Deep OLED obsidian canvas, luminous glacier accent */
-  --bg: #090a0f;
-  --surface: #11131a;
-  --surface-2: #181b24;
-  --border: #1e2330;
-  --border-strong: #2b3244;
-  --text: #f8fafc;
-  --muted: #b3bfd0;
-  --faint: #8494ab;
+  /* Dark — night-sky blue ground, so the page reads calm during a blackout */
+  --bg: #0a1221;
+  --surface: #111c2e;
+  --surface-2: #18253a;
+  --border: #223149;
+  --border-strong: #31435f;
+  --text: #eef2f8;
+  --muted: #b2bed0;
+  --faint: #8796ad;
 
-  --brand: #38bdf8;
-  --brand-strong: #7dd3fc;
-  --brand-soft: #082f49;
-  --brand-fg: #082f49;
+  --brand: #8ab4ff;
+  --brand-strong: #b5cfff;
+  --brand-soft: #14284a;
+  --brand-fg: #08142a;
 
-  --sev-info-fg: #94a3b8;
-  --sev-info-bg: #181b24;
-  --sev-advisory-fg: #4ade80;
-  --sev-advisory-bg: #052e16;
-  --sev-watch-fg: #facc15;
-  --sev-watch-bg: #2d2305;
-  --sev-warning-fg: #fb923c;
-  --sev-warning-bg: #321908;
-  --sev-danger-fg: #f87171;
-  --sev-danger-bg: #350f11;
-  --sev-danger-solid: #ef4444;
+  --sev-info-fg: #a8b4c6;
+  --sev-info-bg: #18253a;
+  --sev-advisory-fg: #6fd69a;
+  --sev-advisory-bg: #0e2c1e;
+  --sev-advisory-solid: #2ea862;
+  --sev-advisory-on: #04140b;
+  --sev-watch-fg: #f7d25a;
+  --sev-watch-bg: #2e260a;
+  --sev-watch-solid: #f5c518;
+  --sev-watch-on: #0e1a2e;
+  --sev-warning-fg: #ffa463;
+  --sev-warning-bg: #351c0a;
+  --sev-warning-solid: #f08a24;
+  --sev-warning-on: #0e1a2e;
+  --sev-danger-fg: #ff7a8a;
+  --sev-danger-bg: #3a0f17;
+  --sev-danger-solid: #e0213f;
+  --sev-danger-on: #ffffff;
 
-  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.6), 0 8px 24px -4px rgb(0 0 0 / 0.5);
-  --shadow-elevated: 0 4px 12px 0 rgb(0 0 0 / 0.7), 0 20px 48px -4px rgb(0 0 0 / 0.6);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-elevated: 0 2px 8px rgb(0 0 0 / 0.5), 0 20px 48px -8px rgb(0 0 0 / 0.6);
   color-scheme: dark;
 }
 
@@ -143,9 +174,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  /* Nepali locale: route body copy through the Devanagari stack */
-  :lang(ne) {
-    font-family: var(--font-deva);
+  /* Devanagari needs more room between lines. Set once on body so it is
+     inherited, and any component that sets its own leading still wins. */
+  html:lang(ne) body {
     line-height: 1.7;
   }
   :lang(ne) h1, :lang(ne) h2, :lang(ne) h3, :lang(ne) h4 {
@@ -153,9 +184,9 @@
     line-height: 1.3;
   }
   h1, h2, h3, h4 {
-    letter-spacing: -0.025em;
-    line-height: 1.18;
-    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    font-weight: 700;
     text-wrap: balance;
   }
   p {
@@ -176,11 +207,10 @@
 }
 
 @layer components {
-  /* Precision Instrument Voice: Tabular numeric telemetry */
+  /* Readings and counts: aligned figures in the body face, not a code font */
   .tabular {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: 0;
   }
   .eyebrow {
     font-size: 0.875rem;
@@ -210,23 +240,106 @@
     border: 1.5px solid var(--border-strong);
   }
   .btn-secondary:hover { background: var(--surface-2); }
-  .btn-emergency { background: var(--sev-danger-solid); color: #fff; }
+  .btn-emergency { background: var(--sev-danger-solid); color: var(--sev-danger-on); }
   .btn-emergency:hover { filter: brightness(0.92); }
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: border-color 0.15s, background-color 0.15s;
   }
+  /* A card that is a link: the border answers the pointer, nothing moves */
+  .card-link:hover { border-color: var(--border-strong); background: color-mix(in srgb, var(--surface-2) 40%, var(--surface)); }
+  .card-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   .card-elevated {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-elevated);
   }
+
+  /* Dialogs and sheets share one shell: dimmed backdrop, panel, header,
+     scrolling body, pinned actions. Bottom sheet on phones, centred on wider. */
+  .dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgb(6 12 24 / 0.62);
+  }
+  .dialog-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 92dvh;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+    box-shadow: var(--shadow-elevated);
+    overflow: hidden;
+    animation: drawerSlideInBottom 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (min-width: 640px) {
+    .dialog-panel {
+      border-radius: var(--radius-panel);
+      max-height: 88dvh;
+      animation-name: modalScaleIn;
+    }
+  }
+  /* Grab handle: tells phone users the sheet can be dismissed downward */
+  .dialog-panel::before {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    width: 2.5rem;
+    height: 0.25rem;
+    margin-left: -1.25rem;
+    border-radius: 999px;
+    background: var(--border-strong);
+  }
+  @media (min-width: 640px) {
+    .dialog-panel::before { display: none; }
+  }
+  .dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .dialog-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+  }
+  .dialog-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  @media (min-width: 640px) {
+    .dialog-header { padding: 1.5rem 1.75rem 1.125rem; }
+    .dialog-body { padding: 1.5rem 1.75rem; }
+    .dialog-footer { padding: 1rem 1.75rem; }
+  }
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--text); }
   .frosted {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -234,7 +347,7 @@
   }
   .shell {
     width: 100%;
-    max-width: 80rem;
+    max-width: 76rem;
     margin-inline: auto;
     padding-inline: clamp(1.25rem, 3.5vw, 2.5rem);
   }
@@ -244,6 +357,10 @@
 .pb-mobile-nav {
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
+
+/* Sideways-scrolling rows (tab bars) on phones: swipe, no scrollbar */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* Custom compact scrollbar for drawers and lists */
 .custom-scrollbar::-webkit-scrollbar {
@@ -287,7 +404,7 @@
   animation: drawerSlideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .animate-drawer-bottom {
-  animation: drawerSlideInBottom 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: drawerSlideInBottom 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes modalScaleIn {
   from {

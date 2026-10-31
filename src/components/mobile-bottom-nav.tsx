@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/routing";
+import { localizeDigits } from "@/lib/format";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 import { CloseIcon, MapPinIcon, SearchIcon } from "@/components/icons";
 import { SettingsPanel } from "@/components/settings-controls";
 import { isActive } from "@/components/site-header";
+import { useAlerts } from "@/lib/use-alerts";
+import { nationalLevel } from "@/lib/national-level";
 
 type GlyphProps = { size?: number };
 
@@ -45,15 +49,25 @@ const MoreGlyph = () => (
 );
 
 const MORE_LINKS = [
-  { href: "/report", key: "report", hint: "reportHint" },
   { href: "/highways", key: "highways", hint: "highwaysHint" },
   { href: "/about", key: "about", hint: "aboutHint" },
 ] as const;
 
+/** Badge colour on the Alerts tab follows the national level. */
+const BADGE: Record<"watch" | "warning" | "danger", string> = {
+  watch: "bg-watch-solid text-watch-on",
+  warning: "bg-warning-solid text-warning-on",
+  danger: "bg-danger-solid text-danger-on",
+};
+
 export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) {
   const t = useTranslations("nav");
+  const tl = useTranslations("levels");
+  const locale = useLocale() as Locale;
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const { response } = useAlerts(120_000);
+  const { level, count } = nationalLevel(response?.alerts ?? []);
 
   useEffect(() => setMoreOpen(false), [pathname]);
   useEffect(() => {
@@ -69,7 +83,7 @@ export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) 
     { href: "/map", label: t("map"), icon: <MapPinIcon width={26} height={26} /> },
     { href: "/learn", label: t("learn"), icon: <BookGlyph /> },
   ];
-  const moreActive = MORE_LINKS.some((l) => isActive(pathname, l.href));
+  const moreActive = [...MORE_LINKS.map((l) => l.href), "/report"].some((h) => isActive(pathname, h));
 
   const tabClass = (active: boolean) =>
     cn(
@@ -80,40 +94,48 @@ export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) 
   return (
     <>
       {moreOpen ? (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label={t("more")}>
-          <button type="button" aria-label={t("close")} className="absolute inset-0 bg-black/50" onClick={() => setMoreOpen(false)} />
+        <div className="fixed inset-0 z-40 flex items-end lg:hidden" role="dialog" aria-modal="true" aria-labelledby="more-sheet-title">
+          <button type="button" aria-label={t("close")} className="dialog-backdrop" onClick={() => setMoreOpen(false)} />
           <div
-            className="animate-drawer-bottom card-elevated absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-b-none p-5"
-            style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))" }}
+            className="dialog-panel"
+            style={{
+              marginBottom: "calc(4.5rem + env(safe-area-inset-bottom, 0px))",
+              maxHeight: "calc(92dvh - 4.5rem - env(safe-area-inset-bottom, 0px))",
+            }}
           >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">{t("more")}</h2>
-              <button type="button" onClick={() => setMoreOpen(false)} aria-label={t("close")} className="grid size-11 place-items-center rounded-full hover:bg-surface-2 cursor-pointer">
+            <div className="dialog-header">
+              <h2 id="more-sheet-title" className="text-xl font-bold">{t("more")}</h2>
+              <button type="button" onClick={() => setMoreOpen(false)} aria-label={t("close")} className="icon-btn -mr-2 -mt-1">
                 <CloseIcon width={22} height={22} />
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setMoreOpen(false);
-                onOpenSearch();
-              }}
-              className="mb-3 flex w-full items-center gap-3 rounded-chip border border-border-strong px-4 py-3.5 text-left text-lg font-medium cursor-pointer"
-            >
-              <SearchIcon width={22} height={22} className="text-muted" />
-              {t("searchPlaceholder")}
-            </button>
-            <ul className="mb-6 divide-y divide-border rounded-chip border border-border">
-              {MORE_LINKS.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className="flex flex-col px-4 py-3.5 hover:bg-surface-2">
-                    <span className="text-lg font-semibold">{t(l.key)}</span>
-                    <span className="text-sm text-muted">{t(l.hint)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <SettingsPanel />
+            <div className="dialog-body space-y-5">
+              <Link href="/report" className="btn btn-primary w-full">
+                {tl("report")}
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setMoreOpen(false);
+                  onOpenSearch();
+                }}
+                className="flex w-full items-center gap-3 rounded-chip border border-border-strong px-4 py-3 text-left text-base text-muted cursor-pointer"
+              >
+                <SearchIcon width={20} height={20} />
+                {t("searchPlaceholder")}
+              </button>
+              <ul className="divide-y divide-border rounded-card border border-border">
+                {MORE_LINKS.map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="flex flex-col px-4 py-3 hover:bg-surface-2">
+                      <span className="text-lg font-semibold">{t(l.key)}</span>
+                      <span className="text-sm text-muted">{t(l.hint)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <SettingsPanel />
+            </div>
           </div>
         </div>
       ) : null}
@@ -128,7 +150,14 @@ export function MobileBottomNav({ onOpenSearch }: { onOpenSearch: () => void }) 
             const active = isActive(pathname, tab.href);
             return (
               <Link key={tab.href} href={tab.href} aria-current={active ? "page" : undefined} className={tabClass(active)}>
-                <span className={cn("grid h-8 w-14 place-items-center rounded-full transition-colors", active && "bg-brand-soft")}>{tab.icon}</span>
+                <span className={cn("relative grid h-8 w-14 place-items-center rounded-full transition-colors", active && "bg-brand-soft")}>
+                  {tab.icon}
+                  {tab.href === "/alerts" && level !== "clear" ? (
+                    <span className={cn("absolute -top-1 right-1.5 grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs font-bold tabular ring-2 ring-surface", BADGE[level])}>
+                      {localizeDigits(count, locale)}
+                    </span>
+                  ) : null}
+                </span>
                 <span>{tab.label}</span>
               </Link>
             );

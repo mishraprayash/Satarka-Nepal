@@ -74,7 +74,7 @@ function RiverGaugeMeter({
   return (
     <div className="space-y-2 rounded-xl border border-border/80 bg-surface-2/60 p-4">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-bold uppercase tracking-wider text-muted">River Level Gauge</span>
+        <span className="font-bold text-muted">River Level Gauge</span>
         <div className="flex items-center gap-2">
           {trend ? (
             <span className="rounded-chip border border-border bg-surface px-2 py-0.5 text-sm font-semibold uppercase text-text">
@@ -259,61 +259,42 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
       className="fixed inset-0 z-[60] flex items-end justify-center overflow-hidden sm:items-center sm:p-5 md:p-6"
       role="presentation"
     >
-      {/* Backdrop — calm frosted dark glass */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="dialog-backdrop" onClick={onClose} aria-hidden="true" />
 
       {/* Centered Modal Window */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="alert-modal-title"
-        className={cn(
-          "relative z-10 flex flex-col w-full max-w-2xl md:max-w-3xl max-h-[94dvh] bg-surface text-text shadow-2xl rounded-t-3xl sm:rounded-3xl border border-border/80 overflow-hidden focus:outline-none",
-          "animate-modal-center",
-        )}
+        className="dialog-panel z-10 max-w-2xl focus:outline-none md:max-w-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Severity Accent Ribbon */}
+        {/* Severity colour along the top edge, matching the card's left edge */}
         <div className={cn("h-1.5 w-full shrink-0", SEVERITY_BAR[alert.severity])} aria-hidden="true" />
 
-        {/* Modal Header */}
-        <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 sm:px-6 shrink-0 bg-surface/90 backdrop-blur-md">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        <div className="dialog-header items-center">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             <SeverityBadge severity={alert.severity} />
-            <span className="h-3.5 w-px bg-border shrink-0" aria-hidden />
-            <span className="inline-flex items-center gap-1.5 text-sm sm:text-sm font-medium text-muted">
-              <HazardGlyph hazard={alert.hazard} width={15} height={15} className="shrink-0 text-brand" />
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted">
+              <HazardGlyph hazard={alert.hazard} width={15} height={15} className="shrink-0" />
               <span>{th(`${alert.hazard}.name`)}</span>
             </span>
-            <span className="h-3.5 w-px bg-border shrink-0" aria-hidden />
-            <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-sm font-medium text-muted tabular shrink-0">
-              {tf(alert.timeframe)}
-            </span>
+            <span className="text-sm text-faint">{tf(alert.timeframe)}</span>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={tact("close")}
-            className="grid size-12 place-items-center rounded-full text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0 cursor-pointer"
-          >
+          <button type="button" onClick={onClose} aria-label={tact("close")} className="icon-btn -mr-2">
             <CloseIcon width={22} height={22} />
           </button>
         </div>
 
-        {/* Modal Scrollable Content Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 md:p-7 space-y-6 custom-scrollbar">
+        <div className="dialog-body custom-scrollbar space-y-6">
           {/* Stale / Historical context banner if record is > 48 hours old */}
           {(() => {
             const issuedMs = alert.issuedAt ? Date.parse(alert.issuedAt) : null;
             const isStale = issuedMs ? Date.now() - issuedMs > 48 * 3600_000 : false;
             if (!isStale) return null;
             return (
-              <div className="rounded-2xl border border-border bg-surface-2/70 px-4 py-3 text-sm text-muted flex items-start gap-2.5">
+              <div className="flex items-start gap-2.5 rounded-card bg-surface-2 px-4 py-3 text-sm text-muted">
                 <span className="mt-1 size-2 rounded-full bg-watch shrink-0" aria-hidden="true" />
                 <div className="space-y-0.5">
                   <p className="font-semibold text-text">
@@ -332,7 +313,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           {/* Plain-language "should I act?" verdict */}
           <div
             role={alert.severity === "danger" ? "alert" : undefined}
-            className={cn("flex items-start gap-4 rounded-card border-2 border-current p-4 sm:p-5", SEVERITY_CHIP[alert.severity], SEVERITY_TEXT[alert.severity])}
+            className={cn("flex items-start gap-4 rounded-card border-l-[6px] border-current p-4 sm:p-5", SEVERITY_CHIP[alert.severity], SEVERITY_TEXT[alert.severity])}
           >
             <SeverityGlyph severity={alert.severity} width={30} height={30} className="mt-0.5 shrink-0" />
             <div>
@@ -353,8 +334,8 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
               {title}
             </h2>
             {place ? (
-              <div className="inline-flex items-center gap-1.5 rounded-chip bg-surface-2/80 border border-border/60 px-3 py-1 text-sm sm:text-sm font-medium text-muted break-words">
-                <MapPinIcon width={15} height={15} className="shrink-0 text-brand" />
+              <div className="flex items-start gap-1.5 text-base text-muted break-words">
+                <MapPinIcon width={17} height={17} className="mt-1 shrink-0 text-faint" />
                 <span>{place}</span>
                 {alert.location?.district && alert.location.name && alert.location.district !== alert.location.name ? (
                   <span className="text-muted font-normal">({alert.location.district})</span>
@@ -366,13 +347,13 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           {/* What to do now — act-now steps pulled from the hazard guide */}
           {duringSteps.length > 0 ? (
             <div className="space-y-2">
-              <p className="eyebrow">{talerts("whatToDoNow")}</p>
-              <div className="rounded-card border-2 border-warning/50 bg-warning-soft p-4 sm:p-5">
+              <h3 className="text-lg font-bold">{talerts("whatToDoNow")}</h3>
+              <div className="rounded-card bg-surface-2 p-4 sm:p-5">
                 <ol className="space-y-3">
                   {duringSteps.map((item, i) => (
                     <li key={i} className="flex gap-3 items-start">
                       <span
-                        className="tabular inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-warning text-base font-bold text-white"
+                        className="tabular inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-base font-bold text-brand-fg"
                         aria-hidden
                       >
                         {i + 1}
@@ -381,7 +362,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
                     </li>
                   ))}
                 </ol>
-                <p className="mt-4 text-base text-muted border-t border-warning/20 pt-2.5">{talerts("whatToDoNowNote")}</p>
+                <p className="mt-4 border-t border-border pt-3 text-base text-muted">{talerts("whatToDoNowNote")}</p>
               </div>
             </div>
           ) : null}
@@ -403,8 +384,8 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           {/* Instrument Readouts grid */}
           {readouts.length > 0 ? (
             <div className="space-y-2">
-              <p className="eyebrow">{talerts("readingsTitle")}</p>
-              <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 rounded-2xl border border-border/80 bg-surface-2/50 p-4">
+              <h3 className="text-lg font-bold">{talerts("readingsTitle")}</h3>
+              <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 rounded-card bg-surface-2 p-4">
                 {readouts.map((d) => (
                   <div key={d.label} className="min-w-0">
                     <dt className="text-sm font-medium text-muted">
@@ -422,8 +403,8 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           {/* Situation Details: Clean Metrics Grid */}
           {situationMetrics.length > 0 ? (
             <div className="space-y-2">
-              <p className="eyebrow">{talerts("situationTitle")}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 rounded-2xl border border-border/80 bg-surface-2/50 p-4">
+              <h3 className="text-lg font-bold">{talerts("situationTitle")}</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 rounded-card bg-surface-2 p-4">
                 {situationMetrics.map((m, idx) => (
                   <div key={idx} className="min-w-0">
                     <p className="text-sm font-medium text-muted">
@@ -441,8 +422,8 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           {/* Situation Paragraphs (Prose) */}
           {situationParagraphs.length > 0 ? (
             <div className="space-y-2">
-              {situationMetrics.length === 0 ? <p className="eyebrow">{talerts("situationTitle")}</p> : null}
-              <div className="text-base leading-relaxed text-text break-words whitespace-pre-line rounded-2xl border border-border/60 bg-surface-2/30 p-4">
+              {situationMetrics.length === 0 ? <h3 className="text-lg font-bold">{talerts("situationTitle")}</h3> : null}
+              <div className="text-base leading-relaxed text-text break-words whitespace-pre-line rounded-card bg-surface-2 p-4">
                 {situationParagraphs.join("\n\n")}
               </div>
             </div>
@@ -452,12 +433,12 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           {hasCoords ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="eyebrow">{talerts("locationDetails")}</span>
-                <span className="tabular text-muted font-mono text-sm">
+                <h3 className="text-lg font-bold">{talerts("locationDetails")}</h3>
+                <span className="tabular text-sm text-muted">
                   {alert.location!.lat!.toFixed(4)}°N, {alert.location!.lng!.toFixed(4)}°E
                 </span>
               </div>
-              <div className="overflow-hidden rounded-2xl border border-border/80 shadow-sm aspect-[16/9] sm:aspect-[21/9] max-h-56">
+              <div className="overflow-hidden rounded-card border border-border aspect-[16/9] sm:aspect-[21/9] max-h-56">
                 <AlertMiniMap
                   lat={alert.location!.lat!}
                   lng={alert.location!.lng!}
@@ -470,11 +451,9 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           ) : null}
 
           {/* Preparedness Quick Link Banner */}
-          <div className="rounded-2xl border border-brand/30 bg-brand/5 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-brand/30 bg-brand-soft p-4 sm:p-5">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="size-9 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
-                <HazardGlyph hazard={alert.hazard} width={20} height={20} className="text-brand shrink-0" />
-              </div>
+              <HazardGlyph hazard={alert.hazard} width={26} height={26} className="shrink-0 text-brand" />
               <div className="min-w-0">
                 <p className="text-base font-semibold text-text">
                   {locale === "ne"
@@ -491,7 +470,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
             <Link
               href={`/learn/${alert.hazard}`}
               onClick={onClose}
-              className="btn btn-primary shrink-0"
+              className="btn btn-secondary shrink-0"
             >
               <span>{tact("learnMore")}</span>
               <ArrowIcon width={12} height={12} />
@@ -499,7 +478,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
           </div>
 
           {/* Source provenance & StatusBadge & timestamp */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-border/50 bg-surface-2/40 px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-border pt-4 text-sm">
             <div className="flex flex-wrap items-center gap-2 text-muted">
               <span className="font-semibold text-text">{alert.source.name}</span>
               <span className="h-3 w-px bg-border" aria-hidden />
@@ -507,25 +486,22 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
               <span className="h-3 w-px bg-border" aria-hidden />
               <span className="capitalize">{alert.provenance === "official" ? tc("official") : tc("community")}</span>
             </div>
-            <div className="tabular text-muted font-mono text-sm">
+            <div className="tabular text-sm text-muted">
               <span suppressHydrationWarning>{tc("updatedAgo", { time: timeAgo(alert.issuedAt, locale) })}</span>
               <span className="hidden sm:inline"> · {formatDateTime(alert.issuedAt, locale)}</span>
             </div>
           </div>
         </div>
 
-        {/* Modal Footer Actions */}
-        <div
-          className="flex shrink-0 flex-col-reverse gap-3 border-t border-border bg-surface px-5 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:px-6"
-          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
-        >
+        {/* Actions: where to go next from this alert. Closing is the X or Escape. */}
+        <div className="dialog-footer flex-col-reverse sm:flex-row-reverse sm:items-center sm:justify-start">
           {hasCoords ? (
             <Link
               href={`/map?lat=${alert.location!.lat}&lng=${alert.location!.lng}&zoom=12&title=${encodeURIComponent(title)}`}
               onClick={onClose}
-              className="btn btn-secondary"
+              className="btn btn-primary"
             >
-              <MapPinIcon width={18} height={18} className="text-brand" />
+              <MapPinIcon width={18} height={18} />
               <span>{talerts("openFullMap")}</span>
             </Link>
           ) : null}
@@ -539,7 +515,7 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
             type="button"
             onClick={async () => {
               const url = typeof window !== "undefined"
-                ? `${window.location.origin}/${locale}/alerts?alert=${encodeURIComponent(alert.id)}`
+                ? `${window.location.origin}/${locale}/alerts/${encodeURIComponent(alert.id)}`
                 : "";
               const text = `${title} - Satarka Nepal`;
               const copied = locale === "ne" ? "लिङ्क कपी भयो!" : "Link copied!";
@@ -566,9 +542,11 @@ export function AlertDetailModal({ alert, isOpen, onClose }: AlertDetailModalPro
             <span>{locale === "ne" ? "साझा गर्नुहोस्" : "Share"}</span>
           </button>
 
-          <button type="button" onClick={onClose} className="btn btn-primary">
-            {tact("close")}
-          </button>
+          {!hasCoords ? (
+            <button type="button" onClick={onClose} className="btn btn-primary">
+              {tact("close")}
+            </button>
+          ) : null}
         </div>
       </div>
     </div>

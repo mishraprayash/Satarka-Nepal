@@ -139,7 +139,7 @@ A disaster site has to keep working when its sources don't. These rules apply ev
 
 - **One source failing never breaks the response.** Loaders run with `Promise.allSettled`; a failed source is reported in `sources[]` with `ok: false` and an error message.
 - **Unreachable hosts fail fast.** After a timeout, `fetchJson` skips that host for 60 seconds instead of making every page wait out the same timeout again. See [Data ingestion](data-ingestion.md#fetching-safely).
-- **Failures are visible.** Each source's `ok` flag and error appear in the "Source health" list, and the map says when a layer is showing last-known data.
+- **"Unavailable" is never shown as "all clear".** Each source's `ok` flag and error appear in the "Source health" list, the map says when a layer is showing last-known data, and the highways page says road status is unavailable when the roads feed can't be reached, rather than "no blocked roads". `loadHighwaysResult()` reports whether the feed was reached so the page can tell the two apart.
 - **A stalled ingest is detected.** If the database snapshot is older than the allowed age, reads switch to live fetching automatically.
 - **Offline is labelled.** When the network drops, the browser shows the last-known data with the time it was fetched.
 

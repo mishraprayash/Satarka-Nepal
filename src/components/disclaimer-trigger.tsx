@@ -16,14 +16,12 @@ export function DisclaimerTrigger({ label, actionText }: DisclaimerTriggerProps)
     <button
       type="button"
       onClick={handleClick}
-      className="mt-4 flex w-full flex-col gap-2 rounded-card border-2 border-warning/40 bg-warning-soft px-4 py-3 text-left text-base font-medium text-warning hover:bg-warning-soft/80 hover:border-warning/50 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning"
+      className="mt-5 flex w-full items-start gap-3 rounded-card border-l-4 border-warning-solid bg-warning-soft px-4 py-3 text-left text-base hover:bg-surface-2 transition-colors cursor-pointer"
     >
-      <div className="flex items-start sm:items-center gap-2 min-w-0">
-        <SeverityGlyph severity="warning" className="h-5 w-5 shrink-0 text-warning mt-0.5" />
-        <span>{label}</span>
-      </div>
-      <span className="text-base font-semibold underline underline-offset-2 ml-7">
-        {actionText} →
+      <SeverityGlyph severity="warning" className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+      <span className="flex flex-col gap-1">
+        <span className="font-medium text-text">{label}</span>
+        <span className="font-semibold text-brand underline underline-offset-4">{actionText}</span>
       </span>
     </button>
   );

@@ -8,7 +8,7 @@ All pages live under `src/app/[locale]/`, so each exists at `/en/...` and `/ne/.
 
 | Path | Shows | Data |
 |---|---|---|
-| `/` | Headline status, "is it safe where I live?", latest alerts by hazard, preparedness guides, situation reports | Alerts, ReliefWeb reports |
+| `/` | The national level and verdict, "is it safe where I live?", latest alerts by hazard, preparedness guides, situation reports | Alerts, ReliefWeb reports |
 | `/alerts` | Every active alert, with search, hazard and severity filters, sort order, plus source health. `?hazard=` and `?alert=` in the URL preselect a filter or open an alert | Alerts |
 | `/alerts/[id]` | One alert on its own page, shareable | One alert (database fallback for older ids) |
 | `/map` | Leaflet map: river gauges, earthquakes, road closures, basins, glacial lakes, seismic zones | `/api/map-data` |
@@ -73,11 +73,12 @@ flowchart TB
     Layout["[locale]/layout.tsx"] --> Nav["GlobalNav"]
     Layout --> Main["Page content"]
     Layout --> Footer["SiteFooter"]
-    Nav --> Header["SiteHeader<br/>links, search, settings,<br/>language, Emergency"]
+    Nav --> Header["SiteHeader<br/>links, search, settings,<br/>language, Report, Emergency"]
+    Nav --> Band["EmergencyBanner<br/>warning/danger band"]
     Nav --> Bottom["MobileBottomNav<br/>phones only"]
     Nav --> Palette["CommandPalette<br/>Ctrl/⌘ K"]
     Nav --> Disclaimer["DisclaimerModal<br/>first visit"]
-    Main --> Banner["EmergencyBanner"]
+    Main --> Hero["StatusHero"]
     Main --> Area["AreaCheck"]
     Main --> Summary["LiveSummary"]
     Main --> AlertsView["AlertsView"]
@@ -91,12 +92,16 @@ flowchart TB
 
 | Component | Job |
 |---|---|
+| `StatusHero` | Home page headline: the national level verdict, the four-step ladder, and links to alerts and reporting |
+| `EmergencyBanner` | Solid band under the header on every page except home and alerts, shown only at Warning or Danger |
+| `MobileBottomNav` | Phone tab bar with an alert-count badge; its More sheet leads with "Report a hazard" |
 | `AreaCheck` | Pick a district or use GPS; lists alerts within 25 km. The location stays in the browser |
 | `AlertCard` | One alert: severity, hazard, title, place, key reading, source and time |
 | `AlertDetailModal` | Full alert: plain-language verdict, what to do now, readings, mini map, river chart, links to the source and the full map |
 | `CommandPalette` | Search across the 77 districts, emergency numbers, guides and past disasters |
 | `HazardMap` / `LeafletMap` | The map, its layer toggles and station search. Loaded only in the browser |
 | `ReportFormModal` | The community report form |
+| `SiteFooter` | Tap-to-call emergency numbers, links grouped by intent, data credits |
 | `SettingsPanel` | Theme, text size and low-data mode |
 
 Heavy pieces (map, modals, command palette) are loaded with `next/dynamic` only when needed.
@@ -138,6 +143,22 @@ Other rules followed throughout: visible keyboard focus, a "skip to content" lin
 
 ## Styling
 
-- Tailwind CSS 4 with design tokens defined as CSS variables in `src/app/globals.css` (colours, radii, shadows) for light and dark themes.
-- Severity colours come from the same tokens everywhere, including map markers, which read them at runtime so they follow the theme.
-- Shared building blocks live in `globals.css` too: `.btn`, `.card`, `.shell` (page width and side padding).
+Tailwind CSS 4, with design tokens defined as CSS variables in `src/app/globals.css` for light and dark themes.
+
+Colour has two jobs that never overlap:
+
+| Role | Light | Dark | Used for |
+|---|---|---|---|
+| Brand (Daura blue, from the border of Nepal's flag) | `#1B4D9C` | `#8AB4FF` | Links, buttons, the current page in navigation. Never for warnings |
+| Advisory / clear | `#1F8A4C` | `#2EA862` | Severity, solid fill |
+| Watch | `#F5C518` | `#F5C518` | Severity, solid fill (dark text on top) |
+| Warning | `#F08A24` | `#F08A24` | Severity, solid fill (dark text on top) |
+| Danger | `#C8102E` | `#E0213F` | Severity, solid fill (white text on top) |
+| Background | `#F3F5F8` | `#0A1221` | Page ground (cool mist / night blue) |
+| Text | `#0E1A2E` | `#EEF2F8` | Body text |
+
+Each severity has three tones: a soft tint for backgrounds (`bg-warning-soft`), a readable text tone (`text-warning`) and a solid fill with its own on-colour (`bg-warning-solid text-warning-on`). Map markers read the solid tones at runtime so they follow the theme.
+
+- **Type:** Mukta, self-hosted with `next/font`, for both Latin and Devanagari. Readings use tabular figures, not a monospace font.
+- **Radii follow hierarchy:** panels > cards > controls (`--radius-panel`, `--radius-card`, `--radius-chip`).
+- **Shared classes:** `.btn`, `.card`, `.card-link` (a card that is a link), `.shell` (page width and side padding), and the dialog shell `.dialog-backdrop`, `.dialog-panel`, `.dialog-header`, `.dialog-body`, `.dialog-footer`, used by every modal and sheet. On phones dialogs open as bottom sheets with a grab handle.

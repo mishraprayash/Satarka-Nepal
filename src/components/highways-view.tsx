@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/format";
 import { localizeClosureReason, localizeRepairEta } from "@/lib/highway-text";
 import {
-  HazardGlyph,
+  SeverityGlyph,
   SearchIcon,
   CloseIcon,
   MapPinIcon,
@@ -86,33 +86,52 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
         </p>
       ) : null}
 
-      {/* Plain-language answer first */}
-      <div
-        role="status"
-        className={cn(
-          "flex items-start gap-4 rounded-card border-2 p-5 sm:p-6",
-          blocked.length > 0 ? "border-danger bg-danger-soft" : "border-advisory bg-advisory-soft",
-        )}
-      >
-        <span aria-hidden className="text-3xl leading-none">{blocked.length > 0 ? "🚧" : "✅"}</span>
-        <div>
-          <p className="text-xl font-bold">
-            {blocked.length > 0
-              ? locale === "ne"
-                ? `${blocked.length} सडक अहिले अवरुद्ध छन्`
-                : `${blocked.length} ${blocked.length === 1 ? "road is" : "roads are"} blocked right now`
-              : locale === "ne"
-                ? "कुनै सडक अवरुद्ध भएको रिपोर्ट छैन"
-                : "No blocked roads reported"}
-          </p>
-          <p className="mt-1 text-lg text-text">
-            {locale === "ne"
+      {/* Plain-language answer first. "Feed unreachable" is never shown as "all clear". */}
+      {(() => {
+        const unreachable = data ? data.ok === false && highways.length === 0 : isError;
+        const tone = unreachable ? "watch" : blocked.length > 0 ? "danger" : "advisory";
+        const title = unreachable
+          ? locale === "ne"
+            ? "सडक विभागको जानकारी अहिले उपलब्ध छैन"
+            : "Road status is unavailable right now"
+          : blocked.length > 0
+            ? locale === "ne"
+              ? `${blocked.length} सडक अहिले अवरुद्ध छन्`
+              : `${blocked.length} ${blocked.length === 1 ? "road is" : "roads are"} blocked right now`
+            : locale === "ne"
+              ? "कुनै सडक अवरुद्ध भएको रिपोर्ट छैन"
+              : "No blocked roads reported";
+        const body = unreachable
+          ? locale === "ne"
+            ? "हामी सडक विभागको फिडसम्म पुग्न सकेनौं। यात्रा गर्नुअघि सडक विभाग वा स्थानीय प्रहरीसँग सोध्नुहोस्।"
+            : "We couldn't reach the Department of Roads feed. Check with the Department of Roads or local police before you travel."
+          : partial.length + open.length > 0
+            ? locale === "ne"
               ? `${partial.length} एकतर्फी, ${open.length} सुचारु। यात्रा गर्नुअघि सडक विभागसँग पुष्टि गर्नुहोस्।`
-              : `${partial.length} one-way, ${open.length} fully open. Confirm with the Department of Roads before you travel.`}
-          </p>
-        </div>
-      </div>
+              : `${partial.length} one-way, ${open.length} fully open. Confirm with the Department of Roads before you travel.`
+            : locale === "ne"
+              ? "यात्रा गर्नुअघि सडक विभागसँग पुष्टि गर्नुहोस्।"
+              : "Confirm with the Department of Roads before you travel."
+        return (
+          <div
+            role="status"
+            className={cn(
+              "flex items-start gap-4 rounded-card border-l-[6px] border-current p-5 sm:p-6",
+              tone === "danger" ? "bg-danger-soft text-danger" : tone === "watch" ? "bg-watch-soft text-watch" : "bg-advisory-soft text-advisory",
+            )}
+          >
+            <SeverityGlyph severity={tone} width={30} height={30} className="mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xl font-bold">{title}</p>
+              <p className="mt-1 text-lg text-text">{body}</p>
+            </div>
+          </div>
+        );
+      })()}
 
+      {/* Search and filters only make sense once there are roads to search */}
+      {highways.length > 0 ? (
+        <>
       {/* Search */}
       <div className="relative max-w-xl">
         <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-muted">
@@ -124,7 +143,7 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
           onChange={(e) => setSearch(e.target.value)}
           aria-label={locale === "ne" ? "सडक खोज्नुहोस्" : "Search roads"}
           placeholder={locale === "ne" ? "सडक वा ठाउँ खोज्नुहोस्…" : "Search road or place…"}
-          className="h-14 w-full rounded-chip border-2 border-border-strong bg-surface pl-12 pr-12 text-lg placeholder:text-muted focus:border-brand focus:outline-none"
+          className="h-14 w-full rounded-chip border border-border-strong bg-surface pl-12 pr-12 text-lg placeholder:text-muted focus:border-brand focus:outline-none"
         />
         {search ? (
           <button
@@ -154,10 +173,10 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
             aria-pressed={statusFilter === f.st}
             onClick={() => setStatusFilter(f.st)}
             className={cn(
-              "min-h-11 rounded-chip border-2 px-4 py-2 text-base font-medium transition-all cursor-pointer active:scale-95",
+              "min-h-11 rounded-full border px-4 py-2 text-base font-medium transition-colors cursor-pointer",
               statusFilter === f.st
                 ? "border-brand bg-brand text-brand-fg font-semibold"
-                : "border-border text-text hover:bg-surface-2",
+                : "border-border-strong bg-surface text-text hover:bg-surface-2",
             )}
           >
             {locale === "ne" ? f.ne : f.en} <span className="tabular opacity-80">({f.n})</span>
@@ -173,9 +192,11 @@ export function HighwaysView({ initialData }: { initialData?: HighwaysResponse }
           {ta("refresh")}
         </button>
       </div>
+        </>
+      ) : null}
 
       {/* Highway Cards Grid */}
-      {filtered.length === 0 ? (
+      {highways.length === 0 ? null : filtered.length === 0 ? (
         <div className="card flex flex-col items-center justify-center p-12 text-center">
           <p className="font-semibold text-text">
             {locale === "ne" ? "कुनै सडक भेटिएन" : "No matching road sections found"}
@@ -223,112 +244,94 @@ function HighwayCard({ item, locale }: { item: HighwayBlockage; locale: Locale }
   const isBlocked = item.status === "BLOCKED" || item.status === "CLOSED";
   const isPartial = item.status === "PARTIAL_OPEN";
 
-  const statusBadgeClass = isBlocked
-    ? "border-danger/40 bg-danger/10 text-danger font-semibold"
+  // Same scale as alerts: blocked is danger, one-way is warning, open is clear.
+  const tone = isBlocked
+    ? { edge: "bg-danger-solid", chip: "bg-danger-soft text-danger" }
     : isPartial
-      ? "border-warning/40 bg-warning/10 text-warning font-semibold"
-      : "border-brand/30 bg-brand/10 text-brand font-medium";
+      ? { edge: "bg-warning-solid", chip: "bg-warning-soft text-warning" }
+      : { edge: "bg-advisory-solid", chip: "bg-advisory-soft text-advisory" };
 
   const statusText = isBlocked
-    ? locale === "ne" ? "सडक अवरुद्ध" : "Road Blocked"
+    ? locale === "ne" ? "सडक अवरुद्ध" : "Blocked"
     : isPartial
-      ? locale === "ne" ? "एकतर्फी सञ्चालन" : "One-Way Open"
-      : locale === "ne" ? "द्वितर्फी सुचारु" : "Fully Open";
+      ? locale === "ne" ? "एकतर्फी सञ्चालन" : "One-way only"
+      : locale === "ne" ? "द्वितर्फी सुचारु" : "Open";
 
   return (
-    <div
-      className="card group relative flex flex-col justify-between p-5 sm:p-5.5 transition-all duration-200 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5"
-    >
-      <div>
-        {/* Top Header: Code & Status */}
-        <div className="flex items-start justify-between gap-2">
-          <span className="rounded bg-surface-2 px-2 py-0.5 text-sm font-bold tracking-wider text-text border border-border">
-            {item.roadRefno}
-          </span>
-          <span className={cn("rounded-full border px-2.5 py-0.5 text-sm", statusBadgeClass)}>
-            {statusText}
-          </span>
+    <article className="card relative flex flex-col overflow-hidden">
+      <span className={cn("absolute inset-y-0 left-0 w-1.5", tone.edge)} aria-hidden />
+
+      <div className="flex flex-1 flex-col gap-3 p-5 pl-6">
+        <div className="flex items-center justify-between gap-2">
+          <span className={cn("rounded-full px-2.5 py-0.5 text-sm font-bold", tone.chip)}>{statusText}</span>
+          <span className="tabular text-sm font-semibold text-muted">{item.roadRefno}</span>
         </div>
 
-        {/* Highway Title & Section */}
-        <h3 className="mt-3 text-lg font-bold text-text leading-snug">
-          {item.title}
-        </h3>
+        <div className="space-y-1">
+          <h3 className="text-lg font-bold leading-snug">{item.title}</h3>
+          {item.location ? (
+            <p className="flex items-start gap-1.5 text-base text-muted">
+              <MapPinIcon width={16} height={16} className="mt-1 shrink-0 text-faint" />
+              <span>
+                {item.location}
+                {item.chainage ? <span className="text-faint"> ({item.chainage})</span> : null}
+              </span>
+            </p>
+          ) : null}
+        </div>
 
-        {/* Exact Location */}
-        {item.location && (
-          <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted">
-            <span className="shrink-0 text-brand">
-              <MapPinIcon width={16} height={16} />
-            </span>
-            <span>{item.location}</span>
-            {item.chainage && (
-              <span className="text-sm text-muted">({item.chainage})</span>
-            )}
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-base">
+          <dt className="text-muted">{locale === "ne" ? "कारण" : "Cause"}</dt>
+          <dd className="font-semibold">{localizeClosureReason(item.closureReason, locale)}</dd>
+          {item.repairEta ? (
+            <>
+              <dt className="text-muted">{locale === "ne" ? "खुल्ने अनुमान" : "Expected to open"}</dt>
+              <dd className="font-semibold">{localizeRepairEta(item.repairEta, locale)}</dd>
+            </>
+          ) : null}
+          {item.affectedDemography?.householdCount ? (
+            <>
+              <dt className="text-muted">{locale === "ne" ? "प्रभावित" : "Affected"}</dt>
+              <dd>
+                ~{item.affectedDemography.householdCount.toLocaleString()} {locale === "ne" ? "घरधुरी" : "households"}
+              </dd>
+            </>
+          ) : null}
+        </dl>
+
+        {item.effortsBeingMade ? (
+          <p className="text-base leading-relaxed text-muted">
+            <strong className="font-semibold text-text">{locale === "ne" ? "प्रयास" : "Work underway"}:</strong>{" "}
+            {item.effortsBeingMade}
           </p>
-        )}
+        ) : null}
 
-        {/* Disruptive Details Block */}
-        <div className="mt-3 rounded-lg border border-border/80 bg-surface-2/60 p-3 text-sm space-y-1.5">
-          <div className="flex justify-between gap-2">
-            <span className="text-muted">{locale === "ne" ? "कारण" : "Cause"}:</span>
-            <span className="font-semibold text-text">{localizeClosureReason(item.closureReason, locale)}</span>
-          </div>
+        {item.remarks ? (
+          <p className="border-l-2 border-border-strong pl-3 text-base leading-relaxed text-muted">{item.remarks}</p>
+        ) : null}
 
-          {item.repairEta && (
-            <div className="flex justify-between gap-2">
-              <span className="text-muted">{locale === "ne" ? "खुल्ने अनुमान" : "Repair ETA"}:</span>
-              <span className="font-medium text-warning">{localizeRepairEta(item.repairEta, locale)}</span>
-            </div>
-          )}
-
-          {item.effortsBeingMade && (
-            <p className="pt-1 text-sm leading-relaxed text-muted border-t border-border/60">
-              <strong className="text-text">{locale === "ne" ? "प्रयास" : "Effort"}:</strong>{" "}
-              {item.effortsBeingMade}
-            </p>
-          )}
-
-          {item.remarks && (
-            <p className="text-sm leading-relaxed text-muted italic">
-              &ldquo;{item.remarks}&rdquo;
-            </p>
-          )}
-        </div>
-
-        {/* Contact info if available */}
-        {item.contactPerson && (
-          <div className="mt-3 flex items-center gap-1.5 text-sm text-muted">
-            <PhoneIcon width={12} height={12} className="shrink-0 text-brand" />
+        {item.contactPerson ? (
+          <p className="flex items-center gap-1.5 text-sm text-muted">
+            <PhoneIcon width={14} height={14} className="shrink-0" />
             <span>{item.contactPerson}</span>
-          </div>
-        )}
-
-        {/* Demographic headcounts if available */}
-        {item.affectedDemography?.householdCount ? (
-          <p className="mt-2 text-sm text-muted">
-            {locale === "ne" ? "प्रभावित जनसंख्या" : "Affected area"}: ~
-            {item.affectedDemography.householdCount.toLocaleString()} {locale === "ne" ? "घरधुरी" : "households"}
           </p>
         ) : null}
       </div>
 
-      {/* Footer action buttons */}
-      <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-sm">
-        <span className="text-muted text-sm" suppressHydrationWarning>
+      <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-2 pl-6 text-sm">
+        <span className="text-faint" suppressHydrationWarning>
           {item.startedAt ? timeAgo(item.startedAt, locale) : ""}
         </span>
-
         {item.lat != null && item.lng != null ? (
           <Link
             href={`/map?lat=${item.lat}&lng=${item.lng}&zoom=14&title=${encodeURIComponent(item.roadRefno + ": " + (item.location || item.title))}`}
-            className="inline-flex min-h-11 items-center gap-1.5 text-base font-semibold text-brand hover:text-brand-strong transition-colors"
+            className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand hover:underline underline-offset-4"
           >
-            <span>{locale === "ne" ? "नक्सामा हेर्नुहोस्" : "View on Map"}</span>
-            <ArrowIcon width={16} height={16} />
+            {locale === "ne" ? "नक्सामा हेर्नुहोस्" : "View on map"}
+            <ArrowIcon width={14} height={14} />
           </Link>
         ) : null}
       </div>
-    </div>
+    </article>
   );
 }

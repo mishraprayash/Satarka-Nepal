@@ -1,108 +1,52 @@
 "use client";
 
-import { useMemo } from "react";
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/routing";
+import { localizeDigits } from "@/lib/format";
+import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 import { useAlerts } from "@/lib/use-alerts";
+import { nationalLevel } from "@/lib/national-level";
 import { ArrowIcon, SeverityGlyph } from "@/components/icons";
-import type { AlertsResponse } from "@/lib/types";
 
-export function EmergencyBanner({ initialData }: { initialData?: AlertsResponse }) {
-  const ta = useTranslations("alerts");
+/**
+ * Site-wide band under the header, shown only while a warning or danger alert
+ * is active, so a serious situation is visible from every page. Quiet days
+ * show nothing here; the home page carries the full status.
+ */
+export function EmergencyBanner() {
   const tb = useTranslations("emergencyBanner");
-  const { response } = useAlerts(120_000, initialData);
+  const t = useTranslations("levels");
+  const pathname = usePathname();
+  const locale = useLocale() as Locale;
+  const { response } = useAlerts(120_000);
 
-  const status = useMemo(() => {
-    if (!response) return null;
-    const alerts = response.alerts ?? [];
-    const dangerCount = alerts.filter((a) => a.severity === "danger").length;
-    const warningCount = alerts.filter((a) => a.severity === "warning").length;
+  const { level, count } = nationalLevel(response?.alerts ?? []);
+  if (level !== "danger" && level !== "warning") return null;
+  // The home page and the alerts list already lead with this information.
+  if (pathname === "/" || pathname === "/alerts") return null;
 
-    if (dangerCount > 0) {
-      return {
-        level: "danger" as const,
-        title: tb("danger.title", { count: dangerCount }),
-        sub: tb("danger.sub"),
-        badge: tb("danger.badge"),
-        containerClass: "border-b border-danger/30 bg-danger/10 text-danger backdrop-blur-sm",
-        badgeClass: "bg-danger text-white font-semibold",
-      };
-    }
-
-    if (warningCount > 0) {
-      return {
-        level: "warning" as const,
-        title: tb("warning.title", { count: warningCount }),
-        sub: tb("warning.sub"),
-        badge: tb("warning.badge"),
-        containerClass: "border-b border-warning/30 bg-warning/10 text-warning backdrop-blur-sm",
-        badgeClass: "bg-warning text-white font-semibold",
-      };
-    }
-
-    return {
-      level: "normal" as const,
-      title: tb("normal.title"),
-      sub: tb("normal.sub"),
-      badge: tb("normal.badge"),
-      containerClass: "border-b border-border/40 bg-surface-2/40 text-muted",
-      badgeClass: "bg-advisory-soft text-advisory border border-advisory/30 font-semibold",
-    };
-  }, [response, tb]);
-
-  if (!status) return null;
-
-  const isDanger = status.level === "danger";
+  const isDanger = level === "danger";
 
   return (
     <aside
       role={isDanger ? "alert" : "status"}
       aria-live={isDanger ? "assertive" : "polite"}
       className={cn(
-        "transition-colors px-4 py-2.5",
-        status.containerClass,
+        isDanger ? "bg-danger-solid text-danger-on" : "bg-warning-solid text-warning-on",
       )}
     >
-      <div className="shell flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-sm sm:text-sm">
-        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-          <span className="shrink-0 mt-0.5 sm:mt-0" aria-hidden="true">
-            <SeverityGlyph
-              severity={
-                status.level === "danger"
-                  ? "danger"
-                  : status.level === "warning"
-                    ? "warning"
-                    : "advisory"
-              }
-              width={16}
-              height={16}
-            />
-          </span>
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-sm uppercase tracking-wider shrink-0 mt-0.5 sm:mt-0",
-              status.badgeClass,
-            )}
-          >
-            {status.badge}
-          </span>
-          <div className="min-w-0 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <p className="font-semibold text-text">
-              {status.title}
-            </p>
-            <p className="hidden md:inline text-sm text-muted">
-              {status.sub}
-            </p>
-          </div>
-        </div>
-
+      <div className="shell flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2.5">
+        <p className="flex min-w-0 items-center gap-2.5 font-semibold">
+          <SeverityGlyph severity={level} width={20} height={20} className="shrink-0" />
+          <span>{tb(`${level}.title`, { count, shown: localizeDigits(count, locale) })}</span>
+        </p>
         <Link
           href="/alerts"
-          className="inline-flex items-center gap-1 font-semibold text-brand hover:underline shrink-0 text-sm sm:text-sm self-end sm:self-auto cursor-pointer transition-colors"
+          className="inline-flex shrink-0 items-center gap-1.5 font-bold underline underline-offset-4"
         >
-          <span>{ta("title")}</span>
-          <ArrowIcon width={12} height={12} />
+          {t("bandMore")}
+          <ArrowIcon width={14} height={14} />
         </Link>
       </div>
     </aside>

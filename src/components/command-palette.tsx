@@ -556,7 +556,7 @@ export function CommandPalette({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-start justify-center bg-black/60 backdrop-blur-sm sm:p-6 md:pt-20"
+      className="fixed inset-0 z-[70] flex items-start justify-center bg-[rgb(6_12_24/0.62)] sm:p-6 md:pt-20"
       onMouseDown={(e) => {
         isBackdropMouseDown.current = e.target === e.currentTarget;
       }}
@@ -572,7 +572,7 @@ export function CommandPalette({
         role="dialog"
         aria-modal="true"
         aria-label={locale === "ne" ? "सतर्क द्रुत खोजी तथा कमान्ड" : "Satarka Quick Command and Search"}
-        className="flex h-dvh w-full max-w-xl flex-col border border-border sm:h-auto sm:max-h-[85vh] sm:rounded-3xl bg-surface text-text shadow-2xl overflow-hidden focus:outline-none"
+        className="flex h-dvh w-full max-w-xl flex-col border border-border sm:h-auto sm:max-h-[85vh] sm:rounded-panel bg-surface text-text shadow-2xl overflow-hidden focus:outline-none"
       >
         {/* Search Input Bar */}
         <div className="flex items-center gap-3 border-b border-border px-4 py-3 sm:px-5">
@@ -607,7 +607,7 @@ export function CommandPalette({
               <CloseIcon width={22} height={22} />
             </button>
           ) : (
-            <kbd className="hidden sm:inline-block rounded border border-border bg-surface-2 px-1.5 py-0.5 text-sm font-mono text-muted">
+            <kbd className="hidden sm:inline-block rounded border border-border bg-surface-2 px-1.5 py-0.5 text-sm text-muted">
               ESC
             </kbd>
           )}

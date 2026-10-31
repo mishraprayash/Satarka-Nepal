@@ -48,7 +48,7 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 min-h-11 rounded-chip border-2 px-4 py-2 text-base font-medium transition-all cursor-pointer active:scale-95",
+        "inline-flex items-center gap-1.5 min-h-11 rounded-full border px-4 py-2 text-base font-medium transition-colors cursor-pointer",
         active
           ? "border-brand bg-brand text-brand-fg font-semibold shadow-xs"
           : "border-border text-text hover:bg-surface-2",
@@ -244,7 +244,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
       {/* Plain-language "should I act?" answer comes first */}
       <div
         role={verdictKey === "danger" ? "alert" : "status"}
-        className={cn("flex items-start gap-4 rounded-card border-2 p-5 sm:p-6", SEVERITY_CHIP[verdictTone], verdictKey === "none" ? "border-border" : "border-current")}
+        className={cn("flex items-start gap-4 rounded-card border-l-[6px] p-5 sm:p-6", SEVERITY_CHIP[verdictTone], verdictKey === "none" ? "border-border-strong" : "border-current")}
       >
         <SeverityGlyph severity={verdictTone} width={32} height={32} className={cn("mt-0.5 shrink-0", SEVERITY_TEXT[verdictTone])} />
         <div>
@@ -283,7 +283,7 @@ export function AlertsView({ initialData }: { initialData?: AlertsResponse }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={ta("searchPlaceholder")}
-            className="w-full h-14 rounded-chip border-2 border-border-strong bg-surface pl-12 pr-12 text-lg text-text placeholder:text-muted transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full h-14 rounded-chip border border-border-strong bg-surface pl-12 pr-12 text-lg text-text placeholder:text-muted transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           {searchQuery ? (
             <button

@@ -12,12 +12,12 @@ export function SeverityBadge({ severity, className }: { severity: Severity; cla
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip px-2 py-0.5 text-sm font-semibold",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-bold",
         SEVERITY_CHIP[severity],
         className,
       )}
     >
-      <SeverityGlyph severity={severity} width={13} height={13} />
+      <SeverityGlyph severity={severity} width={14} height={14} />
       {t(`${severity}.label`)}
     </span>
   );

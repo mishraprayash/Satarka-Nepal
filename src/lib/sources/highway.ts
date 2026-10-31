@@ -28,8 +28,16 @@ function parseImages(val: unknown): string[] {
 
 /**
  * Loads raw highway rows from BIPAD and normalizes them into structured HighwayBlockage items.
+ * Never throws: returns [] on failure. Use loadHighwaysResult() when the caller
+ * must tell "no closures" apart from "feed unreachable".
  */
 export async function loadHighways(fresh = false): Promise<HighwayBlockage[]> {
+  return (await loadHighwaysResult(fresh)).highways;
+}
+
+export async function loadHighwaysResult(
+  fresh = false,
+): Promise<{ highways: HighwayBlockage[]; ok: boolean; error?: string }> {
   try {
     const data = await fetchJson<Drf<Row>>(`${BASE}/highway/?limit=100&ordering=-modifiedOn`, {
       revalidate: fresh ? 0 : 180,
@@ -92,11 +100,13 @@ export async function loadHighways(fresh = false): Promise<HighwayBlockage[]> {
       });
     }
 
-    return items;
+    return { highways: items, ok: true };
   } catch (err) {
-    // An unreachable feed is an expected upstream condition, not an app error.
-    console.warn(`[highway] roads feed unavailable: ${describeFetchError(err)}`);
-    return [];
+    // An unreachable feed is an expected upstream condition, not an app error:
+    // one warning line, and the page shows its "unavailable" state.
+    const error = describeFetchError(err);
+    console.warn(`[highway] roads feed unavailable: ${error}`);
+    return { highways: [], ok: false, error };
   }
 }
 

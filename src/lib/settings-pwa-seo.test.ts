@@ -201,8 +201,8 @@ describe("PWA Manifest Verification", () => {
     expect(manifest.short_name).toBe("Satarka");
     expect(manifest.display).toBe("standalone");
     expect(manifest.orientation).toBe("any");
-    expect(manifest.theme_color).toBe("#090a0f");
-    expect(manifest.background_color).toBe("#090a0f");
+    expect(manifest.theme_color).toBe("#0a1221");
+    expect(manifest.background_color).toBe("#0a1221");
     expect(manifest.start_url).toBe("/");
     expect(manifest.scope).toBe("/");
 
