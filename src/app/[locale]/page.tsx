@@ -8,7 +8,8 @@ import { ReportsList } from "@/components/reports-list";
 import { HazardGlyph, SeverityGlyph, ArrowIcon } from "@/components/icons";
 import { HAZARD_ORDER } from "@/lib/ui";
 import { EmergencyBanner } from "@/components/emergency-banner";
-import { loadAllAlerts, loadReports, RELIEFWEB_PUBLIC_URL } from "@/lib/sources";
+import { loadReports, RELIEFWEB_PUBLIC_URL } from "@/lib/sources";
+import { getAlerts } from "@/lib/alerts-service";
 import type { ReportsResponse } from "@/lib/types";
 
 export default async function HomePage({
@@ -23,7 +24,7 @@ export default async function HomePage({
     getTranslations("home"),
     getTranslations("hazards"),
     getTranslations("actions"),
-    loadAllAlerts(),
+    getAlerts().then((r) => r.data),
     loadReports(),
   ]);
 
