@@ -10,6 +10,8 @@
 [![i18n](https://img.shields.io/badge/i18n-English_%7C_%E0%A4%A8%E0%A5%87%E0%A4%AA%E0%A4%BE%E0%A4%B2%E0%A5%80-teal?style=flat-square)](#internationalization--accessibility)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
+**How it works:** see the [documentation](docs/README.md) for the architecture, data ingestion, data model and core concepts, with diagrams.
+
 ---
 
 ## Overview
