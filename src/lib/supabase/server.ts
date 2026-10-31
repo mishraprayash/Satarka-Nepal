@@ -46,9 +46,55 @@ export function resetSupabaseClients(): void {
   adminClient = null;
 }
 
+function latestIso(values: (string | null | undefined)[]): string | null {
+  let latest: number | null = null;
+  for (const v of values) {
+    const t = v ? Date.parse(v) : NaN;
+    if (Number.isFinite(t) && (latest === null || t > latest)) latest = t;
+  }
+  return latest === null ? null : new Date(latest).toISOString();
+}
+
+/** True when a DB snapshot is recent enough to serve as current data. */
+export function isSnapshotFresh(generatedAt: string, now = Date.now()): boolean {
+  const t = Date.parse(generatedAt);
+  return Number.isFinite(t) && now - t <= CONFIG.cache.dbSnapshotMaxAgeMs;
+}
+
+/**
+ * Active community reports. These only live in Supabase, so the upstream
+ * fallback path merges them in to stay consistent with the DB path.
+ */
+export async function getCommunityAlertsFromDb(): Promise<Alert[]> {
+  const supabase = getSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("alerts")
+      .select("*")
+      .eq("is_active", true)
+      .eq("provenance", "community")
+      .order("issued_at", { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.warn("[supabase] community alerts fetch failed:", error.message);
+      return [];
+    }
+    return (data ?? []).map(alertRowToAlert);
+  } catch (err) {
+    console.warn("[supabase] community alerts exception:", err);
+    return [];
+  }
+}
+
 /**
  * High-speed read of active alerts from Supabase PostgreSQL (< 15ms).
- * Returns null if Supabase is unconfigured or encounters a network error.
+ * `generatedAt` is the time of the last ingest run (newest source_health
+ * check), so callers can tell how old the snapshot really is.
+ * Returns null if Supabase is unconfigured, has never been ingested into, or
+ * encounters a network error.
  */
 export async function getAlertsFromDb(): Promise<AlertsResponse | null> {
   const supabase = getSupabaseServerClient();
@@ -88,8 +134,12 @@ export async function getAlertsFromDb(): Promise<AlertsResponse | null> {
       sourceHealthRowToSourceHealth(r, sourceLookup),
     );
 
+    // The snapshot is only as new as the last ingest run, never "now".
+    const generatedAt = latestIso((healthRes.data ?? []).map((r) => r.last_checked_at));
+    if (!generatedAt) return null;
+
     return {
-      generatedAt: new Date().toISOString(),
+      generatedAt,
       sources,
       alerts,
     };
@@ -119,12 +169,15 @@ export async function getHighwaysFromDb(): Promise<HighwaysResponse | null> {
     }
 
     const highways: HighwayBlockage[] = (data ?? []).map(highwayRowToHighway);
+    // Rows are stamped with updated_at on every sync, so the newest one marks the snapshot time.
+    const generatedAt = latestIso((data ?? []).map((r) => r.updated_at));
+    if (!generatedAt) return null;
     const blockedCount = highways.filter((h) => h.status === "BLOCKED" || h.status === "CLOSED").length;
     const partialCount = highways.filter((h) => h.status === "PARTIAL_OPEN").length;
     const openCount = highways.filter((h) => h.status === "OPEN").length;
 
     return {
-      generatedAt: new Date().toISOString(),
+      generatedAt,
       highways,
       blockedCount,
       partialCount,

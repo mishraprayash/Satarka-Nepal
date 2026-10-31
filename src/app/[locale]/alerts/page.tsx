@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/section";
 import { AlertsView } from "@/components/alerts-view";
-import { loadAllAlerts } from "@/lib/sources";
+import { getAlerts } from "@/lib/alerts-service";
 
 export async function generateMetadata({
   params,
@@ -23,7 +23,7 @@ export default async function AlertsPage({
   setRequestLocale(locale);
   const [t, initialAlerts] = await Promise.all([
     getTranslations("alerts"),
-    loadAllAlerts(),
+    getAlerts().then((r) => r.data),
   ]);
 
   return (

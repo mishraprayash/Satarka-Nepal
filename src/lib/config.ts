@@ -61,6 +61,13 @@ export const CONFIG = Object.freeze({
     mapDataRevalidateSec: 300,
     reportsRevalidateSec: 900,
     weatherRevalidateSec: 900,
+    /**
+     * Oldest a Supabase snapshot may be before reads fall back to the live
+     * upstream feeds. Guards against serving stale alerts as current when the
+     * ingest cron stops running (default 15 min).
+     */
+    dbSnapshotMaxAgeMs:
+      Number(process.env.DB_SNAPSHOT_MAX_AGE_MINUTES ?? 15) * 60_000,
   },
 
   thresholds: {

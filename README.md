@@ -90,6 +90,8 @@ Every source is labelled by how honest it can be about its own data — `live`, 
 
 Caching runs at two levels: Next.js's own data cache (`export const revalidate` on each route + `next: { revalidate }` per upstream fetch) is the durable, cross-request layer, while a small per-instance in-memory snapshot in `loadAllAlerts` avoids re-running the fan-out and dedup on rapid hits to the same warm server process. The in-memory layer is best-effort and resets on cold starts — it is not relied upon for correctness.
 
+**Supabase snapshot.** `/api/ingest` (protected by `CRON_SECRET`) is the only writer: it pulls every feed, upserts into Supabase, and prunes old rows. Pages and `/api/alerts` share one read path (`getAlerts` in `src/lib/alerts-service.ts`): they serve the Supabase snapshot only while it is newer than `DB_SNAPSHOT_MAX_AGE_MINUTES` (default 15), and otherwise fall back to the live feeds plus active community reports. The snapshot's `generatedAt` is the time of the last ingest, never the request time. Schedule the ingest well inside that window, for example every 5 minutes with `Authorization: Bearer $CRON_SECRET`.
+
 ---
 
 ## Tech Stack

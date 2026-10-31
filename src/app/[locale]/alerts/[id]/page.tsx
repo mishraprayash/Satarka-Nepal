@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { loadAllAlerts } from "@/lib/sources";
+import { getAlerts } from "@/lib/alerts-service";
 import type { Alert } from "@/lib/types";
 import type { Locale } from "@/i18n/routing";
 import { formatDateTime, timeAgo, formatNumber } from "@/lib/format";
@@ -21,7 +21,7 @@ import { alertRowToAlert } from "@/lib/supabase/types";
 
 async function findAlert(id: string): Promise<Alert | null> {
   const decodedId = decodeURIComponent(id);
-  const data = await loadAllAlerts();
+  const { data } = await getAlerts();
   const found = data.alerts.find((a) => a.id === id || a.id === decodedId);
   if (found) return found;
 
