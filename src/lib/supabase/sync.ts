@@ -1,9 +1,18 @@
-import { getSupabaseServerClient } from "./server";
+import { getSupabaseAdminClient } from "./server";
 import { alertToAlertInsert, highwayToHighwayInsert, type TelemetryInsert } from "./types";
 import type { Alert, HighwayBlockage, SourceHealth } from "@/lib/types";
 import { CONFIG } from "@/lib/config";
 
 const BATCH_CHUNK_SIZE = 100;
+
+/** Writes need the service role; RLS only lets the public read. */
+function getWriteClient() {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase && CONFIG.supabase.url) {
+    console.warn("[supabase-sync] SUPABASE_SERVICE_ROLE_KEY is not configured; skipping sync.");
+  }
+  return supabase;
+}
 
 export interface AlertSyncResult {
   alertsSynced: number;
@@ -14,21 +23,18 @@ export interface AlertSyncResult {
 /**
  * Idempotently syncs canonical alerts and source health metrics into Supabase.
  * - Uses batch chunked upsert (ON CONFLICT (id) DO UPDATE).
- * - Transitions stale official alerts from healthy sources to is_active = false.
+ * - Transitions stale official alerts from healthy sources to is_active = false
+ *   in a single RPC.
+ * - Telemetry is upserted on (station_id, measured_at) so repeated syncs don't
+ *   duplicate readings.
  * - Safely batches telemetry history and source health updates.
  */
 export async function syncAlertsToSupabase(
   alerts: Alert[],
   sources: SourceHealth[],
 ): Promise<AlertSyncResult | null> {
-  const supabase = getSupabaseServerClient();
+  const supabase = getWriteClient();
   if (!supabase) return null;
-
-  if (!CONFIG.supabase.serviceRoleKey) {
-    console.warn(
-      "[supabase-sync] SUPABASE_SERVICE_ROLE_KEY is not configured; write operations may fail RLS policies.",
-    );
-  }
 
   try {
     const alertInserts = alerts.map(alertToAlertInsert);
@@ -72,66 +78,39 @@ export async function syncAlertsToSupabase(
       }
     }
 
-    // 2. Active flag transitions: Deactivate stale alerts for sources that ran successfully
+    // 2. Active flag transitions: one RPC deactivates official alerts that
+    //    sources which ran successfully no longer report.
     let staleDeactivated = 0;
-    const healthySources = sources.filter((s) => s.ok);
+    const healthySourceIds = sources.filter((s) => s.ok).map((s) => s.id);
 
-    for (const s of healthySources) {
-      const currentIdsForSource = new Set(
-        alerts.filter((a) => a.source.id === s.id).map((a) => a.id),
+    if (healthySourceIds.length > 0) {
+      const { data: deactivated, error: deactErr } = await supabase.rpc(
+        "deactivate_stale_alerts",
+        {
+          p_source_ids: healthySourceIds,
+          p_active_ids: alerts
+            .filter((a) => healthySourceIds.includes(a.source.id))
+            .map((a) => a.id),
+        },
       );
 
-      // Find all currently active official alerts in DB for this source
-      const { data: dbRows, error: fetchErr } = await supabase
-        .from("alerts")
-        .select("id")
-        .eq("source_id", s.id)
-        .eq("is_active", true)
-        .eq("provenance", "official");
-
-      if (fetchErr) {
-        console.error(
-          `[supabase-sync] failed to fetch active alerts for stale check on source ${s.id}:`,
-          fetchErr.message,
-        );
-        continue;
-      }
-
-      const staleIds = (dbRows ?? [])
-        .map((r) => r.id)
-        .filter((id) => !currentIdsForSource.has(id));
-
-      if (staleIds.length > 0) {
-        for (let i = 0; i < staleIds.length; i += BATCH_CHUNK_SIZE) {
-          const chunk = staleIds.slice(i, i + BATCH_CHUNK_SIZE);
-          const { error: deactErr } = await supabase
-            .from("alerts")
-            .update({
-              is_active: false,
-              updated_at: new Date().toISOString(),
-            })
-            .in("id", chunk);
-
-          if (deactErr) {
-            console.error(
-              `[supabase-sync] failed to deactivate stale alerts for source ${s.id}:`,
-              deactErr.message,
-            );
-          } else {
-            staleDeactivated += chunk.length;
-          }
-        }
+      if (deactErr) {
+        console.error("[supabase-sync] failed to deactivate stale alerts:", deactErr.message);
+      } else {
+        staleDeactivated = deactivated ?? 0;
       }
     }
 
-    // 3. Batch chunked insert for telemetry history (for hydrographs)
+    // 3. Batch chunked upsert for telemetry history (for hydrographs). The same
+    //    reading arrives on every sync until the gauge reports again, so skip
+    //    rows already stored for (station_id, measured_at).
     let telemetryRecorded = 0;
     if (telemetryInserts.length > 0) {
       for (let i = 0; i < telemetryInserts.length; i += BATCH_CHUNK_SIZE) {
         const chunk = telemetryInserts.slice(i, i + BATCH_CHUNK_SIZE);
         const { error: telemErr } = await supabase
           .from("river_telemetry_history")
-          .insert(chunk);
+          .upsert(chunk, { onConflict: "station_id,measured_at", ignoreDuplicates: true });
 
         if (telemErr) {
           console.error(
@@ -193,7 +172,7 @@ export async function syncAlertsToSupabase(
 export async function syncHighwaysToSupabase(
   highways: HighwayBlockage[],
 ): Promise<number | null> {
-  const supabase = getSupabaseServerClient();
+  const supabase = getWriteClient();
   if (!supabase) return null;
 
   try {

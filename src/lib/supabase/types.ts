@@ -66,6 +66,13 @@ export type Database = {
         };
         Returns: AlertRow[];
       };
+      deactivate_stale_alerts: {
+        Args: {
+          p_source_ids: string[];
+          p_active_ids: string[];
+        };
+        Returns: number;
+      };
       prune_old_satarka_records: {
         Args: Record<string, never>;
         Returns: void;

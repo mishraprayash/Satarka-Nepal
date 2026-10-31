@@ -3,30 +3,16 @@ import { syncAlertsToSupabase, syncHighwaysToSupabase } from "./sync";
 import type { Alert, HighwayBlockage, SourceHealth } from "@/lib/types";
 
 const mockUpsert = vi.fn();
-const mockInsert = vi.fn();
-const mockSelect = vi.fn();
-const mockUpdate = vi.fn();
-const mockIn = vi.fn();
+const mockTelemetryUpsert = vi.fn();
+const mockRpc = vi.fn();
 
 vi.mock("./server", () => ({
-  getSupabaseServerClient: vi.fn(() => ({
+  getSupabaseAdminClient: vi.fn(() => ({
+    rpc: mockRpc,
     from: (table: string) => {
       if (table === "alerts") {
         return {
           upsert: mockUpsert,
-          select: (fields: string) => ({
-            eq: (col1: string, val1: string) => ({
-              eq: (col2: string, val2: boolean) => ({
-                eq: (col3: string, val3: string) => mockSelect(fields, val1, val2, val3),
-              }),
-            }),
-          }),
-          update: (...args: unknown[]) => {
-            mockUpdate(...args);
-            return {
-              in: mockIn,
-            };
-          },
         };
       }
       if (table === "highway_blockages") {
@@ -36,7 +22,7 @@ vi.mock("./server", () => ({
       }
       if (table === "river_telemetry_history") {
         return {
-          insert: mockInsert,
+          upsert: mockTelemetryUpsert,
         };
       }
       if (table === "source_health") {
@@ -53,9 +39,8 @@ describe("Supabase Synchronization Engine (sync.ts)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpsert.mockResolvedValue({ error: null });
-    mockInsert.mockResolvedValue({ error: null });
-    mockSelect.mockResolvedValue({ data: [], error: null });
-    mockIn.mockResolvedValue({ error: null });
+    mockTelemetryUpsert.mockResolvedValue({ error: null });
+    mockRpc.mockResolvedValue({ data: 0, error: null });
   });
 
   const sampleAlert: Alert = {
@@ -108,23 +93,23 @@ describe("Supabase Synchronization Engine (sync.ts)", () => {
       expect(res?.staleDeactivated).toBe(0);
 
       expect(mockUpsert).toHaveBeenCalled();
-      expect(mockInsert).toHaveBeenCalled();
+      expect(mockTelemetryUpsert).toHaveBeenCalledWith(
+        expect.any(Array),
+        { onConflict: "station_id,measured_at", ignoreDuplicates: true },
+      );
     });
 
-    it("transitions stale alerts to is_active = false for healthy sources", async () => {
-      // Simulate DB having alert-old from bipad-river that is no longer in current alerts
-      mockSelect.mockResolvedValueOnce({
-        data: [{ id: "alert-old-1" }, { id: "alert-1" }],
-        error: null,
-      });
+    it("deactivates stale alerts for healthy sources in a single RPC", async () => {
+      mockRpc.mockResolvedValueOnce({ data: 1, error: null });
 
       const res = await syncAlertsToSupabase([sampleAlert], [sampleSource]);
 
       expect(res?.staleDeactivated).toBe(1);
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ is_active: false }),
-      );
-      expect(mockIn).toHaveBeenCalledWith("id", ["alert-old-1"]);
+      expect(mockRpc).toHaveBeenCalledTimes(1);
+      expect(mockRpc).toHaveBeenCalledWith("deactivate_stale_alerts", {
+        p_source_ids: ["bipad-river"],
+        p_active_ids: ["alert-1"],
+      });
     });
 
     it("does NOT deactivate alerts if upstream source failed (ok = false)", async () => {
@@ -137,8 +122,7 @@ describe("Supabase Synchronization Engine (sync.ts)", () => {
       const res = await syncAlertsToSupabase([], [failedSource]);
 
       expect(res?.staleDeactivated).toBe(0);
-      expect(mockSelect).not.toHaveBeenCalled();
-      expect(mockUpdate).not.toHaveBeenCalled();
+      expect(mockRpc).not.toHaveBeenCalled();
     });
 
     it("accurately reports counts when batch upsert fails", async () => {
