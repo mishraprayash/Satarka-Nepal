@@ -133,7 +133,7 @@ function StepList({ items, locale }: { items: LocalizedItem[]; locale: Locale })
       {items.map((item, i) => (
         <li key={i} className="flex gap-3">
           <span
-            className="tabular inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-base font-bold text-brand"
+            className="tabular inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-base font-bold text-brand-fg"
             aria-hidden
           >
             {formatNumber(i + 1, locale)}
@@ -201,7 +201,7 @@ export async function LearnGuide({
     <div className="space-y-10">
       {/* Hero photograph + title + intro */}
       <section className="card relative overflow-hidden">
-        <div className="relative aspect-[16/8] w-full sm:aspect-[21/9]">
+        <div className="relative aspect-[16/9] w-full sm:aspect-[3/1]">
           <Image
             src={images.hero.src}
             alt={locale === "ne" ? images.hero.alt.ne : images.hero.alt.en}
@@ -210,136 +210,26 @@ export async function LearnGuide({
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" aria-hidden />
+          {/* Scrim keeps the title readable on any photo */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" aria-hidden />
           <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-            <p className="eyebrow !text-white/80">{t("nepal")}</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h1 className="text-3xl font-extrabold text-white sm:text-5xl">
               {th(`${hazard}.name`)}
             </h1>
           </div>
         </div>
         <div className="p-6 sm:p-8">
-          <p className="max-w-3xl text-base leading-relaxed text-muted">
+          <p className="max-w-3xl text-lg leading-relaxed">
             {localizeText(guide.intro, locale)}
           </p>
           <Credit image={images.hero} />
         </div>
       </section>
 
-      {/* Live Monitoring Quick Links */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-border bg-surface-2/40 p-4 sm:p-5">
-        <div className="flex items-center gap-3">
-          <span className="text-brand shrink-0">
-            <HazardGlyph hazard={hazard} width={24} height={24} />
-          </span>
-          <div>
-            <h2 className="text-sm sm:text-base font-semibold text-text">
-              {locale === "ne"
-                ? `${th(`${hazard}.name`)} सम्बन्धी प्रत्यक्ष अनुगमन तथा चेतावनीहरू`
-                : `Active Telemetry & Verified Warnings: ${th(`${hazard}.name`)}`}
-            </h2>
-            <p className="text-base text-muted">
-              {locale === "ne"
-                ? "यस प्रकोपका लागि हाल सक्रिय चेतावनीहरू र प्रत्यक्ष नक्सा हेर्नुहोस्।"
-                : "Inspect active alerts, telemetry gauges, and geographical risk overlays."}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/alerts"
-            className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border bg-surface px-4 py-2 text-base font-semibold text-text hover:border-brand hover:text-brand transition-colors"
-          >
-            <SignalIcon width={13} height={13} className="text-brand" />
-            <span>{t("viewLiveAlerts", { hazard: th(`${hazard}.name`) })}</span>
-          </Link>
-          <Link
-            href="/map"
-            className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border bg-surface px-4 py-2 text-base font-semibold text-text hover:border-brand hover:text-brand transition-colors"
-          >
-            <MapPinIcon width={13} height={13} className="text-brand" />
-            <span>{t("viewHazardMap")}</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Emergency Hotlines Quick-Dial Card */}
-      <section className="rounded-card border border-warning/40 bg-warning-soft/20 p-5 sm:p-6 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base sm:text-lg font-bold text-text flex items-center gap-2">
-              <PhoneIcon width={18} height={18} className="text-warning shrink-0" />
-              <span>{t("emergencyHotlinesTitle")}</span>
-            </h2>
-            <p className="mt-1 text-sm sm:text-base text-muted">
-              {t("emergencyHotlinesSub")}
-            </p>
-          </div>
-          <span className="rounded-chip border border-warning/40 bg-warning/15 px-2.5 py-0.5 text-sm font-bold text-warning">
-            24/7 Verified
-          </span>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-          {EMERGENCY_CONTACTS.map((c) => (
-            <a
-              key={c.number}
-              href={`tel:${c.number}`}
-              className="group flex flex-col justify-between rounded-card border border-warning/40 bg-surface p-3.5 transition-all hover:border-warning hover:bg-surface hover:shadow-xs active:scale-[0.98]"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="inline-flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning group-hover:bg-warning group-hover:text-white transition-colors">
-                    <PhoneIcon width={16} height={16} />
-                  </span>
-                  {c.tollFree ? (
-                    <span className="rounded bg-brand/10 px-1.5 py-0.5 text-sm font-bold text-brand">
-                      {t("tollFree")}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-2 text-base font-bold leading-snug text-text group-hover:text-warning transition-colors">
-                  {locale === "ne" ? c.nameNe : c.nameEn}
-                </p>
-                <p className="text-base leading-snug text-muted">
-                  {locale === "ne" ? c.roleNe : c.roleEn}
-                </p>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border/60 pt-2">
-                <span className="text-xl font-bold tabular text-warning">
-                  {c.number}
-                </span>
-                <span className="text-base font-semibold text-muted group-hover:text-warning group-hover:underline">
-                  {locale === "ne" ? "कल गर्नुहोस्" : "Call"}
-                </span>
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* Causes + signs */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <section className="card p-5">
-          <h2 className="text-lg font-semibold">{t("causes")}</h2>
-          <div className="mt-3">
-            <PlainList items={guide.causes} locale={locale} />
-          </div>
-        </section>
-        <section className="card border-watch/30 bg-watch-soft/30 p-5">
-          <h2 className="text-lg font-semibold">{t("signs")}</h2>
-          <div className="mt-3">
-            <PlainList items={guide.signs} locale={locale} />
-          </div>
-        </section>
-      </div>
-
       {/* Before / During / After — the safety-critical core checklist */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text">
+          <h2 className="text-2xl font-bold sm:text-3xl">
             {t("emergencyChecklist")}
           </h2>
           <p className="mt-1 text-base text-muted">
@@ -351,23 +241,80 @@ export async function LearnGuide({
           {phases.map((phase) => (
             <div
               key={phase.key}
+              // "During" is the act-now column, so it carries the warning colour on its top edge.
               className={
                 phase.key === "during"
-                  ? "card border-warning/40 bg-warning-soft/30 p-5 shadow-xs"
-                  : "card p-5 shadow-xs"
+                  ? "card border-t-4 border-t-warning-solid p-5"
+                  : "card border-t-4 border-t-border-strong p-5"
               }
             >
-              <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-3">
-                <h3 className="text-base font-bold">{phase.title}</h3>
-                <span className="text-sm font-semibold text-muted">
-                  {phase.items.length} {locale === "ne" ? "चरणहरू" : "actions"}
-                </span>
-              </div>
+              <h3 className="mb-4 text-xl font-bold">{phase.title}</h3>
               <StepList items={phase.items} locale={locale} />
             </div>
           ))}
         </div>
       </section>
+
+      {/* Causes + signs */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <section className="card p-5">
+          <h2 className="text-xl font-bold">{t("causes")}</h2>
+          <div className="mt-3">
+            <PlainList items={guide.causes} locale={locale} />
+          </div>
+        </section>
+        <section className="card border-l-4 border-l-watch-solid p-5">
+          <h2 className="text-xl font-bold">{t("signs")}</h2>
+          <div className="mt-3">
+            <PlainList items={guide.signs} locale={locale} />
+          </div>
+        </section>
+      </div>
+
+      {/* Who to call: tap to dial */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-xl font-bold">{t("emergencyHotlinesTitle")}</h2>
+          <p className="mt-1 text-base text-muted">{t("emergencyHotlinesSub")}</p>
+        </div>
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          {EMERGENCY_CONTACTS.map((c) => (
+            <li key={c.number}>
+              <a
+                href={`tel:${c.number}`}
+                className="flex h-full flex-col gap-0.5 rounded-chip border border-border-strong bg-surface px-4 py-3 hover:border-danger-solid"
+              >
+                <span className="tabular text-2xl font-extrabold text-danger">{c.number}</span>
+                <span className="font-semibold leading-snug">{locale === "ne" ? c.nameNe : c.nameEn}</span>
+                <span className="text-sm leading-snug text-muted">
+                  {locale === "ne" ? c.roleNe : c.roleEn}
+                  {c.tollFree ? <> ({t("tollFree")})</> : null}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* From learning to the live picture for this hazard */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-card bg-surface-2 p-4 sm:p-5">
+        <p className="flex items-center gap-3 text-base font-semibold">
+          <HazardGlyph hazard={hazard} width={24} height={24} className="shrink-0 text-brand" />
+          {locale === "ne"
+            ? `अहिले ${th(`${hazard}.name`)} को अवस्था हेर्नुहोस्`
+            : `See the live ${th(`${hazard}.name`).toLowerCase()} picture`}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/alerts?hazard=${hazard}`} className="btn btn-secondary">
+            <SignalIcon width={16} height={16} />
+            <span>{t("viewLiveAlerts", { hazard: th(`${hazard}.name`) })}</span>
+          </Link>
+          <Link href="/map" className="btn btn-secondary">
+            <MapPinIcon width={16} height={16} />
+            <span>{t("viewHazardMap")}</span>
+          </Link>
+        </div>
+      </div>
 
       {/* Historical Disasters in Nepal for this hazard */}
       {(() => {
@@ -376,8 +323,8 @@ export async function LearnGuide({
         return (
           <section className="space-y-4">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-                {locale === "ne" ? "नेपालका प्रमुख ऐतिहासिक विपद्हरू" : "Documented Historical Disasters in Nepal"}
+              <h2 className="text-2xl font-bold">
+                {locale === "ne" ? "नेपालका प्रमुख ऐतिहासिक विपद्हरू" : "Past disasters in Nepal"}
               </h2>
               <p className="mt-1 text-base text-muted">
                 {locale === "ne"
@@ -389,48 +336,43 @@ export async function LearnGuide({
             <div className="grid gap-4 md:grid-cols-2">
               {hazardDisasters.map((item) => (
                 <div key={item.id} className="card p-5 sm:p-6 space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="tabular rounded bg-brand/10 border border-brand/30 px-2 py-0.5 text-sm font-bold text-brand">
-                      {item.year} ({item.bsYear})
-                    </span>
-                    <span className="rounded-chip border border-border bg-surface-2 px-2 py-0.5 text-sm font-semibold text-text">
-                      {locale === "ne" ? item.metricHighlight.ne : item.metricHighlight.en}
-                    </span>
-                  </div>
+                  <p className="tabular text-sm font-bold">
+                    {item.year} ({item.bsYear})
+                  </p>
 
-                  <h3 className="text-base font-bold text-text">
+                  <h3 className="text-lg font-bold text-text">
                     {locale === "ne" ? item.title.ne : item.title.en}
                   </h3>
 
-                  <p className="text-base text-muted">
-                    📍 {locale === "ne" ? item.location.ne : item.location.en}
+                  <p className="flex items-start gap-1.5 text-base text-muted">
+                    <MapPinIcon width={16} height={16} className="mt-1 shrink-0 text-faint" />
+                    {locale === "ne" ? item.location.ne : item.location.en}
                   </p>
 
-                  <div className="rounded border border-danger/25 bg-danger-soft/20 px-2.5 py-1.5 text-sm">
-                    <span className="font-bold text-danger mr-1">
-                      {t("fatalitiesLabel")}:
-                    </span>
-                    <span className="font-semibold text-text tabular">{item.fatalities}</span>
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-base">
+                    <p>
+                      <span className="text-muted">{t("fatalitiesLabel")}: </span>
+                      <span className="tabular font-bold text-danger">{item.fatalities}</span>
+                    </p>
+                    <p className="tabular font-semibold">
+                      {locale === "ne" ? item.metricHighlight.ne : item.metricHighlight.en}
+                    </p>
                   </div>
 
                   <p className="text-sm sm:text-base text-muted leading-relaxed">
                     {locale === "ne" ? item.impact.ne : item.impact.en}
                   </p>
 
-                  <div className="space-y-2 border-t border-border pt-3 text-sm">
-                    <div className="space-y-0.5">
-                      <span className="font-bold text-brand text-sm">
-                        {t("scientificCauseLabel")}
-                      </span>
-                      <p className="text-muted leading-relaxed bg-surface-2/60 p-2 rounded">
+                  <div className="space-y-3 border-t border-border pt-3 text-base">
+                    <div>
+                      <h4 className="font-bold">{t("scientificCauseLabel")}</h4>
+                      <p className="mt-1 leading-relaxed text-muted">
                         {locale === "ne" ? item.scientificCause.ne : item.scientificCause.en}
                       </p>
                     </div>
-                    <div className="space-y-0.5">
-                      <span className="font-bold text-warning text-sm">
-                        {t("lessonsLabel")}
-                      </span>
-                      <p className="text-muted leading-relaxed bg-warning-soft/20 p-2 rounded border border-warning/20">
+                    <div className="rounded-chip border-l-4 border-brand bg-surface-2 p-3">
+                      <h4 className="font-bold">{t("lessonsLabel")}</h4>
+                      <p className="mt-1 leading-relaxed">
                         {locale === "ne" ? item.lessonLearned.ne : item.lessonLearned.en}
                       </p>
                     </div>
@@ -446,7 +388,7 @@ export async function LearnGuide({
       {images.gallery.length > 0 ? (
         <section>
           <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight">{t("inTheField")}</h2>
+            <h2 className="text-2xl font-bold">{t("inTheField")}</h2>
             <p className="mt-2 text-muted">{t("inTheFieldSub")}</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -484,7 +426,7 @@ export async function LearnGuide({
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 inline-flex min-h-11 rounded-chip border-2 border-border-strong px-4 py-2 text-base font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-chip border border-border-strong px-4 py-2 text-base font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
               >
                 {s.name}
                 <ExternalIcon width={13} height={13} />

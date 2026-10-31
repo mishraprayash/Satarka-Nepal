@@ -28,8 +28,16 @@ function parseImages(val: unknown): string[] {
 
 /**
  * Loads raw highway rows from BIPAD and normalizes them into structured HighwayBlockage items.
+ * Never throws: returns [] on failure. Use loadHighwaysResult() when the caller
+ * must tell "no closures" apart from "feed unreachable".
  */
 export async function loadHighways(fresh = false): Promise<HighwayBlockage[]> {
+  return (await loadHighwaysResult(fresh)).highways;
+}
+
+export async function loadHighwaysResult(
+  fresh = false,
+): Promise<{ highways: HighwayBlockage[]; ok: boolean; error?: string }> {
   try {
     const data = await fetchJson<Drf<Row>>(`${BASE}/highway/?limit=100&ordering=-modifiedOn`, {
       revalidate: fresh ? 0 : 180,
@@ -92,10 +100,10 @@ export async function loadHighways(fresh = false): Promise<HighwayBlockage[]> {
       });
     }
 
-    return items;
+    return { highways: items, ok: true };
   } catch (err) {
     console.error("[highway] failed to load highway data:", err);
-    return [];
+    return { highways: [], ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
 

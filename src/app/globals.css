@@ -358,6 +358,10 @@
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
+/* Sideways-scrolling rows (tab bars) on phones: swipe, no scrollbar */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Custom compact scrollbar for drawers and lists */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;

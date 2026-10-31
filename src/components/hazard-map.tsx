@@ -9,7 +9,7 @@ import type { MapDataResponse, RiverGauge, Quake } from "@/lib/map-data";
 import type { HighwayBlockage } from "@/lib/types";
 import { useMapData } from "@/lib/use-map-data";
 import { cn } from "@/lib/cn";
-import { ExternalIcon, HazardGlyph, SearchIcon, CloseIcon } from "@/components/icons";
+import { CheckIcon, ExternalIcon, HazardGlyph, SearchIcon, CloseIcon } from "@/components/icons";
 
 const LeafletMap = dynamic(
   () => import("./leaflet-map").then((m) => m.LeafletMap),
@@ -377,7 +377,7 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
           onChange={(e) => setStationQuery(e.target.value)}
           aria-label={t("searchLabel")}
           placeholder={t("searchLabel")}
-          className="h-14 w-full rounded-chip border-2 border-border-strong bg-surface pl-12 pr-12 text-lg text-text placeholder:text-muted focus:border-brand focus:outline-none"
+          className="h-14 w-full rounded-chip border border-border-strong bg-surface pl-12 pr-12 text-lg text-text placeholder:text-muted focus:border-brand focus:outline-none"
         />
         {stationQuery ? (
           <button
@@ -409,7 +409,7 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
                     <p className="truncate text-base font-semibold text-text">{item.name}</p>
                     <p className="truncate text-sm text-muted">{item.sub}</p>
                   </div>
-                  <span className="shrink-0 text-base font-semibold text-brand">{t("flyTo")} →</span>
+                  <span className="shrink-0 text-base font-semibold text-brand">{t("flyTo")}</span>
                 </button>
               </li>
             ))}
@@ -434,13 +434,14 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
                   aria-pressed={active}
                   onClick={() => toggle(key)}
                   className={cn(
-                    "inline-flex min-h-11 items-center gap-2 rounded-chip border-2 px-3.5 py-2 text-base font-medium transition-all cursor-pointer active:scale-95",
+                    "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-base font-medium transition-colors cursor-pointer",
+                    // Several layers can be on at once, so "on" is a tinted state, not a solid fill.
                     active
-                      ? "border-brand bg-brand text-brand-fg font-semibold"
-                      : "border-border text-text hover:bg-surface-2",
+                      ? "border-brand bg-brand-soft text-brand font-semibold"
+                      : "border-border-strong bg-surface text-muted hover:bg-surface-2",
                   )}
                 >
-                  {icon ? <span>{icon}</span> : <span aria-hidden>{active ? "✓" : "○"}</span>}
+                  {active ? <CheckIcon width={16} height={16} aria-hidden /> : icon ? <span aria-hidden>{icon}</span> : null}
                   <span>{label}</span>
                   {typeof count === "number" ? <span className="tabular opacity-80">({count})</span> : null}
                 </button>
@@ -456,11 +457,11 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
                   aria-pressed={riversOnlyWarning}
                   onClick={() => setRiversOnlyWarning((v) => !v)}
                   className={cn(
-                    "inline-flex min-h-11 items-center gap-2 rounded-chip border-2 px-3.5 py-2 text-base font-semibold transition-all cursor-pointer active:scale-95",
-                    riversOnlyWarning ? "border-warning bg-warning text-white" : "border-border text-text hover:bg-surface-2",
+                    "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-base font-medium transition-colors cursor-pointer",
+                    riversOnlyWarning ? "border-warning-solid bg-warning-soft text-warning font-semibold" : "border-border-strong bg-surface text-muted hover:bg-surface-2",
                   )}
                 >
-                  <span aria-hidden>{riversOnlyWarning ? "⚠" : "○"}</span>
+                  {riversOnlyWarning ? <CheckIcon width={16} height={16} aria-hidden /> : null}
                   <span>{t("riversOnlyWarning")}</span>
                 </button>
               ) : null}
@@ -470,11 +471,11 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
                   aria-pressed={highwaysBlockedOnly}
                   onClick={() => setHighwaysBlockedOnly((v) => !v)}
                   className={cn(
-                    "inline-flex min-h-11 items-center gap-2 rounded-chip border-2 px-3.5 py-2 text-base font-semibold transition-all cursor-pointer active:scale-95",
-                    highwaysBlockedOnly ? "border-danger bg-danger text-white" : "border-border text-text hover:bg-surface-2",
+                    "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-base font-medium transition-colors cursor-pointer",
+                    highwaysBlockedOnly ? "border-danger-solid bg-danger-soft text-danger font-semibold" : "border-border-strong bg-surface text-muted hover:bg-surface-2",
                   )}
                 >
-                  <span aria-hidden>{highwaysBlockedOnly ? "⛔" : "○"}</span>
+                  {highwaysBlockedOnly ? <CheckIcon width={16} height={16} aria-hidden /> : null}
                   <span>{t("highwaysBlockedOnly")}</span>
                 </button>
               ) : null}
@@ -483,7 +484,7 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
         </div>
       </details>
 
-      <div className="relative overflow-hidden rounded-card border border-border shadow-card">
+      <div className="relative overflow-hidden rounded-card border border-border">
         <LeafletMap
           data={data}
           layers={layers}
@@ -497,7 +498,7 @@ export function HazardMap({ initialData }: { initialData?: MapDataResponse }) {
         <span>{t("tileNote")}</span>
         {!data.riverOk || !data.quakeOk ? (
           <span className="text-warning">
-            {tc("showingLastKnown")} ·{" "}
+            {tc("showingLastKnown")}{" "}
             <a
               href="https://bipadportal.gov.np/realtime-monitoring"
               target="_blank"

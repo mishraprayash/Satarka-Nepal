@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadHighways } from "@/lib/sources/highway";
+import { loadHighwaysResult } from "@/lib/sources/highway";
 import { getHighwaysFromDb, isSnapshotFresh } from "@/lib/supabase/server";
 import type { HighwaysResponse } from "@/lib/types";
 
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     }
 
     // Upstream fallback / fresh fetch
-    const highways = await loadHighways();
+    const { highways, ok, error } = await loadHighwaysResult();
     const blockedCount = highways.filter((h) => h.status === "BLOCKED" || h.status === "CLOSED").length;
     const partialCount = highways.filter((h) => h.status === "PARTIAL_OPEN").length;
     const openCount = highways.filter((h) => h.status === "OPEN").length;
@@ -35,7 +35,8 @@ export async function GET(req: Request) {
       blockedCount,
       partialCount,
       openCount,
-      ok: true,
+      ok,
+      error,
     };
 
     // Reads only: the ingest cron (/api/ingest) is the sole writer to Supabase.

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/section";
 import { HighwaysView } from "@/components/highways-view";
-import { loadHighways } from "@/lib/sources/highway";
+import { loadHighwaysResult } from "@/lib/sources/highway";
 import type { HighwaysResponse } from "@/lib/types";
 
 export async function generateMetadata({
@@ -23,9 +23,9 @@ export default async function HighwaysPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [t, highways] = await Promise.all([
+  const [t, { highways, ok, error }] = await Promise.all([
     getTranslations("highways"),
-    loadHighways(),
+    loadHighwaysResult(),
   ]);
 
   const blockedCount = highways.filter((h) => h.status === "BLOCKED" || h.status === "CLOSED").length;
@@ -38,7 +38,8 @@ export default async function HighwaysPage({
     blockedCount,
     partialCount,
     openCount,
-    ok: true,
+    ok,
+    error,
   };
 
   return (

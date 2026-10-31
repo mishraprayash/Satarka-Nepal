@@ -39,10 +39,10 @@ function readColors(): ThemeColors {
   const get = (n: string) => cs.getPropertyValue(n).trim();
   return {
     info: get("--sev-info-fg") || "#35506b",
-    advisory: get("--sev-advisory-fg") || "#1a7a3e",
-    watch: get("--sev-watch-fg") || "#8a5900",
-    warning: get("--sev-warning-fg") || "#a3480f",
-    danger: get("--sev-danger-fg") || "#b01c2b",
+    advisory: get("--sev-advisory-solid") || "#1a7a3e",
+    watch: get("--sev-watch-solid") || "#8a5900",
+    warning: get("--sev-warning-solid") || "#a3480f",
+    danger: get("--sev-danger-solid") || "#b01c2b",
   };
 }
 
@@ -209,7 +209,7 @@ function HighwayMarker({ highway, colors, locale }: { highway: HighwayBlockage; 
           </div>
           <p className="mt-1 font-semibold text-text">{highway.title}</p>
           <p className="text-sm text-muted">{highway.location}</p>
-          <p className="mt-1 text-sm font-medium" style={{ color: colors.warning }}>
+          <p className="mt-1 text-sm font-medium text-warning">
             Cause: {highway.closureReason}
           </p>
           {highway.repairEta ? <p className="text-sm text-muted">ETA: {highway.repairEta}</p> : null}

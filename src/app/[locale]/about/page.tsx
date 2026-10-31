@@ -1,8 +1,9 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { SourceStatus } from "@/lib/types";
 import { SectionHeader } from "@/components/section";
-import { STATUS_KEY } from "@/lib/ui";
-import { ExternalIcon, PhoneIcon } from "@/components/icons";
+import { STATUS_DOT, STATUS_KEY } from "@/lib/ui";
+import { cn } from "@/lib/cn";
+import { ExternalIcon } from "@/components/icons";
 import { DisclaimerTrigger } from "@/components/disclaimer-trigger";
 
 interface SourceLine {
@@ -53,68 +54,75 @@ export default async function AboutPage({
   const tf = await getTranslations("footer");
 
   return (
-    <div className="shell space-y-10 py-10 sm:py-14">
+    <div className="shell space-y-14 py-10 sm:py-14">
       <SectionHeader title={t("title")} />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Mission */}
-        <section className="card p-6 lg:col-span-2">
-          <h2 className="text-xl font-bold tracking-tight">{t("missionTitle")}</h2>
-          <p className="mt-3 text-base leading-relaxed text-muted">{t("missionBody")}</p>
-          <p className="mt-3 text-base leading-relaxed text-muted">{t("honestyBody")}</p>
-        </section>
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,42rem)_1fr] lg:gap-16">
+        {/* Long-form reading: one column at a comfortable line length, no boxes */}
+        <article className="space-y-10 text-lg leading-relaxed">
+          <section>
+            <h2 className="text-2xl font-bold">{t("missionTitle")}</h2>
+            <p className="mt-3">{t("missionBody")}</p>
+            <p className="mt-3">{t("honestyBody")}</p>
+          </section>
 
-        {/* Emergency contacts — always visible */}
-        <section className="card border-warning/40 bg-warning-soft/30 p-6">
-          <h2 className="text-xl font-bold tracking-tight">{t("emergencyTitle")}</h2>
-          <ul className="mt-4 space-y-2.5">
+          <section className="border-l-4 border-brand pl-5">
+            <h2 className="text-2xl font-bold">{t("rasuwaTitle")}</h2>
+            <div className="mt-3 space-y-3">
+              <p>{t("rasuwaBody1")}</p>
+              <p>{t("rasuwaBody2")}</p>
+              <p className="font-semibold">{t("rasuwaBody3")}</p>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold">{t("methodologyTitle")}</h2>
+            <p className="mt-3">{t("methodologyBody")}</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold">{t("licensesTitle")}</h2>
+            <p className="mt-3 text-muted">{t("licensesBody")}</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold">{t("disclaimerTitle")}</h2>
+            <p className="mt-3 text-muted">{t("disclaimerBody")}</p>
+            <DisclaimerTrigger label={t("disclaimerTitle")} actionText={tf("readFullDisclaimer")} />
+          </section>
+        </article>
+
+        {/* Emergency numbers stay in view beside the reading on wide screens */}
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <h2 className="text-xl font-bold">{t("emergencyTitle")}</h2>
+          <ul className="mt-4 divide-y divide-border rounded-card border border-border bg-surface">
             {EMERGENCY.map((c) => (
               <li key={c.key}>
                 <a
                   href={`tel:${c.number}`}
                   aria-label={te("call", { number: c.number })}
-                  className="flex min-h-14 items-center justify-between gap-3 rounded-chip border border-warning/40 bg-surface p-3.5 text-base font-medium transition-all hover:border-warning active:scale-[0.98]"
+                  className="flex min-h-14 items-center justify-between gap-3 px-4 py-3 hover:bg-surface-2"
                 >
-                  <span className="inline-flex items-center gap-2 font-semibold text-text">
-                    <PhoneIcon width={20} height={20} className="text-warning shrink-0" />
-                    <span>{te(c.key)}</span>
+                  <span className="flex flex-col">
+                    <span className="font-semibold">{te(c.key)}</span>
+                    {c.tollFree ? <span className="text-sm text-muted">{te("tollFree")}</span> : null}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-chip bg-warning/15 px-3 py-1 text-lg font-bold text-warning">
-                    <span className="tabular">{c.number}</span>
-                    <span className="text-base font-normal text-warning">
-                      ({c.tollFree ? te("tollFree") : te("callAction")})
-                    </span>
-                  </span>
+                  <span className="tabular text-2xl font-extrabold text-danger">{c.number}</span>
                 </a>
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-base text-muted leading-relaxed">{te("emergencyNote")}</p>
-        </section>
+          <p className="mt-3 text-base leading-relaxed text-muted">{te("emergencyNote")}</p>
+        </aside>
       </div>
 
-      {/* Rasuwa case study */}
-      <section className="card relative overflow-hidden p-6 sm:p-8">
-        <div className="contour-field decor absolute inset-0 -z-10 opacity-40" aria-hidden />
-        <h2 className="text-xl font-bold tracking-tight">{t("rasuwaTitle")}</h2>
-        <div className="mt-3 max-w-3xl space-y-3 text-base leading-relaxed text-muted">
-          <p>{t("rasuwaBody1")}</p>
-          <p>{t("rasuwaBody2")}</p>
-          <p>{t("rasuwaBody3")}</p>
-        </div>
-      </section>
-
-      {/* Data sources */}
+      {/* Data sources, each with its honest status */}
       <section>
         <SectionHeader title={t("sourcesTitle")} className="mb-4" />
         <ul className="grid gap-3 sm:grid-cols-2">
           {SOURCES.map((s) => (
-            <li key={s.url} className="card flex items-center gap-3 p-4">
-              <span
-                className="inline-flex h-2 w-2 shrink-0 rounded-full"
-                style={{ background: "var(--sev-info-fg)" }}
-                aria-hidden
-              />
+            <li key={s.url} className="card flex items-center gap-3 px-4 py-2">
+              <span className={cn("size-2.5 shrink-0 rounded-full", STATUS_DOT[s.status])} aria-hidden />
               <a
                 href={s.url}
                 target="_blank"
@@ -129,31 +137,6 @@ export default async function AboutPage({
           ))}
         </ul>
       </section>
-
-      {/* Methodology + licenses */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="card p-6">
-          <h2 className="text-xl font-bold tracking-tight">{t("methodologyTitle")}</h2>
-          <p className="mt-3 text-base leading-relaxed text-muted">{t("methodologyBody")}</p>
-        </section>
-        <section className="card p-6">
-          <h2 className="text-xl font-bold tracking-tight">{t("licensesTitle")}</h2>
-          <p className="mt-3 text-base leading-relaxed text-muted">{t("licensesBody")}</p>
-        </section>
-      </div>
-
-      {/* Disclaimer */}
-      <section className="rounded-card border border-warning/30 bg-warning-soft/40 p-6">
-        <h2 className="text-lg font-bold tracking-tight">{t("disclaimerTitle")}</h2>
-        <p className="mt-2 max-w-3xl text-base leading-relaxed text-muted">{t("disclaimerBody")}</p>
-        <div className="mt-4 max-w-md">
-          <DisclaimerTrigger
-            label={t("disclaimerTitle")}
-            actionText={tf("readFullDisclaimer")}
-          />
-        </div>
-      </section>
     </div>
   );
 }
-

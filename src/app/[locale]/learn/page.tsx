@@ -3,17 +3,9 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { DisasterHistorySection } from "@/components/disaster-history-section";
 import { SectionHeader } from "@/components/section";
-import { HazardGlyph, ArrowIcon, PhoneIcon } from "@/components/icons";
+import { HazardGlyph, ArrowIcon } from "@/components/icons";
 import { HAZARD_ORDER } from "@/lib/ui";
 import { LEARN_IMAGES } from "@/lib/learn-images";
-
-const EMERGENCY_HELPLINES = [
-  { key: "police", number: "100", labelEn: "Police", labelNe: "प्रहरी" },
-  { key: "fire", number: "101", labelEn: "Fire", labelNe: "दमकल" },
-  { key: "ambulance", number: "102", labelEn: "Ambulance", labelNe: "एम्बुलेन्स" },
-  { key: "dhm", number: "1155", labelEn: "DHM Flood Watch", labelNe: "बाढी सूचना", tollFree: true },
-  { key: "ndrrma", number: "1149", labelEn: "NDRRMA Helpline", labelNe: "विपद् हटलाइन", tollFree: true },
-] as const;
 
 export async function generateMetadata({
   params,
@@ -57,7 +49,7 @@ export default async function LearnPage({
               <li key={h}>
                 <Link
                   href={`/learn/${h}`}
-                  className="card group flex h-full flex-col overflow-hidden transition-colors hover:border-border-strong"
+                  className="card card-link group flex h-full flex-col overflow-hidden"
                 >
                   <div className="relative aspect-[16/8] w-full overflow-hidden bg-surface-2">
                     <Image
@@ -66,25 +58,20 @@ export default async function LearnPage({
                       fill
                       loading="lazy"
                       sizes="(min-width: 640px) 50vw, 100vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden />
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-5">
                     <div className="flex items-center gap-2">
                       <span className="text-brand" aria-hidden>
                         <HazardGlyph hazard={h} width={20} height={20} />
                       </span>
-                      <h2 className="text-xl font-bold">{th(`${h}.name`)}</h2>
+                      <h2 className="text-xl font-bold group-hover:text-brand">{th(`${h}.name`)}</h2>
                     </div>
                     <p className="text-base leading-relaxed text-muted">{th(`${h}.short`)}</p>
-                    <span className="mt-auto inline-flex items-center gap-1 pt-2 text-sm font-medium text-brand">
+                    <span className="mt-auto inline-flex items-center gap-1 pt-2 text-base font-semibold text-brand">
                       {t("readGuide")}
-                      <ArrowIcon
-                        width={14}
-                        height={14}
-                        className="transition-transform group-hover:translate-x-0.5"
-                      />
+                      <ArrowIcon width={14} height={14} />
                     </span>
                   </div>
                 </Link>
@@ -94,36 +81,8 @@ export default async function LearnPage({
         </ul>
       </div>
 
-      {/* Quick Emergency Hotlines Bar */}
-      <div className="rounded-card border border-warning/40 bg-warning-soft/20 p-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3 className="text-sm sm:text-base font-bold text-text flex items-center gap-2">
-              <PhoneIcon width={16} height={16} className="text-warning shrink-0" />
-              <span>{t("emergencyHotlinesTitle")}</span>
-            </h3>
-            <p className="text-base text-muted mt-0.5">
-              {t("emergencyHotlinesSub")}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {EMERGENCY_HELPLINES.map((item) => (
-              <a
-                key={item.number}
-                href={`tel:${item.number}`}
-                className="inline-flex min-h-12 items-center gap-2 rounded-chip border border-warning/40 bg-surface px-4 py-2 text-base font-semibold text-text hover:border-warning hover:bg-surface hover:text-warning transition-colors shadow-2xs"
-              >
-                <PhoneIcon width={16} height={16} className="text-warning" />
-                <span>{locale === "ne" ? item.labelNe : item.labelEn}</span>
-                <span className="tabular font-bold text-warning">({item.number})</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Historical Disasters Archive & Scientific Realities */}
-      <div className="border-t border-border pt-10">
+      <div className="border-t border-border pt-12">
         <DisasterHistorySection />
       </div>
     </div>
