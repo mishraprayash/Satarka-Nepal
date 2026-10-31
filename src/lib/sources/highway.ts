@@ -1,7 +1,7 @@
 import type { Alert, HighwayBlockage, HighwayStatus, Severity } from "@/lib/types";
 import type { SourceContext, SourceDescriptor, SourceLoadResult } from "./base";
 import { makeSourceRef } from "./base";
-import { extractLatLng, fetchJson, num, str } from "./util";
+import { describeFetchError, extractLatLng, fetchJson, num, str } from "./util";
 import { CONFIG } from "@/lib/config";
 
 const BASE = CONFIG.apis.bipad;
@@ -94,7 +94,8 @@ export async function loadHighways(fresh = false): Promise<HighwayBlockage[]> {
 
     return items;
   } catch (err) {
-    console.error("[highway] failed to load highway data:", err);
+    // An unreachable feed is an expected upstream condition, not an app error.
+    console.warn(`[highway] roads feed unavailable: ${describeFetchError(err)}`);
     return [];
   }
 }
