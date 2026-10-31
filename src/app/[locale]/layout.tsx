@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Mukta } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
@@ -9,6 +10,14 @@ import { AppearanceSync, ThemeBoot } from "@/components/settings-controls";
 import { GlobalNav } from "@/components/global-nav";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "../globals.css";
+
+// One family for both scripts, self-hosted by next/font (no third-party request).
+const mukta = Mukta({
+  subsets: ["latin", "devanagari"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-mukta",
+  display: "swap",
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -42,8 +51,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#090a0f" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f5f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1221" },
   ],
 };
 
@@ -62,7 +71,7 @@ export default async function LocaleLayout({
   const t = await getTranslations("nav");
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} className={mukta.variable} suppressHydrationWarning>
       <body className="min-h-dvh antialiased flex flex-col justify-between">
         <NextIntlClientProvider messages={messages}>
           <Providers>

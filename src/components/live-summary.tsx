@@ -6,10 +6,10 @@ import { SEVERITY_RANK } from "@/lib/types";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/format";
-import { HAZARD_ORDER, SEVERITY_BAR } from "@/lib/ui";
+import { HAZARD_ORDER, SEVERITY_TEXT } from "@/lib/ui";
 import { useAlerts } from "@/lib/use-alerts";
 import { AlertCard } from "@/components/alert-card";
-import { HazardGlyph } from "@/components/icons";
+import { ArrowIcon, HazardGlyph } from "@/components/icons";
 import { Link } from "@/i18n/navigation";
 
 const TOP_N = 3;
@@ -25,44 +25,30 @@ function maxSeverity(items: Alert[]): Severity | null {
 function HazardTally({ alerts }: { alerts: Alert[] }) {
   const th = useTranslations("hazards");
   const tc = useTranslations("common");
+  const ts = useTranslations("severity");
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {HAZARD_ORDER.map((h: HazardType) => {
         const items = alerts.filter((a) => a.hazard === h);
         const worst = maxSeverity(items);
-        const active = items.length > 0;
         return (
           <li key={h}>
             <Link
               href={`/alerts?hazard=${h}`}
-              className={cn(
-                "card group flex items-center gap-3.5 p-4 transition-all duration-200 hover:border-border-strong hover:shadow-xs hover:-translate-y-0.5 cursor-pointer active:scale-98",
-                active ? "border-border bg-surface" : "bg-surface-2/40 border-border/50",
-              )}
+              className="card card-link flex h-full flex-col gap-2 p-4"
             >
-              <span
-                className={cn(
-                  "inline-flex size-9 items-center justify-center rounded-chip bg-surface-2 text-muted transition-colors group-hover:text-brand group-hover:bg-brand/10",
-                  active && "text-brand bg-brand/10",
-                )}
-                aria-hidden
-              >
-                <HazardGlyph hazard={h} width={18} height={18} />
+              <span className="flex items-start gap-2 text-base font-semibold leading-snug">
+                <HazardGlyph hazard={h} width={18} height={18} className="mt-0.5 shrink-0 text-muted" />
+                {th(`${h}.name`)}
               </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-medium leading-tight text-text">
-                  {th(`${h}.name`)}
-                </p>
-                <div className="mt-1 flex items-baseline justify-between">
-                  <span className="tabular text-2xl font-bold leading-none text-text">{items.length}</span>
-                  {worst ? (
-                    <span
-                      className={cn("size-2 rounded-full ring-2 ring-surface", SEVERITY_BAR[worst])}
-                      aria-hidden
-                    />
-                  ) : null}
-                </div>
-              </div>
+              <span className="mt-auto flex items-baseline justify-between gap-2">
+                <span className={cn("tabular text-3xl font-extrabold leading-none", items.length === 0 && "text-faint")}>
+                  {items.length}
+                </span>
+                {worst && worst !== "info" ? (
+                  <span className={cn("text-sm font-bold", SEVERITY_TEXT[worst])}>{ts(`${worst}.label`)}</span>
+                ) : null}
+              </span>
             </Link>
           </li>
         );
@@ -124,7 +110,7 @@ export function LiveSummary({ initialData }: { initialData?: AlertsResponse }) {
       <HazardTally alerts={alerts} />
 
       {top.length > 0 ? (
-        <div className="grid gap-5 sm:gap-6 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
           {top.map((a, idx) => (
             <AlertCard key={`${a.id}-${idx}`} alert={a} />
           ))}
@@ -146,7 +132,7 @@ export function LiveSummary({ initialData }: { initialData?: AlertsResponse }) {
           className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand-strong"
         >
           {ta("title")}
-          <span aria-hidden>→</span>
+          <ArrowIcon width={14} height={14} />
         </Link>
       </div>
     </div>

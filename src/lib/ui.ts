@@ -18,13 +18,13 @@ export const SEVERITY_TEXT: Record<Severity, string> = {
   danger: "text-danger",
 };
 
-/** Left accent bar per severity, for alert cards. */
+/** Solid severity fill: card edges, map rings, the status ladder. */
 export const SEVERITY_BAR: Record<Severity, string> = {
-  info: "bg-info",
-  advisory: "bg-advisory",
-  watch: "bg-watch",
-  warning: "bg-warning",
-  danger: "bg-danger",
+  info: "bg-border-strong",
+  advisory: "bg-advisory-solid",
+  watch: "bg-watch-solid",
+  warning: "bg-warning-solid",
+  danger: "bg-danger-solid",
 };
 
 /** SourceStatus → i18n key under the `status` namespace. */

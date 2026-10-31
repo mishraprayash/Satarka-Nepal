@@ -71,7 +71,7 @@ export function RiverGaugeChart({ stationId }: { stationId: string }) {
   return (
     <div className="mt-4 space-y-2 rounded-xl border border-border/80 bg-surface-2/60 p-4">
       <div className="flex items-center justify-between text-sm mb-4">
-        <span className="font-bold uppercase tracking-wider text-muted">24-Hour Hydrological Trend</span>
+        <span className="font-bold text-muted">24-Hour Hydrological Trend</span>
       </div>
       <div className="h-48 w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -79,14 +79,14 @@ export function RiverGaugeChart({ stationId }: { stationId: string }) {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
             <XAxis 
               dataKey="formattedTime" 
-              stroke="#888888" 
+              stroke="var(--faint)" 
               fontSize={10} 
               tickLine={false} 
               axisLine={false}
               minTickGap={30}
             />
             <YAxis 
-              stroke="#888888" 
+              stroke="var(--faint)" 
               fontSize={10} 
               tickLine={false} 
               axisLine={false} 
@@ -94,7 +94,7 @@ export function RiverGaugeChart({ stationId }: { stationId: string }) {
               domain={[0, yDomainMax]}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1C1C1C', borderColor: '#333', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', borderRadius: '10px', color: 'var(--text)' }}
               itemStyle={{ color: '#fff' }}
               labelStyle={{ color: '#888', marginBottom: '4px' }}
             />
@@ -103,9 +103,9 @@ export function RiverGaugeChart({ stationId }: { stationId: string }) {
             {data[0]?.warning_level && (
               <ReferenceLine 
                 y={data[0].warning_level} 
-                stroke="#F59E0B" 
+                stroke="var(--sev-warning-solid)" 
                 strokeDasharray="3 3" 
-                label={{ position: 'insideTopLeft', value: 'Warn', fill: '#F59E0B', fontSize: 10 }} 
+                label={{ position: 'insideTopLeft', value: 'Warn', fill: 'var(--sev-warning-fg)', fontSize: 10 }} 
               />
             )}
             
@@ -113,9 +113,9 @@ export function RiverGaugeChart({ stationId }: { stationId: string }) {
             {data[0]?.danger_level && (
               <ReferenceLine 
                 y={data[0].danger_level} 
-                stroke="#EF4444" 
+                stroke="var(--sev-danger-solid)" 
                 strokeDasharray="3 3" 
-                label={{ position: 'insideTopLeft', value: 'Danger', fill: '#EF4444', fontSize: 10 }} 
+                label={{ position: 'insideTopLeft', value: 'Danger', fill: 'var(--sev-danger-fg)', fontSize: 10 }} 
               />
             )}
 
@@ -123,7 +123,7 @@ export function RiverGaugeChart({ stationId }: { stationId: string }) {
               type="monotone" 
               dataKey="water_level" 
               name="Water Level (m)"
-              stroke="#38bdf8" 
+              stroke="var(--brand)" 
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4 }}

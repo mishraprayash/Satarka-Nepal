@@ -12,6 +12,15 @@ function toDevanagari(n: number): string {
 }
 
 /**
+ * A count in the locale's own digits, computed the same way on server and
+ * client. ICU's `#` in messages can't be used for this: Node and browsers
+ * disagree on Nepali digits, which breaks hydration.
+ */
+export function localizeDigits(n: number, locale: Locale): string {
+  return locale === "ne" ? toDevanagari(n) : String(n);
+}
+
+/**
  * Hand-rolled Nepali relative time. Browsers differ in whether they ship Nepali
  * Intl.RelativeTimeFormat data (some silently fall back to English), and this
  * string is safety-relevant ("how fresh is this alert?"), so we don't rely on it.

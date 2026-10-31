@@ -8,8 +8,8 @@
   "display": "standalone",
   "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
   "orientation": "any",
-  "background_color": "#090a0f",
-  "theme_color": "#090a0f",
+  "background_color": "#0a1221",
+  "theme_color": "#0a1221",
   "categories": ["utilities", "education", "weather"],
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },

@@ -95,7 +95,7 @@ export default async function LearnPage({
       </div>
 
       {/* Quick Emergency Hotlines Bar */}
-      <div className="rounded-2xl border border-warning/40 bg-warning-soft/20 p-5 shadow-xs">
+      <div className="rounded-card border border-warning/40 bg-warning-soft/20 p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm sm:text-base font-bold text-text flex items-center gap-2">
@@ -111,7 +111,7 @@ export default async function LearnPage({
               <a
                 key={item.number}
                 href={`tel:${item.number}`}
-                className="inline-flex min-h-12 items-center gap-2 rounded-chip border-2 border-warning/40 bg-surface px-4 py-2 text-base font-semibold text-text hover:border-warning hover:bg-surface hover:text-warning transition-colors shadow-2xs"
+                className="inline-flex min-h-12 items-center gap-2 rounded-chip border border-warning/40 bg-surface px-4 py-2 text-base font-semibold text-text hover:border-warning hover:bg-surface hover:text-warning transition-colors shadow-2xs"
               >
                 <PhoneIcon width={16} height={16} className="text-warning" />
                 <span>{locale === "ne" ? item.labelNe : item.labelEn}</span>

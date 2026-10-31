@@ -73,7 +73,7 @@ export default async function AboutPage({
                 <a
                   href={`tel:${c.number}`}
                   aria-label={te("call", { number: c.number })}
-                  className="flex min-h-14 items-center justify-between gap-3 rounded-chip border-2 border-warning/40 bg-surface p-3.5 text-base font-medium transition-all hover:border-warning active:scale-[0.98]"
+                  className="flex min-h-14 items-center justify-between gap-3 rounded-chip border border-warning/40 bg-surface p-3.5 text-base font-medium transition-all hover:border-warning active:scale-[0.98]"
                 >
                   <span className="inline-flex items-center gap-2 font-semibold text-text">
                     <PhoneIcon width={20} height={20} className="text-warning shrink-0" />

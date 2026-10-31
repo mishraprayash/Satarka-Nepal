@@ -110,11 +110,7 @@ export function DisclaimerModal() {
     };
   }, [isOpen, handleAcknowledge]);
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      handleAcknowledge();
-    }
-  };
+  const handleBackdropClick = () => handleAcknowledge();
 
   if (!isOpen) return null;
 
@@ -131,57 +127,57 @@ export function DisclaimerModal() {
       aria-modal="true"
       aria-labelledby="disclaimer-modal-title"
       aria-describedby="disclaimer-modal-desc"
-      onClick={handleBackdropClick}
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-5"
+      className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-5"
     >
+      <div className="dialog-backdrop" onClick={handleBackdropClick} aria-hidden />
       <div
         ref={dialogRef}
-        className="relative flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-border bg-surface text-text shadow-2xl focus:outline-none sm:rounded-3xl"
+        className="dialog-panel max-w-xl focus:outline-none"
         tabIndex={-1}
       >
-        <div className="flex-1 min-h-0 space-y-5 overflow-y-auto p-6 sm:p-8">
+        <div className="dialog-header">
           <div className="flex items-center gap-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-warning-soft text-warning">
-              <SeverityGlyph severity="warning" width={26} height={26} />
-            </span>
+            <SeverityGlyph severity="warning" width={28} height={28} className="shrink-0 text-warning" />
             <h2 id="disclaimer-modal-title" className="text-2xl font-bold">
               {t("title")}
             </h2>
           </div>
+        </div>
 
+        <div className="dialog-body space-y-5">
           <p id="disclaimer-modal-desc" className="text-lg leading-relaxed">
             {t("lead")}
           </p>
 
           <ul className="space-y-3">
-            <li className="rounded-card border-2 border-warning/40 bg-warning-soft p-4">
+            <li className="rounded-card border-l-4 border-warning-solid bg-warning-soft p-4">
               <h3 className="text-lg font-bold">{t("primaryDirectiveTitle")}</h3>
               <p className="mt-1 text-base leading-relaxed">{t("primaryDirectiveBody")}</p>
             </li>
-            <li className="rounded-card border-2 border-border p-4">
+            <li className="rounded-card border-l-4 border-border-strong bg-surface-2 p-4">
               <h3 className="text-lg font-bold">{t("sensorGapsTitle")}</h3>
               <p className="mt-1 text-base leading-relaxed">{t("sensorGapsBody")}</p>
             </li>
           </ul>
 
           <div>
-            <h3 className="mb-2 text-base font-semibold text-muted">{t("hotlinesTitle")}</h3>
+            <h3 className="mb-2 text-base font-semibold">{t("hotlinesTitle")}</h3>
             <div className="grid grid-cols-2 gap-2">
               {hotlines.map((h) => (
                 <a
                   key={h.n}
                   href={`tel:${h.n}`}
-                  className="flex min-h-12 items-center justify-between gap-2 rounded-chip border-2 border-border px-3.5 py-2 text-base font-medium hover:bg-surface-2"
+                  className="flex min-h-12 items-center justify-between gap-2 rounded-chip border border-border-strong px-3.5 py-2 text-base font-medium hover:bg-surface-2"
                 >
                   <span>{h.label}</span>
-                  <span className="tabular text-lg font-bold text-danger">{h.n}</span>
+                  <span className="tabular text-xl font-extrabold text-danger">{h.n}</span>
                 </a>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="border-t border-border bg-surface p-4 sm:p-5" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+        <div className="dialog-footer">
           <button ref={acknowledgeButtonRef} type="button" onClick={handleAcknowledge} className="btn btn-primary w-full">
             <CheckIcon width={20} height={20} />
             <span>{t("acknowledge")}</span>

@@ -227,12 +227,17 @@ export function ReportFormModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 sm:items-center sm:p-4">
-      <div className="relative max-h-[95dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl border border-border bg-surface p-5 shadow-2xl sm:rounded-3xl sm:p-7">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-border pb-4">
+    <div
+      className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-form-title"
+    >
+      <div className="dialog-backdrop" onClick={loading ? undefined : onClose} aria-hidden />
+      <div className="dialog-panel max-w-xl">
+        <div className="dialog-header">
           <div>
-            <h2 className="text-2xl font-bold text-text">
+            <h2 id="report-form-title" className="text-2xl font-bold text-text">
               {locale === "ne" ? "विपद् रिपोर्ट दर्ता गर्नुहोस्" : "Submit Disaster Report"}
             </h2>
             <p className="text-sm text-muted mt-0.5">
@@ -243,17 +248,17 @@ export function ReportFormModal({
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="grid size-12 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text transition-colors disabled:opacity-50 cursor-pointer"
+            className="icon-btn -mr-2 -mt-1 disabled:opacity-50"
             aria-label={locale === "ne" ? "बन्द गर्नुहोस्" : "Close"}
           >
             <CloseIcon width={22} height={22} />
           </button>
         </div>
 
-        {/* Status alerts */}
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <div className="dialog-body space-y-6">
         {success && (
-          <div className="mt-4 rounded-chip bg-green-500/10 p-4 border-2 border-green-500/40 text-base font-medium text-green-700 dark:text-green-400">
-            ✓{" "}
+          <div role="status" className="rounded-card border-l-4 border-advisory-solid bg-advisory-soft p-4 text-base font-semibold text-advisory">
             {locale === "ne"
               ? "रिपोर्ट सफलतापूर्वक दर्ता भयो! समुदायलाई सुरक्षित राख्न मद्दत गर्नुभएकोमा धन्यवाद।"
               : "Report submitted successfully! Thank you for helping keep communities safe."}
@@ -261,19 +266,17 @@ export function ReportFormModal({
         )}
 
         {error && (
-          <div role="alert" className="mt-4 rounded-chip bg-red-500/10 p-4 border-2 border-red-500/40 text-base font-medium text-red-700 dark:text-red-400">
-            ⚠ {error}
+          <div role="alert" className="rounded-card border-l-4 border-danger-solid bg-danger-soft p-4 text-base font-semibold text-danger">
+            {error}
           </div>
         )}
 
-        {/* Modal Form */}
         {/* Safety first */}
-        <p className="mt-4 rounded-chip border-2 border-danger/40 bg-danger-soft p-3.5 text-base">
+        <p className="rounded-card bg-surface-2 p-4 text-base">
           <strong>{locale === "ne" ? "कसैलाई तत्काल खतरा छ?" : "Is someone in immediate danger?"}</strong>{" "}
           {locale === "ne" ? "पहिले १०० वा १०२ मा फोन गर्नुहोस्।" : "Call 100 or 102 first."}
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-6">
           {/* Honeypot for bots: hidden from people and assistive tech, never filled in by hand. */}
           <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
             <label>
@@ -425,7 +428,8 @@ export function ReportFormModal({
             />
           </div>
 
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        </div>
+          <div className="dialog-footer flex-col-reverse sm:flex-row">
             <button type="button" disabled={loading} onClick={onClose} className="btn btn-secondary disabled:opacity-50">
               {locale === "ne" ? "रद्द गर्नुहोस्" : "Cancel"}
             </button>

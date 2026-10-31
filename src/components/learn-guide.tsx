@@ -227,7 +227,7 @@ export async function LearnGuide({
       </section>
 
       {/* Live Monitoring Quick Links */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface-2/40 p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-border bg-surface-2/40 p-4 sm:p-5">
         <div className="flex items-center gap-3">
           <span className="text-brand shrink-0">
             <HazardGlyph hazard={hazard} width={24} height={24} />
@@ -265,7 +265,7 @@ export async function LearnGuide({
       </div>
 
       {/* Emergency Hotlines Quick-Dial Card */}
-      <section className="rounded-2xl border border-warning/40 bg-warning-soft/20 p-5 sm:p-6 shadow-xs">
+      <section className="rounded-card border border-warning/40 bg-warning-soft/20 p-5 sm:p-6 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-text flex items-center gap-2">
@@ -286,7 +286,7 @@ export async function LearnGuide({
             <a
               key={c.number}
               href={`tel:${c.number}`}
-              className="group flex flex-col justify-between rounded-card border-2 border-warning/40 bg-surface p-3.5 transition-all hover:border-warning hover:bg-surface hover:shadow-xs active:scale-[0.98]"
+              className="group flex flex-col justify-between rounded-card border border-warning/40 bg-surface p-3.5 transition-all hover:border-warning hover:bg-surface hover:shadow-xs active:scale-[0.98]"
             >
               <div>
                 <div className="flex items-center justify-between gap-1.5">

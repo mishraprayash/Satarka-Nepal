@@ -182,7 +182,7 @@ export default async function AlertDetailPage({
               />
             </div>
             <div className="flex justify-between items-center text-sm text-muted pt-1">
-              <span className="font-mono tabular">
+              <span className="tabular">
                 {alert.location!.lat!.toFixed(4)}°N, {alert.location!.lng!.toFixed(4)}°E
               </span>
               <Link

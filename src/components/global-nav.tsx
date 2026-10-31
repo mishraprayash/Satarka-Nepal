@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { SiteHeader } from "@/components/site-header";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { EmergencyBanner } from "@/components/emergency-banner";
 
 const CommandPalette = dynamic(
   () => import("@/components/command-palette").then((m) => m.CommandPalette),
@@ -33,6 +34,7 @@ export function GlobalNav() {
   return (
     <>
       <SiteHeader onOpenSearch={() => setIsSearchOpen(true)} />
+      <EmergencyBanner />
       <MobileBottomNav onOpenSearch={() => setIsSearchOpen(true)} />
       {isSearchOpen ? (
         <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />

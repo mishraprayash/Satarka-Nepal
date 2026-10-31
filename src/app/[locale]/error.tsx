@@ -69,7 +69,7 @@ export default function LocaleError({
             {homeText}
           </Link>
         </div>
-        <p className="w-full rounded-chip border-2 border-danger/30 bg-danger-soft p-3.5 text-base">
+        <p className="w-full rounded-chip border border-danger/30 bg-danger-soft p-3.5 text-base">
           {emergencyText}{" "}
           <a href="tel:100" className="font-bold text-danger underline">100</a> ·{" "}
           <a href="tel:102" className="font-bold text-danger underline">102</a> ·{" "}

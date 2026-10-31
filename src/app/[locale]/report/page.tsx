@@ -79,7 +79,7 @@ export default function ReportPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-surface-2/40 border border-border p-3.5 rounded-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-surface-2/40 border border-border p-3.5 rounded-card">
         <div className="relative flex-1 min-w-[200px]">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted">
             <SearchIcon width={20} height={20} />

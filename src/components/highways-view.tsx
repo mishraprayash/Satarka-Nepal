@@ -237,7 +237,7 @@ function HighwayCard({ item, locale }: { item: HighwayBlockage; locale: Locale }
 
   return (
     <div
-      className="card group relative flex flex-col justify-between p-5 sm:p-5.5 transition-all duration-200 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5"
+      className="card group relative flex flex-col justify-between p-5"
     >
       <div>
         {/* Top Header: Code & Status */}

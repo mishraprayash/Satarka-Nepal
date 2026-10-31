@@ -102,7 +102,7 @@ function GaugeMarker({ gauge, colors, locale }: { gauge: RiverGauge; colors: The
     >
       <Popup>
         <div className="min-w-[180px] text-sm">
-          <p className="text-sm font-semibold uppercase tracking-wide text-muted">
+          <p className="text-sm font-semibold text-muted">
             {gauge.station}
             {gauge.basin ? ` · ${gauge.basin}` : ""}
           </p>
@@ -153,7 +153,7 @@ function QuakeMarker({ quake, colors, locale }: { quake: Quake; colors: ThemeCol
     >
       <Popup>
         <div className="min-w-[190px] text-sm">
-          <p className="text-sm font-semibold uppercase tracking-wide text-muted">{quake.place}</p>
+          <p className="text-sm font-semibold text-muted">{quake.place}</p>
           <p className="tabular mt-1 text-base font-semibold">
             {quake.mag !== undefined ? `M ${quake.mag.toFixed(1)}` : "Earthquake"}
             {quake.depthKm !== undefined ? (
@@ -431,7 +431,7 @@ export function LeafletMap({
               >
                 <Popup>
                   <div className="min-w-[170px] text-sm">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-muted">
+                    <p className="text-sm font-semibold text-muted">
                       {locale === "ne" ? b.nameNe : b.name}
                     </p>
                     <p className="mt-1 text-sm text-muted">
@@ -454,7 +454,7 @@ export function LeafletMap({
                 >
                   <Popup>
                     <div className="min-w-[200px] text-sm">
-                      <p className="text-sm font-semibold uppercase tracking-wide text-muted">
+                      <p className="text-sm font-semibold text-muted">
                         {locale === "ne" ? f.nameNe ?? f.name : f.name}
                       </p>
                       <p className="mt-1 text-sm text-muted">{localizeText(f.note, locale)}</p>
@@ -469,7 +469,7 @@ export function LeafletMap({
                 >
                   <Popup>
                     <div className="min-w-[200px] text-sm">
-                      <p className="text-sm font-semibold uppercase tracking-wide text-muted">
+                      <p className="text-sm font-semibold text-muted">
                         {locale === "ne" ? f.nameNe ?? f.name : f.name}
                       </p>
                       <p className="mt-1 text-sm text-muted">{localizeText(f.note, locale)}</p>
@@ -495,7 +495,7 @@ export function LeafletMap({
               >
                 <Popup>
                   <div className="min-w-[190px] text-sm">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-muted">
+                    <p className="text-sm font-semibold text-muted">
                       {l.name} · {l.district}
                     </p>
                     <p className="mt-1 font-medium">
@@ -526,7 +526,7 @@ export function LeafletMap({
           >
             <Popup autoClose={false}>
               <div className="min-w-[180px] text-sm">
-                <p className="text-sm font-bold uppercase tracking-wider text-danger">
+                <p className="text-sm font-bold text-danger">
                   {t("targetAlert") ?? "Focused Incident"}
                 </p>
                 <p className="mt-1 font-bold text-text">

@@ -308,12 +308,12 @@
   },
   "emergencyBanner": {
     "danger": {
-      "title": "Danger: {count, plural, one {# life-threatening alert is} other {# life-threatening alerts are}} active in Nepal",
+      "title": "Danger: {count, plural, one {{shown} life-threatening alert is} other {{shown} life-threatening alerts are}} active in Nepal",
       "sub": "Follow instructions from local authorities right away.",
       "badge": "DANGER"
     },
     "warning": {
-      "title": "Warning: {count, plural, one {# hazard warning is} other {# hazard warnings are}} active in Nepal",
+      "title": "Warning: {count, plural, one {{shown} hazard warning is} other {{shown} hazard warnings are}} active in Nepal",
       "sub": "Be careful near rivers and steep slopes.",
       "badge": "WARNING"
     },
@@ -324,6 +324,9 @@
     }
   },
   "footer": {
+    "callTitle": "In an emergency, call",
+    "groupInformed": "Stay informed",
+    "groupReady": "Be ready",
     "notOfficial": "Satarka is an independent aggregation and education project. It is not an official government warning service.",
     "disclaimerShort": "Supplements — does not replace — official warnings.",
     "readFullDisclaimer": "Read full safety advisory & disclaimer",
@@ -388,5 +391,25 @@
     },
     "clearNote": "Nothing reported within {km} km. Conditions can change, so check back often.",
     "nearbyCount": "{count, plural, one {# alert} other {# alerts}} within {km} km. Follow instructions from local authorities."
+  },
+  "levels": {
+    "heading": "Nepal right now",
+    "clear": "Clear",
+    "ladderLabel": "Warning level: {level}",
+    "seeAlerts": "See all alerts",
+    "report": "Report a hazard",
+    "watchTitle": "{count, plural, one {{shown} alert to keep an eye on} other {{shown} alerts to keep an eye on}}",
+    "watchSub": "Nothing serious yet. Stay aware near rivers and steep slopes.",
+    "sources": "Checked {time} from {ok} of {total} official sources",
+    "bandMore": "What to do"
+  },
+  "reading": {
+    "rising": "Rising",
+    "falling": "Falling",
+    "steady": "Steady",
+    "trend": "Trend",
+    "magnitude": "Magnitude",
+    "waterLevel": "Water level",
+    "rainfall": "Rainfall"
   }
 }
