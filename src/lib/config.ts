@@ -43,6 +43,13 @@ export const CONFIG = Object.freeze({
       process.env.GEOGLOWS_API_URL ?? "https://geoglows.ecmwf.int/api/v2",
   },
 
+  communityReports: {
+    /** Submissions allowed per client IP per window. */
+    rateLimitMax: Number(process.env.REPORT_RATE_LIMIT_MAX ?? 5),
+    /** Rate-limit window length (15 min). */
+    rateLimitWindowSec: Number(process.env.REPORT_RATE_LIMIT_WINDOW_SECONDS ?? 900),
+  },
+
   timeouts: {
     /** Standard HTTP timeout for upstream feeds (9s) */
     defaultMs: 9000,

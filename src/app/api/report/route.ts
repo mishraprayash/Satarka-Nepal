@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { NEPAL_DISTRICTS } from "@/lib/districts";
+import { CONFIG } from "@/lib/config";
+import { clientKey, hasSecret } from "@/lib/server-auth";
 import { z } from "zod";
 
 function sanitizeString(str: string): string {
@@ -111,14 +113,52 @@ const HAZARD_NE: Record<string, string> = {
   glof: "ग्लोफ",
 };
 
+/**
+ * Counts this submission against the client's fixed-window limit. Fails open
+ * when the limiter itself errors: blocking a real emergency report is worse
+ * than letting a few extra through.
+ */
+async function isWithinRateLimit(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
+  req: Request,
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("check_report_rate_limit", {
+    p_key: clientKey(req),
+    p_limit: CONFIG.communityReports.rateLimitMax,
+    p_window_seconds: CONFIG.communityReports.rateLimitWindowSec,
+  });
+  if (error) {
+    console.error("[community-report] rate limit check failed:", error.message);
+    return true;
+  }
+  return data !== false;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
+    // Honeypot: the form renders a visually hidden "website" field that people
+    // never fill in. Pretend success so bots don't learn to skip it.
+    if (typeof body?.website === "string" && body.website.trim() !== "") {
+      return NextResponse.json({ success: true });
+    }
+
     const data = ReportSchema.parse(body);
-    const supabase = getSupabaseServerClient();
-    
+    const supabase = getSupabaseAdminClient();
+
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+    }
+
+    if (!(await isWithinRateLimit(supabase, req))) {
+      return NextResponse.json(
+        { error: "Too many reports from this connection. Please wait a few minutes and try again." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(CONFIG.communityReports.rateLimitWindowSec) },
+        },
+      );
     }
 
     // Match district case-insensitively or via Nepali name
@@ -140,7 +180,7 @@ export async function POST(req: Request) {
       ? matchedDistrict.ne.replace(/\s*\(.*?\)/, "").trim()
       : data.district.trim();
 
-    const reportId = `com-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    const reportId = `com-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
     const hasCoords =
       typeof data.lat === "number" &&
       typeof data.lng === "number" &&
@@ -173,7 +213,7 @@ export async function POST(req: Request) {
       issued_at: issuedAt.toISOString(),
       source_id: "community",
       source_name: "Community Reports",
-      source_url: "https://satarka.nepal/report",
+      source_url: `${CONFIG.app.url}/report`,
       source_status: "recent",
       provenance: "community",
       is_active: true,
@@ -200,31 +240,18 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const adminSecret = process.env.ADMIN_SECRET || process.env.CRON_SECRET;
+    const adminSecret = process.env.ADMIN_SECRET?.trim();
 
-    // In production, require admin secret to delete reports
+    // In production, require a dedicated admin secret to delete reports
     if (process.env.NODE_ENV === "production" && !adminSecret) {
       return NextResponse.json(
-        { error: "ADMIN_SECRET or CRON_SECRET must be configured in production" },
+        { error: "ADMIN_SECRET must be configured in production" },
         { status: 503 }
       );
     }
 
-    if (adminSecret) {
-      const authHeader = req.headers.get("authorization") ?? "";
-      const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-      const customKey = req.headers.get("x-admin-key") ?? "";
-      const { searchParams } = new URL(req.url);
-      const querySecret = searchParams.get("secret") ?? "";
-
-      const matches =
-        (bearer && bearer === adminSecret) ||
-        (customKey && customKey === adminSecret) ||
-        (querySecret && querySecret === adminSecret);
-
-      if (!matches) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+    if (adminSecret && !hasSecret(req, adminSecret, "x-admin-key")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -244,7 +271,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServerClient();
+    const supabase = getSupabaseAdminClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }

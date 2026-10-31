@@ -1,22 +1,22 @@
-import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { loadAllAlerts } from "@/lib/sources";
 import { loadHighways } from "@/lib/sources/highway";
 import { syncAlertsToSupabase, syncHighwaysToSupabase } from "@/lib/supabase/sync";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseAdminClient } from "@/lib/supabase/server";
+import { hasSecret } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Constant-time string matching using SHA-256 hashes.
- * Ensures fixed 32-byte buffers to eliminate length-leak timing attacks
- * and prevent RangeError from crypto.timingSafeEqual length mismatches.
- */
-function timingSafeMatch(a: string, b: string): boolean {
-  if (typeof a !== "string" || typeof b !== "string" || !a || !b) return false;
-  const hashA = crypto.createHash("sha256").update(a).digest();
-  const hashB = crypto.createHash("sha256").update(b).digest();
-  return crypto.timingSafeEqual(hashA, hashB);
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+/** Unwraps a settled result, recording a labelled error when it rejected. */
+function settledValue<T>(label: string, settled: PromiseSettledResult<T>, errors: string[]): T | null {
+  if (settled.status === "fulfilled") return settled.value;
+  console.error(`[ingest] ${label} failed:`, settled.reason);
+  errors.push(`${label}: ${errorMessage(settled.reason)}`);
+  return null;
 }
 
 export async function POST(req: Request) {
@@ -39,23 +39,10 @@ async function handleIngest(req: Request) {
     );
   }
 
-  // Validate authorization if CRON_SECRET is configured
-  if (cronSecret) {
-    const authHeader = req.headers.get("authorization") ?? "";
-    const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-    const bearer = bearerMatch ? bearerMatch[1].trim() : "";
-    const customHeaderSecret = req.headers.get("x-cron-secret")?.trim() ?? "";
-    const { searchParams } = new URL(req.url);
-    const querySecret = searchParams.get("secret")?.trim() ?? "";
-
-    const isAuthorized =
-      timingSafeMatch(bearer, cronSecret) ||
-      timingSafeMatch(customHeaderSecret, cronSecret) ||
-      timingSafeMatch(querySecret, cronSecret);
-
-    if (!isAuthorized) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Validate authorization if CRON_SECRET is configured. Header-only: the
+  // secret must never travel in the URL, where it lands in access logs.
+  if (cronSecret && !hasSecret(req, cronSecret, "x-cron-secret")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const errors: string[] = [];
@@ -67,26 +54,8 @@ async function handleIngest(req: Request) {
       loadHighways(),
     ]);
 
-    const alertsData = alertsSettled.status === "fulfilled" ? alertsSettled.value : null;
-    const highwaysData = highwaysSettled.status === "fulfilled" ? highwaysSettled.value : null;
-
-    if (alertsSettled.status === "rejected") {
-      const errMsg =
-        alertsSettled.reason instanceof Error
-          ? alertsSettled.reason.message
-          : String(alertsSettled.reason);
-      console.error("[ingest] alerts upstream load failed:", alertsSettled.reason);
-      errors.push(`Alerts load: ${errMsg}`);
-    }
-
-    if (highwaysSettled.status === "rejected") {
-      const errMsg =
-        highwaysSettled.reason instanceof Error
-          ? highwaysSettled.reason.message
-          : String(highwaysSettled.reason);
-      console.error("[ingest] highways upstream load failed:", highwaysSettled.reason);
-      errors.push(`Highways load: ${errMsg}`);
-    }
+    const alertsData = settledValue("Alerts load", alertsSettled, errors);
+    const highwaysData = settledValue("Highways load", highwaysSettled, errors);
 
     // 2. Sync to Supabase in parallel with failure isolation
     const [alertSyncSettled, highwaySyncSettled] = await Promise.allSettled([
@@ -98,31 +67,11 @@ async function handleIngest(req: Request) {
         : Promise.resolve(null),
     ]);
 
-    const alertSyncResult =
-      alertSyncSettled.status === "fulfilled" ? alertSyncSettled.value : null;
-    const highwaySyncCount =
-      highwaySyncSettled.status === "fulfilled" ? highwaySyncSettled.value : null;
-
-    if (alertSyncSettled.status === "rejected") {
-      const errMsg =
-        alertSyncSettled.reason instanceof Error
-          ? alertSyncSettled.reason.message
-          : String(alertSyncSettled.reason);
-      console.error("[ingest] alerts Supabase sync failed:", alertSyncSettled.reason);
-      errors.push(`Alerts sync: ${errMsg}`);
-    }
-
-    if (highwaySyncSettled.status === "rejected") {
-      const errMsg =
-        highwaySyncSettled.reason instanceof Error
-          ? highwaySyncSettled.reason.message
-          : String(highwaySyncSettled.reason);
-      console.error("[ingest] highways Supabase sync failed:", highwaySyncSettled.reason);
-      errors.push(`Highways sync: ${errMsg}`);
-    }
+    const alertSyncResult = settledValue("Alerts sync", alertSyncSettled, errors);
+    const highwaySyncCount = settledValue("Highways sync", highwaySyncSettled, errors);
 
     // 3. Trigger automated rolling retention prune safely
-    const supabase = getSupabaseServerClient();
+    const supabase = getSupabaseAdminClient();
     if (supabase) {
       try {
         const { error: pruneErr } = await supabase.rpc("prune_old_satarka_records");
@@ -131,9 +80,8 @@ async function handleIngest(req: Request) {
           errors.push(`Prune RPC: ${pruneErr.message}`);
         }
       } catch (pErr) {
-        const errMsg = pErr instanceof Error ? pErr.message : String(pErr);
         console.error("[ingest] prune_old_satarka_records exception:", pErr);
-        errors.push(`Prune exception: ${errMsg}`);
+        errors.push(`Prune exception: ${errorMessage(pErr)}`);
       }
     }
 
@@ -163,7 +111,7 @@ async function handleIngest(req: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: err instanceof Error ? err.message : String(err),
+        error: errorMessage(err),
       },
       { status: 500 },
     );
