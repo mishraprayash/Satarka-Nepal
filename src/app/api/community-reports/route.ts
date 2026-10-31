@@ -54,13 +54,13 @@ export async function GET(req: Request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("[community-report-list] fetch error:", error);
+      console.error("[community-reports] fetch error:", error);
       throw error;
     }
 
     return NextResponse.json({ reports: data || [] });
   } catch (error) {
-    console.error("[community-report-list] server error:", error);
+    console.error("[community-reports] server error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
