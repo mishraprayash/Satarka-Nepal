@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST, DELETE } from "./route";
-import { GET } from "./list/route";
+import { GET } from "../community-reports/route";
 
 // Mock Supabase server client
 const mockInsert = vi.fn();
@@ -434,7 +434,7 @@ describe("Community Report API (/api/report)", () => {
     });
   });
 
-  describe("GET /api/report/list", () => {
+  describe("GET /api/community-reports", () => {
     it("lists community reports ordered by issued_at", async () => {
       mockQueryBuilder.then = vi.fn().mockImplementation((onFulfilled) => {
         return Promise.resolve(onFulfilled({
@@ -451,7 +451,7 @@ describe("Community Report API (/api/report)", () => {
         }));
       });
 
-      const req = new Request("http://localhost:3000/api/report/list");
+      const req = new Request("http://localhost:3000/api/community-reports");
       const res = await GET(req);
       const json = await res.json();
 
@@ -467,13 +467,13 @@ describe("Community Report API (/api/report)", () => {
         Promise.resolve(onFulfilled({ data: [], error: null })),
       );
 
-      await GET(new Request("http://localhost:3000/api/report/list?all=true"));
+      await GET(new Request("http://localhost:3000/api/community-reports?all=true"));
 
       expect(mockQueryBuilder.eq).toHaveBeenCalledWith("is_active", true);
     });
 
     it("rejects unknown hazard filters", async () => {
-      const res = await GET(new Request("http://localhost:3000/api/report/list?hazard=volcano"));
+      const res = await GET(new Request("http://localhost:3000/api/community-reports?hazard=volcano"));
       expect(res.status).toBe(400);
     });
 
@@ -482,7 +482,7 @@ describe("Community Report API (/api/report)", () => {
         Promise.resolve(onFulfilled({ data: [], error: null })),
       );
 
-      await GET(new Request("http://localhost:3000/api/report/list?district=%25_"));
+      await GET(new Request("http://localhost:3000/api/community-reports?district=%25_"));
 
       expect(mockQueryBuilder.ilike).toHaveBeenCalledWith("district", "%\\%\\_%");
     });
