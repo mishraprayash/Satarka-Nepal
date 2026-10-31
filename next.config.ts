@@ -1,16 +1,7 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
-// @ts-ignore
-import withPWAInit from "next-pwa";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
-
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
-});
 
 const nextConfig: NextConfig = {
   // We normalise every upstream hazard feed through our own /api route
@@ -43,6 +34,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Browsers must always revalidate the worker script so updates roll out.
+        source: "/service-worker.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
@@ -56,4 +55,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(withNextIntl(nextConfig));
+export default withNextIntl(nextConfig);

@@ -46,7 +46,7 @@ Every source is labelled by how honest it can be about its own data — `live`, 
 * **Minimal Layout Shift**: Above-the-fold content renders directly in the initial payload instead of skeleton placeholders that reflow.
 * **Dynamic Code-Splitting**: Dialog and map components (`CommandPalette`, `DisclaimerModal`, `AlertDetailModal`, `AlertMiniMap`, and Leaflet) are loaded on-demand via `next/dynamic`.
 * **Next-Gen Image Formats**: Automatic AVIF and WebP optimization for photographic guides.
-* **Offline last-known snapshot**: When the network drops, `useAlerts` falls back to the last response persisted in `localStorage` and flags it as stale, so the UI shows "last-known from …" rather than pretending it's current. (Note: this is a `localStorage` fallback, not a service worker — the app is installable via `manifest.webmanifest` but does not yet cache assets offline.)
+* **Offline last-known snapshot**: When the network drops, `useAlerts` falls back to the last response persisted in `localStorage` and flags it as stale, so the UI shows "last-known from …" rather than pretending it's current. A small hand-written service worker (`public/service-worker.js`, production only) caches build assets and recently visited pages so the app shell opens offline. It never caches `/api/*`, so hazard data is only ever shown offline through the labelled `localStorage` snapshot.
 
 ### 3. Geospatial Monitoring Console (`/map`)
 * Interactive Leaflet console mapping Nepal's river basins (Koshi, Gandaki/Narayani, Karnali, Mahakali, Bagmati, Babai, West Rapti, Kankai, Mechi, Kamala, Mohana).

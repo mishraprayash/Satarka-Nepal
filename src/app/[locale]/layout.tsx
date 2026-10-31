@@ -7,6 +7,7 @@ import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/site-footer";
 import { AppearanceSync, ThemeBoot } from "@/components/settings-controls";
 import { GlobalNav } from "@/components/global-nav";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -66,6 +67,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <ThemeBoot />
+            <ServiceWorkerRegister />
             <AppearanceSync />
             <a
               href="#main"
