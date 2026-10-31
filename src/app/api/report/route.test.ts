@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST, DELETE } from "./route";
-import { GET } from "./list/route";
+import { GET } from "../community-reports/route";
 
 // Mock Supabase server client
 const mockInsert = vi.fn();
@@ -27,20 +27,48 @@ mockQueryBuilder.order = vi.fn(() => mockQueryBuilder);
 mockQueryBuilder.limit = vi.fn(() => mockQueryBuilder);
 mockQueryBuilder.ilike = vi.fn(() => mockQueryBuilder);
 
+const mockRpc = vi.fn();
+
+const mockClient = () => ({
+  rpc: mockRpc,
+  from: (table: string) => {
+    if (table === "alerts") {
+      return mockQueryBuilder;
+    }
+    return {};
+  },
+});
+
 vi.mock("@/lib/supabase/server", () => ({
-  getSupabaseServerClient: vi.fn(() => ({
-    from: (table: string) => {
-      if (table === "alerts") {
-        return mockQueryBuilder;
-      }
-      return {};
-    },
-  })),
+  getSupabaseServerClient: vi.fn(() => mockClient()),
+  getSupabaseAdminClient: vi.fn(() => mockClient()),
 }));
 
+const validReport = {
+  hazard: "flood",
+  district: "Kathmandu",
+  address: "Balkhu Bridge",
+  description: "Water level is rising rapidly near the river bank",
+};
+
+function postReport(body: unknown, headers: Record<string, string> = {}) {
+  return POST(
+    new Request("http://localhost:3000/api/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
 describe("Community Report API (/api/report)", () => {
+  const origEnv = process.env;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env = { ...origEnv };
+    delete process.env.ADMIN_SECRET;
+    mockRpc.mockResolvedValue({ data: true, error: null });
   });
 
   describe("POST /api/report", () => {
@@ -295,7 +323,81 @@ describe("Community Report API (/api/report)", () => {
     });
   });
 
+  describe("POST /api/report abuse protection", () => {
+    it("silently accepts but does not store honeypot submissions", async () => {
+      const res = await postReport({ ...validReport, website: "http://spam.example" });
+
+      expect(res.status).toBe(200);
+      expect(mockInsert).not.toHaveBeenCalled();
+      expect(mockRpc).not.toHaveBeenCalled();
+    });
+
+    it("returns 429 once the client exceeds the rate limit", async () => {
+      mockRpc.mockResolvedValueOnce({ data: false, error: null });
+
+      const res = await postReport(validReport, { "x-forwarded-for": "203.0.113.7" });
+
+      expect(res.status).toBe(429);
+      expect(res.headers.get("Retry-After")).toBeTruthy();
+      expect(mockInsert).not.toHaveBeenCalled();
+      expect(mockRpc).toHaveBeenCalledWith(
+        "check_report_rate_limit",
+        expect.objectContaining({ p_key: expect.stringMatching(/^[0-9a-f]{64}$/) }),
+      );
+    });
+
+    it("fails open when the rate limiter errors", async () => {
+      mockRpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
+      mockInsert.mockResolvedValueOnce({ error: null });
+
+      const res = await postReport(validReport);
+
+      expect(res.status).toBe(200);
+      expect(mockInsert).toHaveBeenCalled();
+    });
+  });
+
   describe("DELETE /api/report", () => {
+    it("rejects requests without the admin secret when one is configured", async () => {
+      process.env.ADMIN_SECRET = "admin-key";
+
+      const res = await DELETE(
+        new Request("http://localhost:3000/api/report?id=com-1&secret=admin-key", {
+          method: "DELETE",
+        }),
+      );
+
+      expect(res.status).toBe(401);
+    });
+
+    it("does not accept CRON_SECRET as the admin secret", async () => {
+      process.env.ADMIN_SECRET = "admin-key";
+      process.env.CRON_SECRET = "cron-key";
+
+      const res = await DELETE(
+        new Request("http://localhost:3000/api/report?id=com-1", {
+          method: "DELETE",
+          headers: { authorization: "Bearer cron-key" },
+        }),
+      );
+
+      expect(res.status).toBe(401);
+    });
+
+    it("accepts the admin secret via x-admin-key", async () => {
+      process.env.ADMIN_SECRET = "admin-key";
+      mockSelect.mockResolvedValueOnce({ data: [{ id: "com-1" }], error: null });
+
+      const res = await DELETE(
+        new Request("http://localhost:3000/api/report?id=com-1", {
+          method: "DELETE",
+          headers: { "x-admin-key": "admin-key" },
+        }),
+      );
+
+      expect(res.status).toBe(200);
+    });
+
     it("deletes a community report by ID", async () => {
       mockSelect.mockResolvedValueOnce({ data: [{ id: "com-12345" }], error: null });
 
@@ -332,7 +434,7 @@ describe("Community Report API (/api/report)", () => {
     });
   });
 
-  describe("GET /api/report/list", () => {
+  describe("GET /api/community-reports", () => {
     it("lists community reports ordered by issued_at", async () => {
       mockQueryBuilder.then = vi.fn().mockImplementation((onFulfilled) => {
         return Promise.resolve(onFulfilled({
@@ -349,7 +451,7 @@ describe("Community Report API (/api/report)", () => {
         }));
       });
 
-      const req = new Request("http://localhost:3000/api/report/list");
+      const req = new Request("http://localhost:3000/api/community-reports");
       const res = await GET(req);
       const json = await res.json();
 
@@ -357,6 +459,32 @@ describe("Community Report API (/api/report)", () => {
       expect(Array.isArray(json.reports)).toBe(true);
       expect(json.reports.length).toBe(1);
       expect(json.reports[0].id).toBe("com-1");
+    });
+
+    it("only returns active reports when ?all=true lacks the admin secret", async () => {
+      process.env.ADMIN_SECRET = "admin-key";
+      mockQueryBuilder.then = vi.fn().mockImplementation((onFulfilled) =>
+        Promise.resolve(onFulfilled({ data: [], error: null })),
+      );
+
+      await GET(new Request("http://localhost:3000/api/community-reports?all=true"));
+
+      expect(mockQueryBuilder.eq).toHaveBeenCalledWith("is_active", true);
+    });
+
+    it("rejects unknown hazard filters", async () => {
+      const res = await GET(new Request("http://localhost:3000/api/community-reports?hazard=volcano"));
+      expect(res.status).toBe(400);
+    });
+
+    it("escapes LIKE wildcards in the district filter", async () => {
+      mockQueryBuilder.then = vi.fn().mockImplementation((onFulfilled) =>
+        Promise.resolve(onFulfilled({ data: [], error: null })),
+      );
+
+      await GET(new Request("http://localhost:3000/api/community-reports?district=%25_"));
+
+      expect(mockQueryBuilder.ilike).toHaveBeenCalledWith("district", "%\\%\\_%");
     });
   });
 });

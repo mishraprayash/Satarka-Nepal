@@ -8,14 +8,15 @@ import { SOURCES } from "@/lib/sources";
 let serverClient: SupabaseClient<Database> | null = null;
 let adminClient: SupabaseClient<Database> | null = null;
 
+/**
+ * Public read client (anon key), so row-level security applies to every read.
+ * Writes must go through getSupabaseAdminClient().
+ */
 export function getSupabaseServerClient(): SupabaseClient<Database> | null {
-  if (!CONFIG.supabase.url) return null;
-
-  const key = CONFIG.supabase.serviceRoleKey || CONFIG.supabase.anonKey;
-  if (!key) return null;
+  if (!CONFIG.supabase.url || !CONFIG.supabase.anonKey) return null;
 
   if (!serverClient) {
-    serverClient = createClient<Database>(CONFIG.supabase.url, key, {
+    serverClient = createClient<Database>(CONFIG.supabase.url, CONFIG.supabase.anonKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -26,6 +27,7 @@ export function getSupabaseServerClient(): SupabaseClient<Database> | null {
   return serverClient;
 }
 
+/** Service-role client for server-side writes only; bypasses RLS. */
 export function getSupabaseAdminClient(): SupabaseClient<Database> | null {
   if (!CONFIG.supabase.url || !CONFIG.supabase.serviceRoleKey) return null;
 
