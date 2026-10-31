@@ -66,6 +66,14 @@ export type Database = {
         };
         Returns: AlertRow[];
       };
+      check_report_rate_limit: {
+        Args: {
+          p_key: string;
+          p_limit: number;
+          p_window_seconds: number;
+        };
+        Returns: boolean;
+      };
       deactivate_stale_alerts: {
         Args: {
           p_source_ids: string[];

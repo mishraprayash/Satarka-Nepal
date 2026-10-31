@@ -21,7 +21,7 @@ vi.mock("@/lib/supabase/sync", () => ({
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  getSupabaseServerClient: vi.fn(() => ({
+  getSupabaseAdminClient: vi.fn(() => ({
     rpc: mockRpc,
   })),
 }));
@@ -100,24 +100,15 @@ describe("Ingest API Route (/api/ingest)", () => {
       expect(json.ok).toBe(true);
     });
 
-    it("accepts valid secret via ?secret= query parameter", async () => {
+    it("rejects a secret passed in the query string", async () => {
       process.env.CRON_SECRET = "super-secret-key";
-      mockLoadAllAlerts.mockResolvedValueOnce({ alerts: [], sources: [] });
-      mockLoadHighways.mockResolvedValueOnce([]);
-      mockSyncAlertsToSupabase.mockResolvedValueOnce({
-        alertsSynced: 0,
-        telemetryRecorded: 0,
-        staleDeactivated: 0,
-      });
-      mockSyncHighwaysToSupabase.mockResolvedValueOnce(0);
 
       const req = new Request("http://localhost:3000/api/ingest?secret=super-secret-key", {
         method: "POST",
       });
       const res = await POST(req);
-      expect(res.status).toBe(200);
-      const json = await res.json();
-      expect(json.ok).toBe(true);
+      expect(res.status).toBe(401);
+      expect(mockLoadAllAlerts).not.toHaveBeenCalled();
     });
   });
 

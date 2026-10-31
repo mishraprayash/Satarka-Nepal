@@ -115,9 +115,10 @@ export default function ReportPage() {
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    const honeypot = (e.currentTarget.elements.namedItem("website") as HTMLInputElement | null)?.value ?? "";
 
     const trimmedDistrict = formData.district.trim();
     const trimmedAddress = formData.address.trim();
@@ -202,6 +203,7 @@ export default function ReportPage() {
           description: trimmedDescription,
           lat: latNum,
           lng: lngNum,
+          website: honeypot,
         }),
       });
 
@@ -563,6 +565,13 @@ export default function ReportPage() {
             </p>
 
             <form onSubmit={handleSubmit} className="mt-5 space-y-6">
+              {/* Honeypot for bots: hidden from people and assistive tech, never filled in by hand. */}
+              <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+                <label>
+                  Website
+                  <input type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
+                </label>
+              </div>
               <fieldset>
                 <legend className="mb-2 text-lg font-semibold">
                   {locale === "ne" ? "१. के भएको छ?" : "1. What is happening?"}
