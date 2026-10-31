@@ -136,34 +136,3 @@ export async function getHighwaysFromDb(): Promise<HighwaysResponse | null> {
     return null;
   }
 }
-
-/**
- * PostGIS spatial query: returns alerts within radiusKm of given lat/lng.
- */
-export async function getAlertsNearFromDb(
-  lat: number,
-  lng: number,
-  radiusKm = 25,
-): Promise<Alert[] | null> {
-  const supabase = getSupabaseServerClient();
-  if (!supabase) return null;
-
-  try {
-    const { data, error } = await supabase.rpc("get_alerts_near_point", {
-      p_lat: lat,
-      p_lng: lng,
-      p_radius_km: radiusKm,
-      p_limit: 30,
-    });
-
-    if (error) {
-      console.warn("[supabase] spatial RPC failed:", error.message);
-      return null;
-    }
-
-    return (data ?? []).map(alertRowToAlert);
-  } catch (err) {
-    console.warn("[supabase] spatial query exception:", err);
-    return null;
-  }
-}

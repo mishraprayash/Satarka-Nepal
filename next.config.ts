@@ -35,6 +35,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        // Older installs and crawlers still request /manifest.json; serve the
+        // single source of truth instead of keeping a duplicate file.
         source: "/manifest.json",
         destination: "/manifest.webmanifest",
       },

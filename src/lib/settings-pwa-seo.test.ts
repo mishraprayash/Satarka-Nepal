@@ -188,31 +188,28 @@ describe("SEO & Route Inclusions (sitemap.ts & robots.ts)", () => {
 });
 
 describe("PWA Manifest Verification", () => {
-  it("public/manifest.json and public/manifest.webmanifest exist and are valid JSON", () => {
-    const manifestJsonPath = path.resolve(process.cwd(), "public/manifest.json");
+  it("public/manifest.webmanifest is the single, valid manifest", () => {
     const webmanifestPath = path.resolve(process.cwd(), "public/manifest.webmanifest");
 
-    expect(fs.existsSync(manifestJsonPath)).toBe(true);
     expect(fs.existsSync(webmanifestPath)).toBe(true);
+    // /manifest.json is served by a rewrite, not a duplicate file that can drift.
+    expect(fs.existsSync(path.resolve(process.cwd(), "public/manifest.json"))).toBe(false);
 
-    const manifestJson = JSON.parse(fs.readFileSync(manifestJsonPath, "utf-8"));
-    const webmanifest = JSON.parse(fs.readFileSync(webmanifestPath, "utf-8"));
+    const manifest = JSON.parse(fs.readFileSync(webmanifestPath, "utf-8"));
 
-    expect(manifestJson.name).toContain("Satarka");
-    expect(manifestJson.short_name).toBe("Satarka");
-    expect(manifestJson.display).toBe("standalone");
-    expect(manifestJson.orientation).toBe("any");
-    expect(manifestJson.theme_color).toBe("#090a0f");
-    expect(manifestJson.background_color).toBe("#090a0f");
-    expect(manifestJson.start_url).toBe("/");
-    expect(manifestJson.scope).toBe("/");
+    expect(manifest.name).toContain("Satarka");
+    expect(manifest.short_name).toBe("Satarka");
+    expect(manifest.display).toBe("standalone");
+    expect(manifest.orientation).toBe("any");
+    expect(manifest.theme_color).toBe("#090a0f");
+    expect(manifest.background_color).toBe("#090a0f");
+    expect(manifest.start_url).toBe("/");
+    expect(manifest.scope).toBe("/");
 
     // Required raster icons for PWA installability
-    const iconSrcs = manifestJson.icons.map((i: { src: string }) => i.src);
+    const iconSrcs = manifest.icons.map((i: { src: string }) => i.src);
     expect(iconSrcs).toContain("/icon-192.png");
     expect(iconSrcs).toContain("/icon-512.png");
-
-    expect(webmanifest).toEqual(manifestJson);
   });
 
   it("raster icon files exist on disk in public/", () => {
